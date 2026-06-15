@@ -46,16 +46,28 @@ function Onboarding() {
       }
     }
 
-    // Cria empresa + usuário via função SECURITY DEFINER (bypassa RLS)
-    const { data: empresaId, error: rpcErr } = await supabase.rpc("criar_empresa_onboarding", {
-      p_nome: nome.trim(),
-      p_accent_color: cor,
-      p_logo_url: logo_url,
-      p_user_nome: user.user_metadata?.nome ?? "Você",
-      p_user_email: user.email ?? "",
-    });
-    if (rpcErr || !empresaId) {
-      setErro(`Erro ao criar empresa: ${rpcErr?.message ?? "sem dados"}`);
+    // Cria empresa
+    const { data: empresaData, error: empresaErr } = await supabase
+      .from("empresas")
+      .insert({ nome: nome.trim(), accent_color: cor, logo_url })
+      .select("id")
+      .single();
+    if (empresaErr || !empresaData) {
+      setErro(`Erro ao criar empresa: ${empresaErr?.message ?? "sem dados"}`);
+      setLoading(false); return;
+    }
+
+    // Cria usuário vinculado
+    const { error: usuarioErr } = await supabase
+      .from("usuarios")
+      .insert({
+        id: user.id,
+        empresa_id: empresaData.id,
+        nome: user.user_metadata?.nome ?? "Você",
+        email: user.email ?? "",
+      });
+    if (usuarioErr) {
+      setErro(`Erro ao criar usuário: ${usuarioErr.message}`);
       setLoading(false); return;
     }
 
