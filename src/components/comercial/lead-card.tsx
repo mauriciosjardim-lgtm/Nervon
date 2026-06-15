@@ -1,0 +1,123 @@
+import { useDraggable } from "@dnd-kit/core";
+import { Flame, Snowflake, Thermometer, AlertCircle, Calendar, Building2, DollarSign, User, X } from "lucide-react";
+import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { type Lead, getEmpresa, getContato, fmtBRL } from "@/lib/hooks/useComercial";
+import { cn } from "@/lib/utils";
+
+const TEMPS = {
+  frio:   { icon: Snowflake,   label: "Frio",   color: "var(--info)",        text: "text-info",        glow: "shadow-[0_0_10px_var(--info)]" },
+  morno:  { icon: Thermometer, label: "Morno",  color: "var(--warning)",     text: "text-warning",     glow: "shadow-[0_0_10px_var(--warning)]" },
+  quente: { icon: Flame,       label: "Quente", color: "var(--destructive)", text: "text-destructive", glow: "shadow-[0_0_12px_var(--destructive)]" },
+} as const;
+
+function quando(iso: string) {
+  const d = new Date(iso);
+  if (isToday(d)) return `hoje, ${format(d, "HH:mm", { locale: ptBR })}`;
+  return formatDistanceToNow(d, { locale: ptBR, addSuffix: true });
+}
+
+export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: string) => void; onRemove?: (id: string) => void }) {
+  const empresa = getEmpresa(lead.empresaId);
+  const contato = getContato(lead.contatoId);
+  const temp = TEMPS[lead.temperatura];
+  const TempIcon = temp.icon;
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: lead.id,
+    data: { etapa: lead.etapa },
+  });
+
+  const atrasada = lead.proximaAcao && isPast(new Date(lead.proximaAcao.data));
+  const semAcao = !lead.proximaAcao;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined }}
+      {...attributes}
+      {...listeners}
+      onClick={(e) => {
+        if (isDragging) return;
+        e.preventDefault();
+        onOpen(lead.id);
+      }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === "Enter" && !isDragging) onOpen(lead.id); }}
+      className={cn(
+        "group/card relative w-full select-none text-left rounded-2xl border border-border bg-card p-4 shadow-sm transition-all cursor-pointer",
+        "hover:border-primary/40 hover:shadow-[0_10px_30px_-14px_oklch(0_0_0/0.7)] hover:-translate-y-0.5",
+        isDragging && "opacity-60 ring-2 ring-primary cursor-grabbing rotate-1",
+      )}
+    >
+      {onRemove && (
+        <button
+          onClick={e => { e.stopPropagation(); onRemove(lead.id); }}
+          className="absolute left-2 top-2 z-10 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-muted-foreground/40 opacity-0 transition-opacity group-hover/card:opacity-100 hover:bg-destructive/80 hover:text-white"
+          title="Remover lead"
+        >
+          <X className="size-3" />
+        </button>
+      )}
+
+      {/* Bolinha de temperatura no canto */}
+      <span
+        title={`Temperatura: ${temp.label}`}
+        className={cn("absolute right-3 top-3 size-2 rounded-full", temp.glow)}
+        style={{ background: `var(--${lead.temperatura === "frio" ? "info" : lead.temperatura === "morno" ? "warning" : "destructive"})` }}
+      />
+
+      {/* Empresa */}
+      <p className="flex items-center gap-1.5 pr-5 text-[14px] font-semibold leading-tight text-foreground">
+        <Building2 className="size-3.5 shrink-0 text-primary" /> {empresa?.nome}
+      </p>
+
+      {/* Contato */}
+      <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+        <User className="size-3.5 shrink-0 text-primary" /> {contato?.nome}
+      </p>
+
+      {/* Valor */}
+      <div className="mt-3 flex items-center justify-between">
+        <p className="font-display text-lg font-semibold tracking-tight text-foreground">
+          <DollarSign className="mr-1 inline size-4 align-[-2px] text-primary" /> {fmtBRL(lead.valor)}
+        </p>
+        <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium", temp.text)}>
+          <TempIcon className="size-3" /> {temp.label}
+        </span>
+      </div>
+
+      {/* Próxima ação — bloco destacado */}
+      <div className={cn(
+        "mt-3 rounded-lg border px-2.5 py-2",
+        semAcao && "border-destructive/30 bg-destructive/5",
+        !semAcao && atrasada && "border-destructive/30 bg-destructive/5",
+        !semAcao && !atrasada && "border-border/60 bg-surface-1/60",
+      )}>
+        {semAcao ? (
+          <div className="flex items-center gap-1.5 text-[11px] text-destructive">
+            <AlertCircle className="size-3" /> Sem próxima ação
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Calendar className="size-3 text-primary" /> Próxima ação
+            </div>
+            <p className="mt-0.5 truncate text-[12px] font-medium text-foreground">
+              {lead.proximaAcao!.titulo}
+            </p>
+            <p className={cn("mt-0.5 text-[10px] tabular-nums", atrasada ? "text-destructive font-medium" : "text-muted-foreground")}>
+              {atrasada ? "Atrasada · " : ""}{quando(lead.proximaAcao!.data)}
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* Responsável */}
+      <p className="mt-2.5 truncate text-[10px] uppercase tracking-wider text-muted-foreground/80">
+        {lead.responsavel}
+      </p>
+    </div>
+  );
+}

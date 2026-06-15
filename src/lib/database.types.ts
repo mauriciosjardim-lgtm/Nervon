@@ -1,0 +1,301 @@
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
+export interface Database {
+  public: {
+    Tables: {
+      empresas: {
+        Row: {
+          id: string;
+          nome: string;
+          logo_url: string | null;
+          accent_color: string | null;
+          criado_em: string;
+        };
+        Insert: { id?: string; nome: string; logo_url?: string | null; accent_color?: string | null; criado_em?: string };
+        Update: Partial<Database["public"]["Tables"]["empresas"]["Insert"]>;
+        Relationships: [];
+      };
+      usuarios: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          nome: string;
+          email: string;
+          cargo: string | null;
+          criado_em: string;
+        };
+        Insert: { id: string; empresa_id: string; nome: string; email: string; cargo?: string | null; criado_em?: string };
+        Update: Partial<Database["public"]["Tables"]["usuarios"]["Insert"]>;
+        Relationships: [];
+      };
+      clientes: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          nome: string;
+          email: string | null;
+          telefone: string | null;
+          empresa: string | null;
+          status: "lead" | "contato" | "proposta" | "cliente" | "inativo";
+          notas: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; nome: string; email?: string | null; telefone?: string | null;
+          empresa?: string | null; status?: "lead" | "contato" | "proposta" | "cliente" | "inativo";
+          notas?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["clientes"]["Insert"]>;
+        Relationships: [];
+      };
+      projetos: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          nome: string;
+          cliente: string;
+          descricao: string | null;
+          fase: "briefing" | "pre" | "captacao" | "edicao" | "revisao" | "entrega" | "concluido" | "pausado";
+          progresso: number;
+          fases: string[];
+          equipe: string[];
+          data_inicio: string;
+          data_entrega: string;
+          valor: number;
+          cor: string;
+          notas: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; nome: string; cliente: string; descricao?: string | null;
+          fase?: "briefing" | "pre" | "captacao" | "edicao" | "revisao" | "entrega" | "concluido" | "pausado";
+          progresso?: number; fases?: string[]; equipe?: string[];
+          data_inicio: string; data_entrega: string; valor?: number; cor?: string; notas?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["projetos"]["Insert"]>;
+        Relationships: [];
+      };
+      tarefas: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          projeto_id: string;
+          titulo: string;
+          descricao: string | null;
+          status: string;
+          concluida: boolean;
+          responsavel: string;
+          prazo: string | null;
+          prioridade: "baixa" | "media" | "alta" | "urgente";
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; projeto_id: string; titulo: string; descricao?: string | null;
+          status?: string; concluida?: boolean; responsavel?: string; prazo?: string | null;
+          prioridade?: "baixa" | "media" | "alta" | "urgente"; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["tarefas"]["Insert"]>;
+        Relationships: [];
+      };
+      marcos: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          projeto_id: string;
+          titulo: string;
+          data: string;
+          status: "pendente" | "concluido" | "atrasado";
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; projeto_id: string; titulo: string; data: string;
+          status?: "pendente" | "concluido" | "atrasado"; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["marcos"]["Insert"]>;
+        Relationships: [];
+      };
+      entregaveis: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          projeto_id: string;
+          titulo: string;
+          tipo: "video" | "foto" | "doc" | "design" | "audio" | "outro";
+          status: "pendente" | "em_revisao" | "aprovado" | "entregue";
+          link: string | null;
+          notas: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; projeto_id: string; titulo: string;
+          tipo?: "video" | "foto" | "doc" | "design" | "audio" | "outro";
+          status?: "pendente" | "em_revisao" | "aprovado" | "entregue";
+          link?: string | null; notas?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["entregaveis"]["Insert"]>;
+        Relationships: [];
+      };
+      financeiro: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          projeto_id: string | null;
+          tipo: "receita" | "despesa";
+          categoria: string;
+          descricao: string;
+          valor: number;
+          data: string;
+          vencimento: string | null;
+          pagamento_em: string | null;
+          cliente: string | null;
+          forma_pagamento: string | null;
+          observacoes: string | null;
+          status: "previsto" | "recebido" | "pago" | "atrasado" | "cancelado";
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; projeto_id?: string | null;
+          tipo: "receita" | "despesa"; categoria: string; descricao: string; valor: number;
+          data: string; vencimento?: string | null; pagamento_em?: string | null;
+          cliente?: string | null; forma_pagamento?: string | null; observacoes?: string | null;
+          status?: "previsto" | "recebido" | "pago" | "atrasado" | "cancelado"; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["financeiro"]["Insert"]>;
+        Relationships: [];
+      };
+      clientes_comercial: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          nome: string;
+          segmento: string;
+          cidade: string;
+          site: string | null;
+          instagram: string | null;
+          observacoes: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; nome: string; segmento?: string; cidade?: string;
+          site?: string | null; instagram?: string | null; observacoes?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["clientes_comercial"]["Insert"]>;
+        Relationships: [];
+      };
+      contatos_comercial: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          cliente_id: string;
+          nome: string;
+          cargo: string;
+          email: string;
+          telefone: string;
+          principal: boolean;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; cliente_id: string; nome: string;
+          cargo?: string; email?: string; telefone?: string; principal?: boolean; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["contatos_comercial"]["Insert"]>;
+        Relationships: [];
+      };
+      leads: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          cliente_id: string;
+          contato_id: string;
+          etapa: "novo" | "diagnostico" | "reuniao" | "proposta" | "negociacao" | "fechado" | "perdido";
+          valor: number;
+          responsavel: string;
+          temperatura: "frio" | "morno" | "quente";
+          origem: string;
+          proxima_acao: Json | null;
+          observacoes: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; cliente_id: string; contato_id: string;
+          etapa?: "novo" | "diagnostico" | "reuniao" | "proposta" | "negociacao" | "fechado" | "perdido";
+          valor?: number; responsavel?: string; temperatura?: "frio" | "morno" | "quente";
+          origem?: string; proxima_acao?: Json | null; observacoes?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["leads"]["Insert"]>;
+        Relationships: [];
+      };
+      timeline_lead: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          lead_id: string;
+          tipo: "criado" | "ligacao" | "reuniao" | "whatsapp" | "email" | "proposta_enviada" | "observacao" | "etapa_mudou" | "fechado" | "perdido";
+          titulo: string;
+          descricao: string | null;
+          quando: string;
+          autor: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; lead_id: string;
+          tipo: "criado" | "ligacao" | "reuniao" | "whatsapp" | "email" | "proposta_enviada" | "observacao" | "etapa_mudou" | "fechado" | "perdido";
+          titulo: string; descricao?: string | null; quando?: string; autor?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["timeline_lead"]["Insert"]>;
+        Relationships: [];
+      };
+      tarefas_lead: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          lead_id: string;
+          titulo: string;
+          responsavel: string;
+          prazo: string;
+          feita: boolean;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; lead_id: string; titulo: string;
+          responsavel?: string; prazo: string; feita?: boolean; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["tarefas_lead"]["Insert"]>;
+        Relationships: [];
+      };
+      eventos: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          titulo: string;
+          descricao: string | null;
+          inicio: string;
+          fim: string;
+          dia_todo: boolean;
+          tipo: "reuniao" | "gravacao" | "entrega" | "tarefa" | "outro";
+          local: string | null;
+          participantes: string[];
+          ref_tipo: "projeto" | "tarefa" | "marco" | null;
+          ref_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string; empresa_id: string; titulo: string; descricao?: string | null;
+          inicio: string; fim: string; dia_todo?: boolean;
+          tipo?: "reuniao" | "gravacao" | "entrega" | "tarefa" | "outro";
+          local?: string | null; participantes?: string[] | null;
+          ref_tipo?: "projeto" | "tarefa" | "marco" | null; ref_id?: string | null; criado_em?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["eventos"]["Insert"]>;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      minha_empresa_id: { Args: Record<string, never>; Returns: string };
+      criar_empresa_onboarding: {
+        Args: { p_nome: string; p_accent_color: string; p_logo_url: string | null; p_user_nome: string; p_user_email: string };
+        Returns: string;
+      };
+    };
+  };
+}

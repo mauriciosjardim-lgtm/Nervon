@@ -1,0 +1,94 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Calculator, Sparkles, Trash2, History } from "lucide-react";
+import { TipoCard } from "@/components/orcamentos/tipo-card";
+import { TIPOS_ORCAMENTO, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
+
+export const Route = createFileRoute("/orcamentos/")({
+  head: () => ({ meta: [{ title: "Orçamentos — Nervon" }] }),
+  component: OrcamentosIndex,
+});
+
+const TIPOS_LISTA: TipoOrcamento[] = ["institucional", "mensal", "podcast", "captacao", "edicao", "fotografia", "custom"];
+
+function OrcamentosIndex() {
+  const { orcamentos, templates } = useOrcamentos();
+
+  return (
+    <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
+      <header className="mb-10 text-center">
+        <p className="flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <Calculator className="size-3.5 text-primary" /> Orçamentos inteligentes
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          O que você deseja orçar hoje?
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Responda algumas perguntas e o Nervon calcula custo, preço e lucro automaticamente.
+        </p>
+      </header>
+
+      <section>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {TIPOS_LISTA.map(t => <TipoCard key={t} tipo={t} />)}
+        </div>
+      </section>
+
+      {templates.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-4 flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <h2 className="font-display text-lg font-semibold tracking-tight">Templates</h2>
+            <p className="text-xs text-muted-foreground">Comece de um modelo pronto.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {templates.map(tpl => (
+              <Link
+                key={tpl.id}
+                to="/orcamentos/novo"
+                search={{ tipo: tpl.tipo, template: tpl.id }}
+                className="group flex items-center gap-3 rounded-xl border border-border/60 bg-surface-1/40 p-4 transition hover:border-primary/40 hover:bg-surface-1"
+              >
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-xl ring-1 ring-primary/20">{tpl.icone}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{tpl.nome}</p>
+                  <p className="truncate text-xs text-muted-foreground">{TIPOS_ORCAMENTO[tpl.tipo].label}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-12">
+        <div className="mb-4 flex items-center gap-2">
+          <History className="size-4 text-muted-foreground" />
+          <h2 className="font-display text-lg font-semibold tracking-tight">Orçamentos recentes</h2>
+        </div>
+        {orcamentos.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-surface-1/30 p-10 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum orçamento criado ainda. Escolha um tipo acima para começar.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {orcamentos.map(o => (
+              <div key={o.id} className="group flex items-center gap-4 rounded-xl border border-border/60 bg-surface-1/40 p-4 transition hover:border-primary/30">
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-lg ring-1 ring-primary/20">{TIPOS_ORCAMENTO[o.tipo].icone}</span>
+                <Link to="/orcamentos/$id" params={{ id: o.id }} className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{o.geral.nomeProjeto || "Sem nome"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{o.geral.cliente || "—"} · {new Date(o.criadoEm).toLocaleDateString("pt-BR")}</p>
+                </Link>
+                <div className="text-right">
+                  <p className="font-display text-base font-semibold tabular-nums text-primary">{fmtBRL(o.calculo.precoSugerido)}</p>
+                  <p className="text-[11px] text-muted-foreground">margem {o.calculo.margem}%</p>
+                </div>
+                <button onClick={() => orcamentosActions.remover(o.id)} className="rounded-md p-1.5 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100">
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

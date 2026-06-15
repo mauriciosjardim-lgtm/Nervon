@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nervon",
+      "runtimeExecutable": "/Users/rastro/.bun/bin/bun",
+      "runtimeArgs": ["run", "dev"],
+      "port": 8080
+    }
+  ]
+}
