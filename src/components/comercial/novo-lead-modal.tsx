@@ -98,7 +98,7 @@ export function NovoLeadModal({
         <div className="grid gap-3 py-2">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Empresa *">
-              <Input value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="REMAX Premier" />
+              <Input value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="Nome da empresa" />
             </Field>
             <Field label="Contato *">
               <Input value={contato} onChange={(e) => setContato(e.target.value)} placeholder="João Silva" />
