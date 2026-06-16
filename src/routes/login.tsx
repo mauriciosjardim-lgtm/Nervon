@@ -47,10 +47,7 @@ function Login() {
     } else {
       const { error } = await signUp(email, senha, nome);
       if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
-      // Mostra tela de confirmação — não navega ainda
-      setEmailEnviado(email);
-      setAguardandoEmail(true);
-      setLoading(false);
+      navigate({ to: "/" });
     }
   };
 
