@@ -8,8 +8,14 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    define: {
+      // Override Lovable's VITE_* env injection with the correct Supabase project
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://emivrhkmwqofylsedyxa.supabase.co"),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs"),
+      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs"),
+    },
   },
 });
