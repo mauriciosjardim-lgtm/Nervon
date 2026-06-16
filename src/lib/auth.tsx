@@ -76,7 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, nome: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { nome } } });
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options: {
+        data: { nome },
+        emailRedirectTo: window.location.origin,
+      },
+    });
     if (error || !data.user) return { error: error?.message ?? "Erro ao criar conta" };
     return { error: null };
   };
