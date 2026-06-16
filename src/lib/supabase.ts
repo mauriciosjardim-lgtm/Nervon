@@ -1,12 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string;
-const key = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) as string;
+// Hardcoded to prevent Lovable's build from injecting wrong credentials
+const SUPABASE_URL = "https://emivrhkmwqofylsedyxa.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs";
 
-if (!url || !key) throw new Error("Supabase env vars missing");
-
-export const supabase = createClient<Database>(url, key, {
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
