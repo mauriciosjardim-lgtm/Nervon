@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Mail } from "lucide-react";
 import { AuthBackground } from "@/components/auth-background";
+import { LogoNervon } from "@/components/logo-nervon";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -85,10 +86,7 @@ function Login() {
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_32px_-4px_var(--primary)]">
-            <span className="font-display text-xl font-bold">M</span>
-            <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
-          </div>
+          <LogoNervon className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
           <div className="text-center">
             <h1 className="font-display text-xl font-semibold">Nervon</h1>
             <p className="text-xs text-muted-foreground">O Hub Completo para Produtoras de Audiovisual</p>

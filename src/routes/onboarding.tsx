@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { COR_PRESETS, applyBrandColor } from "@/lib/brandColor";
+import { LogoNervon } from "@/components/logo-nervon";
 
 export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
@@ -89,9 +90,7 @@ function Onboarding() {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="relative mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_32px_-4px_var(--primary)]">
-            <span className="font-display text-xl font-bold">M</span>
-          </div>
+          <LogoNervon className="mx-auto mb-4 h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
           <h1 className="font-display text-2xl font-semibold">Boas-vindas ao Nervon</h1>
           <p className="mt-1 text-sm text-muted-foreground">Vamos configurar sua produtora em 2 passos</p>
         </div>
