@@ -11,7 +11,9 @@ export const Route = createFileRoute("/orcamentos/")({
 const TIPOS_LISTA: TipoOrcamento[] = ["institucional", "mensal", "podcast", "captacao", "edicao", "fotografia", "custom"];
 
 function OrcamentosIndex() {
-  const { orcamentos, templates } = useOrcamentos();
+  const { orcamentos, templates: todosTemplates } = useOrcamentos();
+  // Por enquanto só o tipo personalizado está ativo — esconde templates de tipos ainda não liberados.
+  const templates = todosTemplates.filter(t => t.tipo === "custom");
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
@@ -29,7 +31,7 @@ function OrcamentosIndex() {
 
       <section>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {TIPOS_LISTA.map(t => <TipoCard key={t} tipo={t} />)}
+          {TIPOS_LISTA.map(t => <TipoCard key={t} tipo={t} disabled={t !== "custom"} />)}
         </div>
       </section>
 

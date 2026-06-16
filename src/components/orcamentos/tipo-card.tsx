@@ -2,9 +2,33 @@ import { Link } from "@tanstack/react-router";
 import { TIPOS_ORCAMENTO, TIPO_ICONS, type TipoOrcamento } from "@/lib/mock/orcamentos";
 import { cn } from "@/lib/utils";
 
-export function TipoCard({ tipo, className }: { tipo: TipoOrcamento; className?: string }) {
+export function TipoCard({ tipo, className, disabled }: { tipo: TipoOrcamento; className?: string; disabled?: boolean }) {
   const t = TIPOS_ORCAMENTO[tipo];
   const Icon = TIPO_ICONS[tipo];
+
+  if (disabled) {
+    return (
+      <div
+        title="Em breve"
+        className={cn(
+          "relative flex cursor-not-allowed flex-col gap-3 overflow-hidden rounded-2xl border border-dashed border-border/50 bg-surface-1/20 p-5 text-left opacity-60",
+          className,
+        )}
+      >
+        <div className="relative grid size-12 place-items-center rounded-xl bg-surface-2 text-muted-foreground ring-1 ring-border/40">
+          <Icon className="size-5" />
+        </div>
+        <div className="relative">
+          <h3 className="font-display text-base font-semibold tracking-tight">{t.label}</h3>
+          <p className="mt-1 text-xs text-muted-foreground">{t.descricao}</p>
+        </div>
+        <span className="relative mt-auto inline-flex w-fit rounded-md border border-border/60 bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+          Em breve
+        </span>
+      </div>
+    );
+  }
+
   return (
     <Link
       to="/orcamentos/novo"
