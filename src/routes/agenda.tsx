@@ -51,16 +51,6 @@ function AgendaPage() {
           <p className="text-xs text-muted-foreground">{eventos.length} eventos no total</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled
-            title="Em breve"
-            className="inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium opacity-60"
-          >
-            <GoogleCalendarIcon className="size-4" />
-            <span className="hidden sm:inline">Conectar Google Agenda</span>
-            <span className="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Em breve</span>
-          </button>
           <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}>
             <TabsList className="h-8">
               <TabsTrigger value="mes" className="text-xs">Mês</TabsTrigger>
@@ -91,6 +81,16 @@ function Legenda({ onNovo }: { onNovo: () => void }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-surface-1/40 px-2 py-2">
       <Button size="sm" onClick={onNovo} className="shrink-0"><Plus className="size-4" /> Novo evento</Button>
+      <button
+        type="button"
+        disabled
+        title="Em breve"
+        className="inline-flex shrink-0 cursor-not-allowed items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium opacity-60"
+      >
+        <GoogleCalendarIcon className="size-4" />
+        <span className="hidden sm:inline">Conectar Google Agenda</span>
+        <span className="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Em breve</span>
+      </button>
       <span className="mx-0.5 h-5 w-px shrink-0 bg-border/60" aria-hidden />
       {Object.entries(TIPOS).map(([id, t]) => (
         <span key={id} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
