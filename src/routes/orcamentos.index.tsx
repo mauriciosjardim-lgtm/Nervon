@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Calculator, Sparkles, Trash2, History } from "lucide-react";
+import { useState } from "react";
+import { Calculator, Sparkles, Trash2, History, SlidersHorizontal } from "lucide-react";
 import { TipoCard } from "@/components/orcamentos/tipo-card";
+import { PrecosModal } from "@/components/orcamentos/precos-modal";
+import { Button } from "@/components/ui/button";
 import { TIPOS_ORCAMENTO, TIPO_ICONS, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
 
 export const Route = createFileRoute("/orcamentos/")({
@@ -14,9 +17,16 @@ function OrcamentosIndex() {
   const { orcamentos, templates: todosTemplates } = useOrcamentos();
   // Por enquanto só o tipo personalizado está ativo — esconde templates de tipos ainda não liberados.
   const templates = todosTemplates.filter(t => t.tipo === "custom");
+  const [precosOpen, setPrecosOpen] = useState(false);
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
+      <div className="mb-4 flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => setPrecosOpen(true)} className="gap-1.5">
+          <SlidersHorizontal className="size-3.5" /> Configuração de preços
+        </Button>
+      </div>
+
       <header className="mb-10 text-center">
         <p className="flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <Calculator className="size-3.5 text-primary" /> Orçamentos inteligentes
@@ -28,6 +38,8 @@ function OrcamentosIndex() {
           Responda algumas perguntas e o Nervon calcula custo, preço e lucro automaticamente.
         </p>
       </header>
+
+      <PrecosModal open={precosOpen} onOpenChange={setPrecosOpen} />
 
       <section>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
