@@ -119,6 +119,7 @@ function AppShell() {
   useEffect(() => {
     if (loading) return;
     if (!session && !isPublic) navigate({ to: "/login" });
+    if (session && !usuario && pathname !== "/onboarding") navigate({ to: "/onboarding" });
     if (session && usuario && isPublic) navigate({ to: "/" });
   }, [loading, session, usuario, isPublic, pathname]);
 
