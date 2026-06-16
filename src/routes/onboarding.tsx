@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +13,11 @@ export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 const CORES = COR_PRESETS;
 
 function Onboarding() {
-  const { user, refreshEmpresa } = useAuth();
+  const { user, usuario, refreshEmpresa } = useAuth();
   const navigate = useNavigate();
+
+  // Se já tem empresa (criada pelo trigger), vai direto pro dashboard
+  if (usuario) { navigate({ to: "/" }); return null; }
   const [step, setStep] = useState(1);
   const [nome, setNome] = useState("");
   const [cor, setCor] = useState(CORES[0].value);
