@@ -7,6 +7,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GoogleCalendarIcon } from "@/components/icons/google-calendar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgendaSupa } from "@/lib/hooks/useAgenda";
 import { TIPOS, type Evento } from "@/lib/mock/agenda";
@@ -50,6 +51,16 @@ function AgendaPage() {
           <p className="text-xs text-muted-foreground">{eventos.length} eventos no total</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled
+            title="Em breve"
+            className="inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium opacity-60"
+          >
+            <GoogleCalendarIcon className="size-4" />
+            <span className="hidden sm:inline">Conectar Google Agenda</span>
+            <span className="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Em breve</span>
+          </button>
           <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}>
             <TabsList className="h-8">
               <TabsTrigger value="mes" className="text-xs">Mês</TabsTrigger>
