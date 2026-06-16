@@ -1,13 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { z } from "zod";
-import { ArrowLeft, ArrowRight, Sparkles, Trash2, Plus } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Sparkles, Trash2, Plus,
+  Plane, Gamepad2, Lightbulb, Mic, Car, Captions, Image, Monitor, Smartphone, Palette, Zap,
+} from "lucide-react";
 import { WizardStepper } from "@/components/orcamentos/wizard-stepper";
 import { ResumoLateral } from "@/components/orcamentos/resumo-lateral";
 import { CampoNumero } from "@/components/orcamentos/campo-numero";
 import { CampoToggle } from "@/components/orcamentos/campo-toggle";
 import {
-  PAYLOAD_VAZIO, PRESETS_INICIAIS_POR_TIPO, TIPOS_ORCAMENTO,
+  PAYLOAD_VAZIO, PRESETS_INICIAIS_POR_TIPO, TIPOS_ORCAMENTO, TIPO_ICONS,
   orcamentosActions, getTemplate, calcular, fmtBRL,
   type OrcamentoPayload, type TipoOrcamento, type ExtraCustom,
 } from "@/lib/mock/orcamentos";
@@ -57,6 +60,7 @@ function NovoOrcamento() {
   const prev = () => setStep(s => Math.max(0, s - 1));
 
   const podeAvancar = step === 0 ? !!payload.geral.nomeProjeto.trim() && !!payload.geral.cliente.trim() : true;
+  const TipoIcon = TIPO_ICONS[payload.tipo];
 
   const handleNext = () => {
     if (!podeAvancar) { setShowErrors(true); return; }
@@ -75,8 +79,8 @@ function NovoOrcamento() {
         <Link to="/orcamentos" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
           <ArrowLeft className="size-3.5" /> Voltar
         </Link>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-          {TIPOS_ORCAMENTO[payload.tipo].icone} {TIPOS_ORCAMENTO[payload.tipo].label}
+        <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+          <TipoIcon className="size-3.5" /> {TIPOS_ORCAMENTO[payload.tipo].label}
         </p>
       </div>
 
@@ -163,13 +167,13 @@ function StepProducao({ payload, setPart }: { payload: OrcamentoPayload; setPart
         <CampoNumero label="Assistentes" value={p.assistente} onChange={v => set({ assistente: v })} max={10} />
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <CampoToggle icone="🚁" label="Drone" hint="DJI Mavic / equivalente" value={p.drone} onChange={v => set({ drone: v })} />
-        <CampoToggle icone="🎮" label="Drone FPV" hint="Cinematic FPV" value={p.droneFpv} onChange={v => set({ droneFpv: v })} />
-        <CampoToggle icone="💡" label="Iluminação" hint="Kit de luz profissional" value={p.iluminacao} onChange={v => set({ iluminacao: v })} />
-        <CampoToggle icone="🎤" label="Captação de áudio" hint="Lapela + boom" value={p.audio} onChange={v => set({ audio: v })} />
+        <CampoToggle icone={Plane} label="Drone" hint="DJI Mavic / equivalente" value={p.drone} onChange={v => set({ drone: v })} />
+        <CampoToggle icone={Gamepad2} label="Drone FPV" hint="Cinematic FPV" value={p.droneFpv} onChange={v => set({ droneFpv: v })} />
+        <CampoToggle icone={Lightbulb} label="Iluminação" hint="Kit de luz profissional" value={p.iluminacao} onChange={v => set({ iluminacao: v })} />
+        <CampoToggle icone={Mic} label="Captação de áudio" hint="Lapela + boom" value={p.audio} onChange={v => set({ audio: v })} />
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <CampoToggle icone="🚗" label="Deslocamento" hint="Cobrar quilometragem" value={p.deslocamento} onChange={v => set({ deslocamento: v, km: v ? p.km || 50 : 0 })} />
+        <CampoToggle icone={Car} label="Deslocamento" hint="Cobrar quilometragem" value={p.deslocamento} onChange={v => set({ deslocamento: v, km: v ? p.km || 50 : 0 })} />
         {p.deslocamento && (
           <CampoNumero label="Quilômetros (ida + volta)" value={p.km} onChange={v => set({ km: v })} step={10} max={5000} sufixo="km" />
         )}
@@ -191,10 +195,10 @@ function StepPos({ payload, setPart }: { payload: OrcamentoPayload; setPart: any
         <CampoNumero label="Revisões inclusas" hint="A partir de 3 viram horas extras" value={q.revisoes} onChange={v => set({ revisoes: v })} min={1} max={10} />
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <CampoToggle icone="📝" label="Legendagem" value={q.legendagem} onChange={v => set({ legendagem: v })} />
-        <CampoToggle icone="🖼" label="Thumbnail" value={q.thumb} onChange={v => set({ thumb: v })} />
-        <CampoToggle icone="🖥" label="Versão horizontal (16:9)" value={q.horizontal} onChange={v => set({ horizontal: v })} />
-        <CampoToggle icone="📱" label="Versão vertical (9:16)" value={q.vertical} onChange={v => set({ vertical: v })} />
+        <CampoToggle icone={Captions} label="Legendagem" value={q.legendagem} onChange={v => set({ legendagem: v })} />
+        <CampoToggle icone={Image} label="Thumbnail" value={q.thumb} onChange={v => set({ thumb: v })} />
+        <CampoToggle icone={Monitor} label="Versão horizontal (16:9)" value={q.horizontal} onChange={v => set({ horizontal: v })} />
+        <CampoToggle icone={Smartphone} label="Versão vertical (9:16)" value={q.vertical} onChange={v => set({ vertical: v })} />
       </div>
     </Card>
   );
@@ -220,8 +224,8 @@ function StepExtras({ payload, setPart }: { payload: OrcamentoPayload; setPart: 
         <CampoNumero label="Refeições" value={e.alimentacao} onChange={v => set({ alimentacao: v })} max={200} sufixo="pessoa/dia" />
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <CampoToggle icone="🎨" label="Direção criativa" value={e.direcaoCriativa} onChange={v => set({ direcaoCriativa: v })} />
-        <CampoToggle icone="⚡" label="Entrega urgente" hint="Taxa por priorização" value={e.entregaUrgente} onChange={v => set({ entregaUrgente: v })} />
+        <CampoToggle icone={Palette} label="Direção criativa" value={e.direcaoCriativa} onChange={v => set({ direcaoCriativa: v })} />
+        <CampoToggle icone={Zap} label="Entrega urgente" hint="Taxa por priorização" value={e.entregaUrgente} onChange={v => set({ entregaUrgente: v })} />
       </div>
 
       <div className="mt-6">

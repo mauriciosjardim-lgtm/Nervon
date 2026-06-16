@@ -87,18 +87,9 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
 
       {/* Ações rápidas */}
       <div className="flex flex-wrap gap-2 border-b border-border bg-surface-1/30 px-6 py-3">
-        <QuickBtn icon={Phone} label="Ligação" onClick={() => {
-          comercial.addEvento(lead.id, { tipo: "ligacao", titulo: "Ligação registrada" });
-          toast.success("Ligação registrada na timeline.");
-        }} />
-        <QuickBtn icon={FileText} label="Proposta" onClick={() => {
-          comercial.addEvento(lead.id, { tipo: "proposta_enviada", titulo: "Proposta gerada", descricao: fmtBRL(lead.valor) });
-          toast.success("Proposta registrada na timeline.");
-        }} />
-        <QuickBtn icon={CalendarIcon} label="Reunião" onClick={() => {
-          comercial.addEvento(lead.id, { tipo: "reuniao", titulo: "Reunião agendada" });
-          toast.success("Reunião adicionada à agenda.");
-        }} />
+        <QuickBtn icon={Phone} label="Ligação" soon onClick={() => {}} />
+        <QuickBtn icon={FileText} label="Proposta" soon onClick={() => {}} />
+        <QuickBtn icon={CalendarIcon} label="Reunião" soon onClick={() => {}} />
         <QuickBtn icon={ListChecks} label="Tarefa" onClick={() => document.getElementById("drawer-tarefa-input")?.focus()} />
         <QuickBtn icon={StickyNote} label="Nota" onClick={() => document.getElementById("drawer-obs-input")?.focus()} />
         <div className="ml-auto flex gap-2">
@@ -565,18 +556,27 @@ function TempPicker({ lead }: { lead: Lead }) {
   );
 }
 
-function QuickBtn({ icon: Icon, label, onClick, tone }: { icon: typeof Plus; label: string; onClick: () => void; tone?: "success" | "destructive" }) {
+function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Plus; label: string; onClick: () => void; tone?: "success" | "destructive"; soon?: boolean }) {
   return (
     <button
-      onClick={onClick}
+      onClick={soon ? undefined : onClick}
+      disabled={soon}
+      title={soon ? "Em breve" : undefined}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium transition hover:bg-surface-2",
-        tone === "success" && "border-success/40 bg-success/10 text-success hover:bg-success/20",
-        tone === "destructive" && "border-destructive/30 text-destructive hover:bg-destructive/10",
+        "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium transition",
+        !soon && "hover:bg-surface-2",
+        soon && "cursor-not-allowed opacity-50",
+        !soon && tone === "success" && "border-success/40 bg-success/10 text-success hover:bg-success/20",
+        !soon && tone === "destructive" && "border-destructive/30 text-destructive hover:bg-destructive/10",
       )}
     >
-      <Icon className={cn("size-3", !tone && "text-primary")} />
+      <Icon className={cn("size-3", soon ? "text-muted-foreground" : !tone && "text-primary")} />
       {label}
+      {soon && (
+        <span className="ml-0.5 rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+          Em breve
+        </span>
+      )}
     </button>
   );
 }

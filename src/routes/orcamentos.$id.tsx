@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Sparkles, FileText, FolderPlus, Save } from "lucide-react";
-import { getOrcamento, TIPOS_ORCAMENTO, fmtBRL, orcamentosActions } from "@/lib/mock/orcamentos";
+import { ArrowLeft, FileText, FolderPlus, Save, Copy } from "lucide-react";
+import { getOrcamento, TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL, orcamentosActions } from "@/lib/mock/orcamentos";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/orcamentos/$id")({
   head: () => ({ meta: [{ title: "Orçamento — Nervon" }] }),
@@ -13,6 +14,7 @@ function OrcamentoView() {
   if (!o) throw notFound();
 
   const tipo = TIPOS_ORCAMENTO[o.tipo];
+  const TipoIcon = TIPO_ICONS[o.tipo];
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-5 py-7 md:px-8 md:py-10">
@@ -24,7 +26,7 @@ function OrcamentoView() {
         <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: "var(--gradient-glow)" }} />
         <div className="relative">
           <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <Sparkles className="size-3.5" /> {tipo.icone} {tipo.label}
+            <TipoIcon className="size-3.5" /> {tipo.label}
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{o.geral.nomeProjeto}</h1>
           <p className="text-sm text-muted-foreground">{o.geral.cliente} · Responsável: {o.geral.responsavel}</p>
@@ -39,10 +41,10 @@ function OrcamentoView() {
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 md:grid-cols-4">
-        <Action icon={FileText} label="Gerar proposta" />
-        <Action icon={Save} label="Salvar template" onClick={() => orcamentosActions.salvarTemplate(o.geral.nomeProjeto || "Sem nome", TIPOS_ORCAMENTO[o.tipo].icone, o)} />
-        <Action icon={FolderPlus} label="Criar projeto" />
-        <Action icon={ArrowLeft} label="Duplicar" />
+        <Action icon={FileText} label="Gerar proposta" soon />
+        <Action icon={Save} label="Salvar template" onClick={() => orcamentosActions.salvarTemplate(o.geral.nomeProjeto || "Sem nome", o)} />
+        <Action icon={FolderPlus} label="Criar projeto" soon />
+        <Action icon={Copy} label="Duplicar" soon />
       </div>
 
       <section className="mt-8 rounded-2xl border border-border/60 bg-surface-1/40 p-6">
@@ -73,10 +75,23 @@ function Big({ label, value, primary, success }: { label: string; value: string;
   );
 }
 
-function Action({ icon: Icon, label, onClick }: { icon: any; label: string; onClick?: () => void }) {
+function Action({ icon: Icon, label, onClick, soon }: { icon: any; label: string; onClick?: () => void; soon?: boolean }) {
   return (
-    <button onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition hover:border-primary/30 hover:bg-surface-1">
-      <Icon className="size-4 text-primary" /> {label}
+    <button
+      onClick={soon ? undefined : onClick}
+      disabled={soon}
+      title={soon ? "Em breve" : undefined}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition",
+        soon ? "cursor-not-allowed opacity-50" : "hover:border-primary/30 hover:bg-surface-1",
+      )}
+    >
+      <Icon className={cn("size-4", soon ? "text-muted-foreground" : "text-primary")} /> {label}
+      {soon && (
+        <span className="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+          Em breve
+        </span>
+      )}
     </button>
   );
 }

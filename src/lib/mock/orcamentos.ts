@@ -3,19 +3,30 @@
 // da produtora e devolve custo operacional, preço sugerido, margem e lucro.
 
 import { useSyncExternalStore } from "react";
+import { Film, Smartphone, Mic, Video, Scissors, Camera, Plus, type LucideIcon } from "lucide-react";
 import { getCustos, type TabelaCustos } from "./custos";
 
 export type TipoOrcamento =
   | "institucional" | "mensal" | "podcast" | "captacao" | "edicao" | "fotografia" | "custom";
 
-export const TIPOS_ORCAMENTO: Record<TipoOrcamento, { label: string; icone: string; descricao: string }> = {
-  institucional: { label: "Vídeo Institucional", icone: "🎬", descricao: "Conteúdo único de alto padrão." },
-  mensal:        { label: "Conteúdo Mensal",     icone: "📱", descricao: "Pacote recorrente de social." },
-  podcast:       { label: "Podcast",             icone: "🎙",  descricao: "Captação e edição de episódios." },
-  captacao:      { label: "Captação",            icone: "🎥", descricao: "Apenas produção, sem edição." },
-  edicao:        { label: "Edição",              icone: "✂️", descricao: "Pós-produção sob demanda." },
-  fotografia:    { label: "Fotografia",          icone: "📸", descricao: "Ensaios e cobertura still." },
-  custom:        { label: "Projeto Personalizado", icone: "➕", descricao: "Monte do zero." },
+export const TIPOS_ORCAMENTO: Record<TipoOrcamento, { label: string; descricao: string }> = {
+  institucional: { label: "Vídeo Institucional", descricao: "Conteúdo único de alto padrão." },
+  mensal:        { label: "Conteúdo Mensal",     descricao: "Pacote recorrente de social." },
+  podcast:       { label: "Podcast",             descricao: "Captação e edição de episódios." },
+  captacao:      { label: "Captação",            descricao: "Apenas produção, sem edição." },
+  edicao:        { label: "Edição",              descricao: "Pós-produção sob demanda." },
+  fotografia:    { label: "Fotografia",          descricao: "Ensaios e cobertura still." },
+  custom:        { label: "Projeto Personalizado", descricao: "Monte do zero." },
+};
+
+export const TIPO_ICONS: Record<TipoOrcamento, LucideIcon> = {
+  institucional: Film,
+  mensal:        Smartphone,
+  podcast:       Mic,
+  captacao:      Video,
+  edicao:        Scissors,
+  fotografia:    Camera,
+  custom:        Plus,
 };
 
 export interface OrcamentoGeral {
@@ -92,7 +103,6 @@ export interface Orcamento extends OrcamentoPayload {
 export interface OrcamentoTemplate {
   id: string;
   nome: string;
-  icone: string;
   tipo: TipoOrcamento;
   payload: OrcamentoPayload;
 }
@@ -196,10 +206,10 @@ export function calcular(payload: OrcamentoPayload, custos: TabelaCustos = getCu
 /* ============== Store ============== */
 let orcamentos: Orcamento[] = [];
 let templates: OrcamentoTemplate[] = [
-  { id: "tpl-1", nome: "Institucional Premium", icone: "🎬", tipo: "institucional", payload: presetInstitucional() },
-  { id: "tpl-2", nome: "Plano Mensal Social",   icone: "📱", tipo: "mensal",        payload: presetMensal() },
-  { id: "tpl-3", nome: "Podcast Studio",        icone: "🎙",  tipo: "podcast",       payload: presetPodcast() },
-  { id: "tpl-4", nome: "Ensaio Fotográfico",    icone: "📸", tipo: "fotografia",    payload: presetFotografia() },
+  { id: "tpl-1", nome: "Institucional Premium", tipo: "institucional", payload: presetInstitucional() },
+  { id: "tpl-2", nome: "Plano Mensal Social",   tipo: "mensal",        payload: presetMensal() },
+  { id: "tpl-3", nome: "Podcast Studio",        tipo: "podcast",       payload: presetPodcast() },
+  { id: "tpl-4", nome: "Ensaio Fotográfico",    tipo: "fotografia",    payload: presetFotografia() },
 ];
 
 const listeners = new Set<() => void>();
@@ -225,8 +235,8 @@ export const orcamentosActions = {
     orcamentos = orcamentos.filter(o => o.id !== id);
     rebuild(); emit();
   },
-  salvarTemplate(nome: string, icone: string, payload: OrcamentoPayload) {
-    const tpl: OrcamentoTemplate = { id: `tpl-${Date.now()}`, nome, icone, tipo: payload.tipo, payload };
+  salvarTemplate(nome: string, payload: OrcamentoPayload) {
+    const tpl: OrcamentoTemplate = { id: `tpl-${Date.now()}`, nome, tipo: payload.tipo, payload };
     templates = [tpl, ...templates];
     rebuild(); emit();
     return tpl;

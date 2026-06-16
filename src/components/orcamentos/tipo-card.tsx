@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { TIPOS_ORCAMENTO, type TipoOrcamento } from "@/lib/mock/orcamentos";
+import { TIPOS_ORCAMENTO, TIPO_ICONS, type TipoOrcamento } from "@/lib/mock/orcamentos";
 import { cn } from "@/lib/utils";
 
 export function TipoCard({ tipo, className }: { tipo: TipoOrcamento; className?: string }) {
   const t = TIPOS_ORCAMENTO[tipo];
+  const Icon = TIPO_ICONS[tipo];
   return (
     <Link
       to="/orcamentos/novo"
@@ -14,8 +15,8 @@ export function TipoCard({ tipo, className }: { tipo: TipoOrcamento; className?:
       )}
     >
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: "var(--gradient-glow)" }} />
-      <div className="relative grid size-12 place-items-center rounded-xl bg-primary/10 text-2xl ring-1 ring-primary/20 transition-transform duration-300 group-hover:scale-110">
-        {t.icone}
+      <div className="relative grid size-12 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 transition-transform duration-300 group-hover:scale-110">
+        <Icon className="size-5" />
       </div>
       <div className="relative">
         <h3 className="font-display text-base font-semibold tracking-tight">{t.label}</h3>

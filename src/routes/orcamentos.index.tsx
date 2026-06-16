@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calculator, Sparkles, Trash2, History } from "lucide-react";
 import { TipoCard } from "@/components/orcamentos/tipo-card";
-import { TIPOS_ORCAMENTO, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
+import { TIPOS_ORCAMENTO, TIPO_ICONS, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
 
 export const Route = createFileRoute("/orcamentos/")({
   head: () => ({ meta: [{ title: "Orçamentos — Nervon" }] }),
@@ -41,20 +41,23 @@ function OrcamentosIndex() {
             <p className="text-xs text-muted-foreground">Comece de um modelo pronto.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {templates.map(tpl => (
-              <Link
-                key={tpl.id}
-                to="/orcamentos/novo"
-                search={{ tipo: tpl.tipo, template: tpl.id }}
-                className="group flex items-center gap-3 rounded-xl border border-border/60 bg-surface-1/40 p-4 transition hover:border-primary/40 hover:bg-surface-1"
-              >
-                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-xl ring-1 ring-primary/20">{tpl.icone}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{tpl.nome}</p>
-                  <p className="truncate text-xs text-muted-foreground">{TIPOS_ORCAMENTO[tpl.tipo].label}</p>
-                </div>
-              </Link>
-            ))}
+            {templates.map(tpl => {
+              const Icon = TIPO_ICONS[tpl.tipo];
+              return (
+                <Link
+                  key={tpl.id}
+                  to="/orcamentos/novo"
+                  search={{ tipo: tpl.tipo, template: tpl.id }}
+                  className="group flex items-center gap-3 rounded-xl border border-border/60 bg-surface-1/40 p-4 transition hover:border-primary/40 hover:bg-surface-1"
+                >
+                  <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20"><Icon className="size-5" /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{tpl.nome}</p>
+                    <p className="truncate text-xs text-muted-foreground">{TIPOS_ORCAMENTO[tpl.tipo].label}</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
@@ -70,9 +73,11 @@ function OrcamentosIndex() {
           </div>
         ) : (
           <div className="space-y-2">
-            {orcamentos.map(o => (
+            {orcamentos.map(o => {
+              const Icon = TIPO_ICONS[o.tipo];
+              return (
               <div key={o.id} className="group flex items-center gap-4 rounded-xl border border-border/60 bg-surface-1/40 p-4 transition hover:border-primary/30">
-                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-lg ring-1 ring-primary/20">{TIPOS_ORCAMENTO[o.tipo].icone}</span>
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20"><Icon className="size-5" /></span>
                 <Link to="/orcamentos/$id" params={{ id: o.id }} className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{o.geral.nomeProjeto || "Sem nome"}</p>
                   <p className="truncate text-xs text-muted-foreground">{o.geral.cliente || "—"} · {new Date(o.criadoEm).toLocaleDateString("pt-BR")}</p>
@@ -85,7 +90,8 @@ function OrcamentosIndex() {
                   <Trash2 className="size-4" />
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

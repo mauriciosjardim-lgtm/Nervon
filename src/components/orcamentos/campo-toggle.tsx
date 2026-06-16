@@ -1,14 +1,14 @@
-import { Check } from "lucide-react";
+import { Check, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function CampoToggle({
-  label, hint, value, onChange, icone,
+  label, hint, value, onChange, icone: Icone,
 }: {
   label: string;
   hint?: string;
   value: boolean;
   onChange: (v: boolean) => void;
-  icone?: string;
+  icone?: LucideIcon;
 }) {
   return (
     <button
@@ -21,7 +21,7 @@ export function CampoToggle({
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
-        {icone && <span className={cn("grid size-9 place-items-center rounded-lg text-lg transition", value ? "bg-primary/15 ring-1 ring-primary/30" : "bg-surface-2 text-muted-foreground")}>{icone}</span>}
+        {Icone && <span className={cn("grid size-9 place-items-center rounded-lg transition", value ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-surface-2 text-muted-foreground")}><Icone className="size-4" /></span>}
         <div className="min-w-0">
           <p className="text-sm font-medium">{label}</p>
           {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
