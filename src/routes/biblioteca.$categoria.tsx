@@ -1,10 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Star, Users } from "lucide-react";
 import { RecursoCard } from "@/components/biblioteca/recurso-card";
 import { RecursoModal } from "@/components/biblioteca/recurso-modal";
 import {
-  useBiblioteca, CATEGORIAS, type CategoriaRecurso, type Recurso,
+  useBiblioteca, CATEGORIAS, CATEGORIA_ICONS, type CategoriaRecurso, type Recurso,
 } from "@/lib/mock/biblioteca";
 
 export const Route = createFileRoute("/biblioteca/$categoria")({
@@ -23,9 +23,10 @@ function BibliotecaCategoria() {
   const cat = (!isFav && !isShared) ? categoria as CategoriaRecurso : undefined;
   if (!isFav && !isShared && !(cat && cat in CATEGORIAS)) throw notFound();
 
-  const meta = isFav ? { label: "Favoritos", icone: "⭐", descricao: "Seus modelos mais usados." }
-              : isShared ? { label: "Compartilhados", icone: "👥", descricao: "Visíveis para sua equipe." }
-              : CATEGORIAS[cat!];
+  const meta = isFav ? { label: "Favoritos", Icon: Star, descricao: "Seus modelos mais usados." }
+              : isShared ? { label: "Compartilhados", Icon: Users, descricao: "Visíveis para sua equipe." }
+              : { ...CATEGORIAS[cat!], Icon: CATEGORIA_ICONS[cat!] };
+  const MetaIcon = meta.Icon;
 
   const filtrados = useMemo(() => {
     if (isFav) return recursos.filter(r => r.favorito);
@@ -43,7 +44,7 @@ function BibliotecaCategoria() {
 
       <header className="mb-8 flex items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-2xl ring-1 ring-primary/20">{meta.icone}</span>
+          <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20"><MetaIcon className="size-6" /></span>
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{meta.label}</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">{meta.descricao}</p>

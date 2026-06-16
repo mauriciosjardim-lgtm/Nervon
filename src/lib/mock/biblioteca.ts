@@ -2,18 +2,29 @@
 // Templates inteligentes com variáveis {{cliente}}, {{valor}}, etc.
 
 import { useSyncExternalStore } from "react";
+import { FileText, FileSignature, ClipboardList, ListChecks, Clapperboard, MessageSquare, FolderOpen, type LucideIcon } from "lucide-react";
 
 export type CategoriaRecurso =
   | "propostas" | "contratos" | "briefings" | "checklists" | "roteiros" | "mensagens" | "arquivos";
 
-export const CATEGORIAS: Record<CategoriaRecurso, { label: string; icone: string; descricao: string }> = {
-  propostas:  { label: "Propostas",  icone: "📄", descricao: "Modelos prontos para fechar mais rápido." },
-  contratos:  { label: "Contratos",  icone: "✍️", descricao: "Cláusulas e modelos jurídicos." },
-  briefings:  { label: "Briefings",  icone: "📝", descricao: "Roteiros de descoberta de projeto." },
-  checklists: { label: "Checklists", icone: "✅", descricao: "Passo-a-passo de produção e entrega." },
-  roteiros:   { label: "Roteiros",   icone: "🎬", descricao: "Roteiros de vídeo, podcast e reels." },
-  mensagens:  { label: "Mensagens",  icone: "💬", descricao: "Templates de WhatsApp e e-mail." },
-  arquivos:   { label: "Arquivos",   icone: "📂", descricao: "Anexos, PDFs e mídias da produtora." },
+export const CATEGORIAS: Record<CategoriaRecurso, { label: string; descricao: string }> = {
+  propostas:  { label: "Propostas",  descricao: "Modelos prontos para fechar mais rápido." },
+  contratos:  { label: "Contratos",  descricao: "Cláusulas e modelos jurídicos." },
+  briefings:  { label: "Briefings",  descricao: "Roteiros de descoberta de projeto." },
+  checklists: { label: "Checklists", descricao: "Passo-a-passo de produção e entrega." },
+  roteiros:   { label: "Roteiros",   descricao: "Roteiros de vídeo, podcast e reels." },
+  mensagens:  { label: "Mensagens",  descricao: "Templates de WhatsApp e e-mail." },
+  arquivos:   { label: "Arquivos",   descricao: "Anexos, PDFs e mídias da produtora." },
+};
+
+export const CATEGORIA_ICONS: Record<CategoriaRecurso, LucideIcon> = {
+  propostas:  FileText,
+  contratos:  FileSignature,
+  briefings:  ClipboardList,
+  checklists: ListChecks,
+  roteiros:   Clapperboard,
+  mensagens:  MessageSquare,
+  arquivos:   FolderOpen,
 };
 
 export interface Recurso {

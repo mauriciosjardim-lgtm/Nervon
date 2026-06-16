@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Eye, Save, Sparkles } from "lucide-react";
 import {
   bibliotecaActions, aplicarVariaveis, VARIAVEIS_DISPONIVEIS, VARIAVEIS_EXEMPLO,
-  type Recurso, type CategoriaRecurso, CATEGORIAS,
+  type Recurso, type CategoriaRecurso, CATEGORIAS, CATEGORIA_ICONS,
 } from "@/lib/mock/biblioteca";
 
 export function RecursoModal({
@@ -35,6 +35,7 @@ export function RecursoModal({
   };
 
   const cat = recurso?.categoria ?? categoria;
+  const CatIcon = cat ? CATEGORIA_ICONS[cat] : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm" onClick={onClose}>
@@ -42,7 +43,7 @@ export function RecursoModal({
         className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-elevated)]">
         <header className="flex items-center justify-between border-b border-border/60 p-5">
           <div className="flex items-center gap-3">
-            {cat && <span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-lg ring-1 ring-primary/20">{CATEGORIAS[cat].icone}</span>}
+            {CatIcon && <span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20"><CatIcon className="size-4" /></span>}
             <div>
               <h2 className="font-display text-lg font-semibold tracking-tight">{recurso ? "Editar recurso" : "Novo recurso"}</h2>
               {cat && <p className="text-xs text-muted-foreground">{CATEGORIAS[cat].label}</p>}

@@ -2,6 +2,7 @@
 // Sincroniza automaticamente tarefas com prazo e marcos na Agenda genérica.
 
 import { useSyncExternalStore } from "react";
+import { Film, Camera, FileText, Palette, Headphones, Paperclip, type LucideIcon } from "lucide-react";
 import { agendaActions, type TipoEvento } from "./agenda";
 
 export type FaseProjeto = "briefing" | "pre" | "captacao" | "edicao" | "revisao" | "entrega" | "concluido" | "pausado";
@@ -103,13 +104,22 @@ export const PRIORIDADES: Record<Prioridade, { label: string; classe: string }> 
   urgente: { label: "Urgente", classe: "text-destructive" },
 };
 
-export const TIPOS_ENTREGAVEL: Record<TipoEntregavel, { label: string; icone: string }> = {
-  video:  { label: "Vídeo",  icone: "🎬" },
-  foto:   { label: "Foto",   icone: "📷" },
-  doc:    { label: "Documento", icone: "📄" },
-  design: { label: "Design", icone: "🎨" },
-  audio:  { label: "Áudio",  icone: "🎧" },
-  outro:  { label: "Outro",  icone: "📎" },
+export const TIPOS_ENTREGAVEL: Record<TipoEntregavel, { label: string }> = {
+  video:  { label: "Vídeo" },
+  foto:   { label: "Foto" },
+  doc:    { label: "Documento" },
+  design: { label: "Design" },
+  audio:  { label: "Áudio" },
+  outro:  { label: "Outro" },
+};
+
+export const TIPO_ENTREGAVEL_ICONS: Record<TipoEntregavel, LucideIcon> = {
+  video:  Film,
+  foto:   Camera,
+  doc:    FileText,
+  design: Palette,
+  audio:  Headphones,
+  outro:  Paperclip,
 };
 
 export const STATUS_ENTREGAVEL: Record<StatusEntregavel, { label: string; classe: string }> = {

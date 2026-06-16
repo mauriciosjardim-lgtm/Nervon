@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FASES, PRIORIDADES, TIPOS_ENTREGAVEL, STATUS_ENTREGAVEL, getFaseInfo,
+  FASES, PRIORIDADES, TIPOS_ENTREGAVEL, TIPO_ENTREGAVEL_ICONS, STATUS_ENTREGAVEL, getFaseInfo,
   type Tarefa, type Marco, type Entregavel, type StatusTarefa, type StatusEntregavel, type FaseProjeto, type Projeto,
 } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
@@ -400,11 +400,12 @@ function ListaEntregaveis({ entregaveis, onEditar }: { entregaveis: Entregavel[]
 
 function EntregavelCard({ entregavel, onEditar }: { entregavel: Entregavel; onEditar: () => void }) {
   const tipo = TIPOS_ENTREGAVEL[entregavel.tipo];
+  const TipoIcon = TIPO_ENTREGAVEL_ICONS[entregavel.tipo];
   const status = STATUS_ENTREGAVEL[entregavel.status];
   return (
     <div className="group rounded-lg border border-border/60 bg-card p-3 transition hover:border-primary/40">
       <div className="flex items-start gap-2.5">
-        <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-border/40 bg-surface-2/40 text-base">{tipo.icone}</div>
+        <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-border/40 bg-surface-2/40 text-primary"><TipoIcon className="size-4" /></div>
         <button onClick={onEditar} className="min-w-0 flex-1 text-left">
           <p className="truncate text-sm font-medium">{entregavel.titulo}</p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">

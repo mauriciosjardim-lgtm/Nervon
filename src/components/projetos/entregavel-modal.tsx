@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TIPOS_ENTREGAVEL, STATUS_ENTREGAVEL, type Entregavel, type TipoEntregavel, type StatusEntregavel } from "@/lib/mock/projetos";
+import { TIPOS_ENTREGAVEL, TIPO_ENTREGAVEL_ICONS, STATUS_ENTREGAVEL, type Entregavel, type TipoEntregavel, type StatusEntregavel } from "@/lib/mock/projetos";
 import { projetosActions } from "@/lib/hooks/useProjetos";
 import { Trash2 } from "lucide-react";
 
@@ -54,7 +54,10 @@ export function EntregavelModal({
             <div className="space-y-1.5"><Label className="text-xs">Tipo</Label>
               <Select value={tipo} onValueChange={v => setTipo(v as TipoEntregavel)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{Object.entries(TIPOS_ENTREGAVEL).map(([id, t]) => <SelectItem key={id} value={id}>{t.icone} {t.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{Object.entries(TIPOS_ENTREGAVEL).map(([id, t]) => {
+                  const Icon = TIPO_ENTREGAVEL_ICONS[id as TipoEntregavel];
+                  return <SelectItem key={id} value={id}><span className="flex items-center gap-2"><Icon className="size-3.5 text-muted-foreground" /> {t.label}</span></SelectItem>;
+                })}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5"><Label className="text-xs">Status</Label>
