@@ -152,21 +152,6 @@ function Dashboard() {
       {/* Progresso do Mês — wide */}
       <ProgressoMesWide />
 
-      {/* AI Suggestion */}
-      <button className="group mb-6 flex w-full items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.08] via-primary/[0.04] to-transparent p-4 text-left transition hover:border-primary/40 hover:from-primary/[0.12]">
-        <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-primary/10 text-primary shadow-[0_0_20px_-4px_var(--primary)]">
-          <Sparkles className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">Sugestão do Nervon</span>
-            <span className="rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-primary">IA</span>
-          </div>
-          <p className="truncate text-xs text-muted-foreground">A proposta da <span className="text-foreground">Nova Marca Bebidas</span> está há 4 dias sem resposta — talvez seja hora de um follow-up.</p>
-        </div>
-        <span className="hidden text-xs text-primary group-hover:underline sm:inline">Ver ação</span>
-      </button>
-
       {/* Grid */}
       {active.widgets.length === 0 ? (
         <EmptyWorkspace onAdd={() => { setEditing(true); setPersonalizing(true); }} />
