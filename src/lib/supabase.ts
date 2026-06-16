@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-// Hardcoded to prevent Lovable's build from injecting wrong credentials
-const SUPABASE_URL = "https://emivrhkmwqofylsedyxa.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs";
+// Hardcoded to prevent Lovable's build from injecting wrong credentials.
+// Must match the project where all data + migrations live (smsqhbbbyjacatxvihks).
+const SUPABASE_URL = "https://smsqhbbbyjacatxvihks.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
   auth: {

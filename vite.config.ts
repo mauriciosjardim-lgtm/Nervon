@@ -13,9 +13,10 @@ export default defineConfig({
   vite: {
     define: {
       // Override Lovable's VITE_* env injection with the correct Supabase project
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://emivrhkmwqofylsedyxa.supabase.co"),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs"),
-      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaXZyaGttd3FvZnlsc2VkeXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDA4OTEsImV4cCI6MjA5NzA3Njg5MX0.Obs5QhWR-T9oi4iSJgJL3IUoXbNqINZ1ELLeRjNGZvs"),
+      // (smsqhbbbyjacatxvihks — where all data + migrations live)
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://smsqhbbbyjacatxvihks.supabase.co"),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
+      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
     },
   },
 });
