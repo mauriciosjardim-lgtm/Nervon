@@ -90,8 +90,6 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
         <QuickBtn icon={Phone} label="Ligação" soon onClick={() => {}} />
         <QuickBtn icon={FileText} label="Proposta" soon onClick={() => {}} />
         <QuickBtn icon={CalendarIcon} label="Reunião" soon onClick={() => {}} />
-        <QuickBtn icon={ListChecks} label="Tarefa" onClick={() => document.getElementById("drawer-tarefa-input")?.focus()} />
-        <QuickBtn icon={StickyNote} label="Nota" onClick={() => document.getElementById("drawer-obs-input")?.focus()} />
         <div className="ml-auto flex gap-2">
           <QuickBtn icon={XCircle} label="Perdido" tone="destructive" onClick={() => {
             comercial.moverEtapa(lead.id, "perdido");
