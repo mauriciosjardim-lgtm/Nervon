@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Mail } from "lucide-react";
+import { AuthBackground } from "@/components/auth-background";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -55,9 +56,7 @@ function Login() {
   if (aguardandoEmail) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
-        </div>
+        <AuthBackground />
         <div className="relative w-full max-w-sm text-center">
           <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
             <Mail className="size-8" />
@@ -82,9 +81,7 @@ function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
-      </div>
+      <AuthBackground />
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">

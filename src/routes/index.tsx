@@ -20,6 +20,7 @@ import { loadState, saveState, type PersistedState } from "@/lib/dashboard/stora
 import type { WidgetSize } from "@/lib/dashboard/types";
 import { loadMetas, progressoMes } from "@/lib/mock/metas";
 import { useAuth } from "@/lib/auth";
+import { SugestaoNervon } from "@/components/dashboard/sugestao-nervon";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
@@ -151,6 +152,9 @@ function Dashboard() {
 
       {/* Progresso do Mês — wide */}
       <ProgressoMesWide />
+
+      {/* Sugestão do Nervon — gerada a partir dos dados reais do comercial */}
+      <SugestaoNervon />
 
       {/* Grid */}
       {active.widgets.length === 0 ? (
