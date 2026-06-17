@@ -363,7 +363,7 @@ function MoneyField({ icon: Icon, label, hint, value, onChange }: {
 
 // URL do servidor MCP (Cloudflare Worker). Após o primeiro `wrangler deploy`,
 // confirme/atualize aqui com a URL que o deploy imprimir.
-const MCP_URL = "https://nervon-mcp.mauriciosjardim.workers.dev";
+const MCP_URL = "https://mcp.nervon.com.br";
 
 interface McpToken {
   id: string;

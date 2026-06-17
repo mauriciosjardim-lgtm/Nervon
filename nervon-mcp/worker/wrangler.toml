@@ -3,6 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2026-06-15"
 compatibility_flags = ["nodejs_compat"]
 
+# Domínio customizado — esconde o subdomínio pessoal da conta (workers.dev).
+# O cliente vê só "mcp.nervon.com.br". Cria o registro DNS automaticamente
+# porque nervon.com.br já é uma zona nesta conta Cloudflare.
+routes = [
+  { pattern = "mcp.nervon.com.br", custom_domain = true }
+]
+
 # A chave anon (publishable) é PÚBLICA — já vai no bundle do app no navegador.
 # Não há service role key aqui: as funções SECURITY DEFINER no Postgres é que
 # validam o token "nvn_" e resolvem a empresa. O Worker é só um adaptador.
