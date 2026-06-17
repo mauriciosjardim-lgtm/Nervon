@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Target, Rocket, Check, Upload, Palette, Building2, X, User } from "lucide-react";
+import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, Plus, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ const sections = [
   { id: "brand",        label: "Brand Kit" },
   { id: "metas",        label: "Metas Mensais" },
   { id: "equipe",       label: "Equipe" },
+  { id: "agente",       label: "Agente IA" },
   { id: "integracoes",  label: "Integrações" },
   { id: "plano",        label: "Plano e Faturamento" },
 ];
@@ -53,6 +54,7 @@ function ConfiguracoesPage() {
           <BrandKitSection />
           <MetasSection />
           <PlaceholderSection id="equipe" title="Equipe" desc="Convide membros, defina papéis e permissões." />
+          <AgenteIASection />
           <PlaceholderSection id="integracoes" title="Integrações" desc="Google Calendar, Drive, WhatsApp, Stripe." />
           <PlaceholderSection id="plano" title="Plano e Faturamento" desc="Gerencie sua assinatura Nervon." />
         </div>
@@ -354,6 +356,172 @@ function MoneyField({ icon: Icon, label, hint, value, onChange }: {
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>
     </label>
+  );
+}
+
+// ─── Agente IA (MCP) ─────────────────────────────────────────────────────────
+
+// URL do servidor MCP (Cloudflare Worker). Após o primeiro `wrangler deploy`,
+// confirme/atualize aqui com a URL que o deploy imprimir.
+const MCP_URL = "https://nervon-mcp.rastrovisual.workers.dev";
+
+interface McpToken {
+  id: string;
+  nome: string;
+  criado_em: string;
+  ultimo_uso: string | null;
+  revogado: boolean;
+}
+
+function gerarTokenPlano(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  return "nvn_" + [...bytes].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function AgenteIASection() {
+  const { empresa } = useAuth();
+  const [tokens, setTokens] = useState<McpToken[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [gerando, setGerando] = useState(false);
+  const [novoToken, setNovoToken] = useState<string | null>(null);
+
+  const carregar = async () => {
+    if (!empresa) return;
+    const { data } = await (supabase as any)
+      .from("mcp_tokens")
+      .select("id, nome, criado_em, ultimo_uso, revogado")
+      .eq("revogado", false)
+      .order("criado_em", { ascending: false });
+    setTokens((data as McpToken[]) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { carregar(); }, [empresa]);
+
+  const gerar = async () => {
+    if (!empresa) return;
+    setGerando(true);
+    const plano = gerarTokenPlano();
+    const hash = await sha256Hex(plano);
+    const { error } = await (supabase as any)
+      .from("mcp_tokens")
+      .insert({ empresa_id: empresa.id, token_hash: hash, nome: "Agente IA" });
+    setGerando(false);
+    if (error) { alert("Erro ao gerar token: " + error.message); return; }
+    setNovoToken(plano);
+    carregar();
+  };
+
+  const revogar = async (id: string) => {
+    if (!confirm("Revogar este token? O agente conectado com ele perde o acesso imediatamente.")) return;
+    await (supabase as any).from("mcp_tokens").update({ revogado: true }).eq("id", id);
+    carregar();
+  };
+
+  return (
+    <section id="agente" className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 backdrop-blur-sm">
+      <div className="mb-2 flex items-center gap-2">
+        <Bot className="size-4 text-primary" />
+        <h2 className="font-display text-lg font-semibold tracking-tight">Agente IA</h2>
+      </div>
+      <p className="mb-5 max-w-2xl text-sm text-muted-foreground">
+        Conecte seu próprio agente do Claude ao Nervon. Ele passa a criar leads, consultar o funil
+        e mover etapas sozinho — em linguagem natural, sem você abrir o sistema.
+      </p>
+
+      {novoToken ? (
+        <NovoTokenReveal token={novoToken} onClose={() => setNovoToken(null)} />
+      ) : (
+        <Button onClick={gerar} disabled={gerando} className="h-9 rounded-lg px-4 text-sm">
+          <Plus className="mr-1.5 size-4" /> {gerando ? "Gerando…" : "Gerar token de acesso"}
+        </Button>
+      )}
+
+      {/* Lista de tokens ativos */}
+      <div className="mt-6">
+        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <KeyRound className="size-3" /> Tokens ativos
+        </div>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : tokens.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum token ativo. Gere um para conectar seu agente.</p>
+        ) : (
+          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+            {tokens.map(t => (
+              <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{t.nome}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
+                    {t.ultimo_uso
+                      ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
+                      : " · Nunca usado"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => revogar(t.id)}
+                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-3.5" /> Revogar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function NovoTokenReveal({ token, onClose }: { token: string; onClose: () => void }) {
+  const comando = `claude mcp add --transport http nervon ${MCP_URL} --header "Authorization: Bearer ${token}"`;
+  const [copiado, setCopiado] = useState<"cmd" | "token" | null>(null);
+
+  const copiar = async (texto: string, qual: "cmd" | "token") => {
+    await navigator.clipboard.writeText(texto);
+    setCopiado(qual);
+    setTimeout(() => setCopiado(null), 1800);
+  };
+
+  return (
+    <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
+        <Check className="size-4" /> Token gerado! Copie agora — ele não será mostrado de novo.
+      </div>
+
+      {/* Comando pronto */}
+      <div className="relative mt-3 rounded-lg border border-border/60 bg-background/70 p-3 pr-12">
+        <code className="block break-all font-mono text-[12px] leading-relaxed text-foreground">{comando}</code>
+        <button
+          onClick={() => copiar(comando, "cmd")}
+          className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1"
+        >
+          {copiado === "cmd" ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+          {copiado === "cmd" ? "Copiado" : "Copiar"}
+        </button>
+      </div>
+
+      {/* Passo a passo */}
+      <div className="mt-4 rounded-lg bg-surface-2/40 p-3 text-xs text-muted-foreground">
+        <p className="mb-1.5 font-medium text-foreground">Como conectar:</p>
+        <ol className="list-decimal space-y-1 pl-4">
+          <li>Copie o comando acima.</li>
+          <li>Abra o Terminal no seu computador.</li>
+          <li>Cole, pressione Enter e reinicie o Claude.</li>
+        </ol>
+        <p className="mt-2">Pronto — seu agente Claude já tem acesso ao Nervon. 🎬</p>
+      </div>
+
+      <button onClick={onClose} className="mt-3 text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground">
+        Já copiei, fechar
+      </button>
+    </div>
   );
 }
 

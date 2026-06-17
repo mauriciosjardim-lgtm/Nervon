@@ -1,0 +1,15 @@
+{
+  "name": "nervon-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor MCP do Nervon — expõe ferramentas do CRM para agentes Claude externos (teste local).",
+  "scripts": {
+    "start": "bun run server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "zod": "^3.23.8"
+  }
+}

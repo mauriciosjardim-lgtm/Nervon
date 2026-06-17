@@ -1,0 +1,14 @@
+name = "nervon-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-06-15"
+compatibility_flags = ["nodejs_compat"]
+
+# A chave anon (publishable) é PÚBLICA — já vai no bundle do app no navegador.
+# Não há service role key aqui: as funções SECURITY DEFINER no Postgres é que
+# validam o token "nvn_" e resolvem a empresa. O Worker é só um adaptador.
+[vars]
+SUPABASE_URL = "https://smsqhbbbyjacatxvihks.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"
+
+[observability]
+enabled = true
