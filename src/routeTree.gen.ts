@@ -40,6 +40,7 @@ import { Route as ComercialEmpresasRouteImport } from './routes/comercial.empres
 import { Route as ComercialContatosRouteImport } from './routes/comercial.contatos'
 import { Route as ComercialAgendaRouteImport } from './routes/comercial.agenda'
 import { Route as BibliotecaCategoriaRouteImport } from './routes/biblioteca.$categoria'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const PropostasRoute = PropostasRouteImport.update({
   id: '/propostas',
@@ -196,6 +197,11 @@ const BibliotecaCategoriaRoute = BibliotecaCategoriaRouteImport.update({
   path: '/$categoria',
   getParentRoute: () => BibliotecaRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/performance': typeof PerformanceRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/propostas': typeof PropostasRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
   '/propostas': typeof PropostasRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/performance': typeof PerformanceRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/propostas': typeof PropostasRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/performance'
     | '/projetos'
     | '/propostas'
+    | '/auth/callback'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/performance'
     | '/propostas'
+    | '/auth/callback'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/performance'
     | '/projetos'
     | '/propostas'
+    | '/auth/callback'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
@@ -404,6 +416,7 @@ export interface RootRouteChildren {
   PerformanceRoute: typeof PerformanceRoute
   ProjetosRoute: typeof ProjetosRouteWithChildren
   PropostasRoute: typeof PropostasRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -625,6 +638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibliotecaCategoriaRouteImport
       parentRoute: typeof BibliotecaRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -727,6 +747,7 @@ const rootRouteChildren: RootRouteChildren = {
   PerformanceRoute: PerformanceRoute,
   ProjetosRoute: ProjetosRouteWithChildren,
   PropostasRoute: PropostasRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
