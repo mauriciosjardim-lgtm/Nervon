@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, Plus, KeyRound } from "lucide-react";
+import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, Plus, KeyRound, Plug, Terminal, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -389,6 +389,14 @@ function AgenteIASection() {
   const [loading, setLoading] = useState(true);
   const [gerando, setGerando] = useState(false);
   const [novoToken, setNovoToken] = useState<string | null>(null);
+  const [urlCopiada, setUrlCopiada] = useState(false);
+  const [mostrarAvancado, setMostrarAvancado] = useState(false);
+
+  const copiarUrl = async () => {
+    await navigator.clipboard.writeText(MCP_URL);
+    setUrlCopiada(true);
+    setTimeout(() => setUrlCopiada(false), 1800);
+  };
 
   const carregar = async () => {
     if (!empresa) return;
@@ -434,47 +442,89 @@ function AgenteIASection() {
         e mover etapas sozinho — em linguagem natural, sem você abrir o sistema.
       </p>
 
-      {novoToken ? (
-        <NovoTokenReveal token={novoToken} onClose={() => setNovoToken(null)} />
-      ) : (
-        <Button onClick={gerar} disabled={gerando} className="h-9 rounded-lg px-4 text-sm">
-          <Plus className="mr-1.5 size-4" /> {gerando ? "Gerando…" : "Gerar token de acesso"}
-        </Button>
-      )}
-
-      {/* Lista de tokens ativos */}
-      <div className="mt-6">
-        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          <KeyRound className="size-3" /> Tokens ativos
+      {/* Caminho recomendado: conector (OAuth) */}
+      <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Plug className="size-4 text-primary" /> Conectar no Claude (recomendado)
         </div>
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
-        ) : tokens.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum token ativo. Gere um para conectar seu agente.</p>
-        ) : (
-          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
-            {tokens.map(t => (
-              <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{t.nome}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
-                    {t.ultimo_uso
-                      ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
-                      : " · Nunca usado"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => revogar(t.id)}
-                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="size-3.5" /> Revogar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+
+        <p className="mb-2 text-xs text-muted-foreground">Endereço do conector:</p>
+        <div className="relative mb-4 rounded-lg border border-border/60 bg-background/70 p-3 pr-12">
+          <code className="block break-all font-mono text-[13px] text-foreground">{MCP_URL}</code>
+          <button
+            onClick={copiarUrl}
+            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1"
+          >
+            {urlCopiada ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+            {urlCopiada ? "Copiado" : "Copiar"}
+          </button>
+        </div>
+
+        <div className="rounded-lg bg-surface-2/40 p-3 text-xs text-muted-foreground">
+          <p className="mb-1.5 font-medium text-foreground">No app do Claude (Desktop):</p>
+          <ol className="list-decimal space-y-1 pl-4">
+            <li>Configurações → <strong>Conectores</strong> → <strong>Adicionar conector personalizado</strong>.</li>
+            <li>Cole o endereço acima e confirme.</li>
+            <li>Faça <strong>login no Nervon</strong> na janela que abrir e clique em autorizar.</li>
+          </ol>
+          <p className="mt-2">Pronto — sem token, sem terminal. É só pedir pro Claude: <em>"crie um lead…"</em> 🎬</p>
+        </div>
       </div>
+
+      {/* Caminho avançado: token manual p/ Claude Code */}
+      <button
+        onClick={() => setMostrarAvancado(v => !v)}
+        className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+      >
+        <Terminal className="size-3.5" />
+        Avançado: token manual (Claude Code / terminal)
+        <ChevronDown className={cn("size-3.5 transition", mostrarAvancado && "rotate-180")} />
+      </button>
+
+      {mostrarAvancado && (
+        <div className="mt-3 rounded-xl border border-border/50 bg-surface-2/20 p-4">
+          {novoToken ? (
+            <NovoTokenReveal token={novoToken} onClose={() => setNovoToken(null)} />
+          ) : (
+            <Button onClick={gerar} disabled={gerando} variant="outline" className="h-9 rounded-lg px-4 text-sm">
+              <Plus className="mr-1.5 size-4" /> {gerando ? "Gerando…" : "Gerar token de acesso"}
+            </Button>
+          )}
+
+          <div className="mt-5">
+            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <KeyRound className="size-3" /> Acessos ativos
+            </div>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Carregando…</p>
+            ) : tokens.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum acesso ativo ainda.</p>
+            ) : (
+              <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+                {tokens.map(t => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{t.nome}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
+                        {t.ultimo_uso
+                          ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
+                          : " · Nunca usado"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => revogar(t.id)}
+                      className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" /> Revogar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

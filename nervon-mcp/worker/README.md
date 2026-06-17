@@ -7,14 +7,36 @@ Nervon de forma autônoma (criar leads, listar funil, mover etapas).
 
 ```
 Claude do cliente  ──HTTP/MCP──>  Worker (Cloudflare)  ──RPC──>  Supabase
-   Bearer nvn_xxx                  calcula SHA-256        funções SECURITY DEFINER
+   Bearer <token>                  calcula SHA-256        funções SECURITY DEFINER
                                    chama RPC com o hash   validam token + escrevem
 ```
 
 - **Sem service role key.** O Worker só usa a chave anon (pública). Quem valida o
   token e resolve a empresa são as funções `mcp_*` no Postgres (SECURITY DEFINER).
-- Cada token `nvn_...` é gerado no app (Configurações → Agente IA). O banco guarda
-  só o hash SHA-256. O Worker recebe o token, calcula o mesmo hash e passa adiante.
+- O banco guarda só o hash SHA-256 do token. O Worker recebe o token, calcula o
+  mesmo hash e passa adiante.
+
+### Dois jeitos de conectar
+
+1. **OAuth (Claude Desktop / app)** — o cliente adiciona o conector `mcp.nervon.com.br`,
+   faz login no Nervon e autoriza. Nenhum token manual.
+   - O Worker é um **servidor OAuth completo** e *stateless*: client_ids e códigos
+     de autorização são tokens HMAC assinados (segredo `OAUTH_SIGNING_KEY`), sem
+     KV/banco extra. Implementa discovery (`/.well-known/*`), registro dinâmico
+     (`/register`), `/authorize` (tela de login → Supabase password grant) e
+     `/token` (com PKCE S256).
+   - No fim do login geramos um token `nvn_` normal (hash salvo em `mcp_tokens`) e
+     ele **vira** o `access_token` do OAuth → o endpoint MCP continua idêntico.
+
+2. **Token fixo (Claude Code / terminal)** — `Authorization: Bearer nvn_...`, gerado
+   no app em Configurações → Agente IA (opção "Avançado").
+
+### Segredo necessário
+
+```bash
+# chave aleatória p/ assinar os tokens OAuth (uma vez)
+head -c 48 /dev/urandom | base64 | tr -d '/+=' | npx wrangler secret put OAUTH_SIGNING_KEY
+```
 
 ## Deploy (uma vez)
 
