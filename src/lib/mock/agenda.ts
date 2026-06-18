@@ -1,4 +1,4 @@
-// Nervon — Mock store da Agenda genérica
+// MakersHub — Mock store da Agenda genérica
 // Em memória, reativo via useSyncExternalStore.
 
 import { useSyncExternalStore } from "react";

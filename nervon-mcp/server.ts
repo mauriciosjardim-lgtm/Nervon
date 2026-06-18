@@ -1,9 +1,9 @@
 /**
- * Servidor MCP do Nervon (TESTE LOCAL).
+ * Servidor MCP do MakersHub (TESTE LOCAL).
  *
  * Expõe ferramentas do CRM para um agente Claude externo (Claude Code, Claude
  * Desktop, etc.). Por enquanto: uma ferramenta `criar_lead` que escreve de
- * verdade no Supabase do Nervon.
+ * verdade no Supabase do MakersHub.
  *
  * Transporte: stdio (o cliente Claude inicia este processo e fala por stdin/out).
  *
@@ -53,7 +53,7 @@ const server = new McpServer({ name: "nervon", version: "0.1.0" });
 
 server.tool(
   "criar_lead",
-  "Cria uma nova oportunidade (lead) no CRM Nervon do usuário. Use quando o agente " +
+  "Cria uma nova oportunidade (lead) no CRM MakersHub do usuário. Use quando o agente " +
     "encontrar um possível cliente para a produtora de audiovisual.",
   {
     empresa: z.string().describe("Nome da empresa/cliente do lead (ex: 'Padaria Pão Quente')"),
@@ -131,7 +131,7 @@ server.tool(
       content: [
         {
           type: "text",
-          text: `Lead criado com sucesso no Nervon: "${args.empresa}" (contato: ${args.contato}). ID: ${lead.id}`,
+          text: `Lead criado com sucesso no MakersHub: "${args.empresa}" (contato: ${args.contato}). ID: ${lead.id}`,
         },
       ],
     };
@@ -144,4 +144,4 @@ function err(message: string) {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error("Nervon MCP server rodando (stdio).");
+console.error("MakersHub MCP server rodando (stdio).");

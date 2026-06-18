@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Servidor MCP do Nervon — expõe ferramentas do CRM para agentes Claude externos (teste local).",
+  "description": "Servidor MCP do MakersHub — expõe ferramentas do CRM para agentes Claude externos (teste local).",
   "scripts": {
     "start": "bun run server.ts"
   },

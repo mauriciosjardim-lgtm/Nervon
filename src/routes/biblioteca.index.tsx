@@ -9,7 +9,7 @@ import {
 } from "@/lib/mock/biblioteca";
 
 export const Route = createFileRoute("/biblioteca/")({
-  head: () => ({ meta: [{ title: "Central de Recursos — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Central de Recursos — MakersHub" }] }),
   component: BibliotecaIndex,
 });
 

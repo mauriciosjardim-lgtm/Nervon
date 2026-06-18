@@ -1,6 +1,6 @@
-# Nervon MCP — teste local
+# MakersHub MCP — teste local
 
-Servidor MCP que expõe ferramentas do CRM Nervon para um agente Claude externo.
+Servidor MCP que expõe ferramentas do CRM MakersHub para um agente Claude externo.
 Prova de conceito: a ferramenta `criar_lead` escreve de verdade no Supabase.
 
 ## 1. Configurar
@@ -36,4 +36,4 @@ Depois, numa sessão do Claude: "cria um lead da Padaria Teste, contato João".
 Hoje é stdio + service role key + empresa fixa. A versão real:
 - Vira um MCP **remoto** (HTTP) hospedado no Cloudflare Workers.
 - Autenticação por token/OAuth → identifica a produtora → `empresa_id` dinâmico.
-- Cada produtora conecta a URL do Nervon no Claude dela.
+- Cada produtora conecta a URL do MakersHub no Claude dela.

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, Plus, KeyRound, Plug, Terminal, ChevronDown } from "lucide-react";
+import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, KeyRound, Terminal, ArrowRight, ArrowLeft, Monitor, Sparkles, PartyPopper, RotateCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { COR_PRESETS, applyBrandColor } from "@/lib/brandColor";
 
 export const Route = createFileRoute("/configuracoes")({
-  head: () => ({ meta: [{ title: "Configurações — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Configurações — MakersHub" }] }),
   component: ConfiguracoesPage,
 });
 
@@ -56,7 +56,7 @@ function ConfiguracoesPage() {
           <PlaceholderSection id="equipe" title="Equipe" desc="Convide membros, defina papéis e permissões." />
           <AgenteIASection />
           <PlaceholderSection id="integracoes" title="Integrações" desc="Google Calendar, Drive, WhatsApp, Stripe." />
-          <PlaceholderSection id="plano" title="Plano e Faturamento" desc="Gerencie sua assinatura Nervon." />
+          <PlaceholderSection id="plano" title="Plano e Faturamento" desc="Gerencie sua assinatura MakersHub." />
         </div>
       </div>
     </div>
@@ -387,16 +387,7 @@ function AgenteIASection() {
   const { empresa } = useAuth();
   const [tokens, setTokens] = useState<McpToken[]>([]);
   const [loading, setLoading] = useState(true);
-  const [gerando, setGerando] = useState(false);
-  const [novoToken, setNovoToken] = useState<string | null>(null);
-  const [urlCopiada, setUrlCopiada] = useState(false);
-  const [mostrarAvancado, setMostrarAvancado] = useState(false);
-
-  const copiarUrl = async () => {
-    await navigator.clipboard.writeText(MCP_URL);
-    setUrlCopiada(true);
-    setTimeout(() => setUrlCopiada(false), 1800);
-  };
+  const [wizardAberto, setWizardAberto] = useState(false);
 
   const carregar = async () => {
     if (!empresa) return;
@@ -411,22 +402,8 @@ function AgenteIASection() {
 
   useEffect(() => { carregar(); }, [empresa]);
 
-  const gerar = async () => {
-    if (!empresa) return;
-    setGerando(true);
-    const plano = gerarTokenPlano();
-    const hash = await sha256Hex(plano);
-    const { error } = await (supabase as any)
-      .from("mcp_tokens")
-      .insert({ empresa_id: empresa.id, token_hash: hash, nome: "Agente IA" });
-    setGerando(false);
-    if (error) { alert("Erro ao gerar token: " + error.message); return; }
-    setNovoToken(plano);
-    carregar();
-  };
-
   const revogar = async (id: string) => {
-    if (!confirm("Revogar este token? O agente conectado com ele perde o acesso imediatamente.")) return;
+    if (!confirm("Revogar este acesso? O agente conectado com ele perde o acesso imediatamente.")) return;
     await (supabase as any).from("mcp_tokens").update({ revogado: true }).eq("id", id);
     carregar();
   };
@@ -438,139 +415,475 @@ function AgenteIASection() {
         <h2 className="font-display text-lg font-semibold tracking-tight">Agente IA</h2>
       </div>
       <p className="mb-5 max-w-2xl text-sm text-muted-foreground">
-        Conecte seu próprio agente do Claude ao Nervon. Ele passa a criar leads, consultar o funil
-        e mover etapas sozinho — em linguagem natural, sem você abrir o sistema.
+        Conecte seu ChatGPT ou Claude ao MakersHub. Ele passa a criar leads, lançar no financeiro, abrir
+        projetos e agendar — em linguagem natural, sem você abrir o sistema.
       </p>
 
-      {/* Caminho recomendado: conector (OAuth) */}
-      <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
-        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Plug className="size-4 text-primary" /> Conectar no Claude (recomendado)
-        </div>
-
-        <p className="mb-2 text-xs text-muted-foreground">Endereço do conector:</p>
-        <div className="relative mb-4 rounded-lg border border-border/60 bg-background/70 p-3 pr-12">
-          <code className="block break-all font-mono text-[13px] text-foreground">{MCP_URL}</code>
-          <button
-            onClick={copiarUrl}
-            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1"
-          >
-            {urlCopiada ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
-            {urlCopiada ? "Copiado" : "Copiar"}
-          </button>
-        </div>
-
-        <div className="rounded-lg bg-surface-2/40 p-3 text-xs text-muted-foreground">
-          <p className="mb-1.5 font-medium text-foreground">No app do Claude (Desktop):</p>
-          <ol className="list-decimal space-y-1 pl-4">
-            <li>Configurações → <strong>Conectores</strong> → <strong>Adicionar conector personalizado</strong>.</li>
-            <li>Cole o endereço acima e confirme.</li>
-            <li>Faça <strong>login no Nervon</strong> na janela que abrir e clique em autorizar.</li>
-          </ol>
-          <p className="mt-2">Pronto — sem token, sem terminal. É só pedir pro Claude: <em>"crie um lead…"</em> 🎬</p>
-        </div>
-      </div>
-
-      {/* Caminho avançado: token manual p/ Claude Code */}
-      <button
-        onClick={() => setMostrarAvancado(v => !v)}
-        className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground"
-      >
-        <Terminal className="size-3.5" />
-        Avançado: token manual (Claude Code / terminal)
-        <ChevronDown className={cn("size-3.5 transition", mostrarAvancado && "rotate-180")} />
-      </button>
-
-      {mostrarAvancado && (
-        <div className="mt-3 rounded-xl border border-border/50 bg-surface-2/20 p-4">
-          {novoToken ? (
-            <NovoTokenReveal token={novoToken} onClose={() => setNovoToken(null)} />
-          ) : (
-            <Button onClick={gerar} disabled={gerando} variant="outline" className="h-9 rounded-lg px-4 text-sm">
-              <Plus className="mr-1.5 size-4" /> {gerando ? "Gerando…" : "Gerar token de acesso"}
-            </Button>
-          )}
-
-          <div className="mt-5">
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              <KeyRound className="size-3" /> Acessos ativos
-            </div>
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando…</p>
-            ) : tokens.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum acesso ativo ainda.</p>
-            ) : (
-              <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
-                {tokens.map(t => (
-                  <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{t.nome}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
-                        {t.ultimo_uso
-                          ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
-                          : " · Nunca usado"}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => revogar(t.id)}
-                      className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" /> Revogar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+      {/* Card de chamada pro wizard */}
+      <div className="flex flex-col items-start gap-4 rounded-xl border border-primary/40 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+            <Sparkles className="size-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Conectar meu Claude</p>
+            <p className="text-xs text-muted-foreground">Passo a passo guiado — leva uns 2 minutos.</p>
           </div>
         </div>
+        <Button onClick={() => setWizardAberto(true)} className="h-10 shrink-0 rounded-lg px-5 text-sm">
+          Começar <ArrowRight className="ml-1.5 size-4" />
+        </Button>
+      </div>
+
+      {/* Acessos ativos */}
+      <div className="mt-6">
+        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <KeyRound className="size-3" /> Acessos ativos
+        </div>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : tokens.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum acesso ativo ainda. Clique em “Começar” pra conectar.</p>
+        ) : (
+          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+            {tokens.map(t => (
+              <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{t.nome}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
+                    {t.ultimo_uso
+                      ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
+                      : " · Nunca usado"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => revogar(t.id)}
+                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-3.5" /> Revogar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {wizardAberto && (
+        <ConectarWizard
+          empresa={empresa}
+          onClose={() => { setWizardAberto(false); carregar(); }}
+        />
       )}
     </section>
   );
 }
 
-function NovoTokenReveal({ token, onClose }: { token: string; onClose: () => void }) {
-  const comando = `claude mcp add --transport http nervon ${MCP_URL} --header "Authorization: Bearer ${token}"`;
-  const [copiado, setCopiado] = useState<"cmd" | "token" | null>(null);
+// ─── Wizard de conexão (passo a passo com mockups) ───────────────────────────
 
-  const copiar = async (texto: string, qual: "cmd" | "token") => {
-    await navigator.clipboard.writeText(texto);
-    setCopiado(qual);
-    setTimeout(() => setCopiado(null), 1800);
+type AppAlvo = "chatgpt" | "desktop" | "code";
+
+function ConectarWizard({ empresa, onClose }: { empresa: any; onClose: () => void }) {
+  const [app, setApp] = useState<AppAlvo | null>(null);
+  const [step, setStep] = useState(0);
+  const [token, setToken] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+
+  const gerar = async () => {
+    if (!empresa || token) return;
+    setGerando(true);
+    const plano = gerarTokenPlano();
+    const hash = await sha256Hex(plano);
+    const { error } = await (supabase as any)
+      .from("mcp_tokens")
+      .insert({ empresa_id: empresa.id, token_hash: hash, nome: app === "code" ? "Claude Code" : "Claude Desktop" });
+    setGerando(false);
+    if (error) { alert("Erro ao gerar acesso: " + error.message); return; }
+    setToken(plano);
   };
 
-  return (
-    <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
-      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
-        <Check className="size-4" /> Token gerado! Copie agora — ele não será mostrado de novo.
-      </div>
+  const configJson = `{
+  "mcpServers": {
+    "nervon": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "${MCP_URL}",
+        "--header", "Authorization: Bearer ${token ?? "SEU_TOKEN"}"]
+    }
+  }
+}`;
+  const comandoCode = `claude mcp add --transport http nervon ${MCP_URL} --header "Authorization: Bearer ${token ?? "SEU_TOKEN"}"`;
 
-      {/* Comando pronto */}
-      <div className="relative mt-3 rounded-lg border border-border/60 bg-background/70 p-3 pr-12">
-        <code className="block break-all font-mono text-[12px] leading-relaxed text-foreground">{comando}</code>
+  // monta os passos conforme o app escolhido
+  const steps: { titulo: string; node: React.ReactNode }[] = [];
+  if (app === "chatgpt") {
+    steps.push(
+      { titulo: "Abra os Aplicativos do ChatGPT", node: <StepAbrirAppsGPT /> },
+      { titulo: "Crie o app do MakersHub", node: <StepCriarAppGPT /> },
+      { titulo: "Faça login e autorize", node: <StepLoginGPT /> },
+      { titulo: "Tudo pronto!", node: <StepPronto /> },
+    );
+  } else if (app === "desktop") {
+    steps.push(
+      { titulo: "Gere sua chave de acesso", node: <StepGerar gerando={gerando} token={token} onGerar={gerar} /> },
+      { titulo: "Instale o Node (uma vez só)", node: <StepNode /> },
+      { titulo: "Abra a configuração do Claude", node: <StepAbrirConfigDesktop /> },
+      { titulo: "Cole a configuração", node: <StepColar texto={configJson} label="configuração" multiline /> },
+      { titulo: "Reinicie o Claude", node: <StepReiniciar /> },
+      { titulo: "Tudo pronto!", node: <StepPronto /> },
+    );
+  } else if (app === "code") {
+    steps.push(
+      { titulo: "Gere sua chave de acesso", node: <StepGerar gerando={gerando} token={token} onGerar={gerar} /> },
+      { titulo: "Cole o comando no terminal", node: <StepColar texto={comandoCode} label="comando" /> },
+      { titulo: "Tudo pronto!", node: <StepPronto /> },
+    );
+  }
+
+  const total = steps.length;
+  // ChatGPT é OAuth direto (sem token). Desktop/Code travam o "Próximo" até gerar a chave.
+  const precisaToken = (app === "desktop" || app === "code") && step === 0 && !token;
+  const podeAvancar = !precisaToken;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border/60 bg-surface-1 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* header */}
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <span className="text-sm font-semibold">Conectar meu Claude</span>
+          </div>
+          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground transition hover:bg-surface-2 hover:text-foreground">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* corpo */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {!app ? (
+            <StepEscolherApp onEscolher={(a) => { setApp(a); setStep(0); }} />
+          ) : (
+            <>
+              {/* progresso */}
+              <div className="mb-5 flex items-center gap-1.5">
+                {steps.map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-1.5 flex-1 rounded-full transition",
+                      i < step ? "bg-primary" : i === step ? "bg-primary/60" : "bg-border",
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Passo {step + 1} de {total}
+              </p>
+              <h3 className="mb-4 font-display text-lg font-semibold tracking-tight">{steps[step].titulo}</h3>
+              {steps[step].node}
+            </>
+          )}
+        </div>
+
+        {/* footer nav */}
+        {app && (
+          <div className="flex items-center justify-between border-t border-border/60 px-5 py-4">
+            <button
+              onClick={() => (step === 0 ? setApp(null) : setStep(s => s - 1))}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
+            >
+              <ArrowLeft className="size-4" /> Voltar
+            </button>
+            {step < total - 1 ? (
+              <Button
+                onClick={() => setStep(s => s + 1)}
+                disabled={!podeAvancar}
+                className="h-9 rounded-lg px-5 text-sm"
+              >
+                Próximo <ArrowRight className="ml-1.5 size-4" />
+              </Button>
+            ) : (
+              <Button onClick={onClose} className="h-9 rounded-lg px-5 text-sm">
+                Concluir <Check className="ml-1.5 size-4" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// — Mockup reutilizável (moldura de "print") —
+function Mock({ children, label }: { children: React.ReactNode; label?: string }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-background/60">
+      <div className="flex items-center gap-1.5 border-b border-border/50 bg-surface-2/50 px-3 py-2">
+        <span className="size-2.5 rounded-full bg-red-400/70" />
+        <span className="size-2.5 rounded-full bg-yellow-400/70" />
+        <span className="size-2.5 rounded-full bg-green-400/70" />
+        {label && <span className="ml-2 text-[10px] text-muted-foreground">{label}</span>}
+      </div>
+      <div className="p-3">{children}</div>
+    </div>
+  );
+}
+
+function StepEscolherApp({ onEscolher }: { onEscolher: (a: AppAlvo) => void }) {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">Onde você usa a IA?</p>
+      <div className="grid gap-3">
         <button
-          onClick={() => copiar(comando, "cmd")}
-          className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1"
+          onClick={() => onEscolher("chatgpt")}
+          className="relative flex items-center gap-3 rounded-xl border border-primary/50 bg-primary/5 p-4 text-left transition hover:bg-primary/10"
         >
-          {copiado === "cmd" ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
-          {copiado === "cmd" ? "Copiado" : "Copiar"}
+          <span className="absolute right-3 top-3 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">Mais fácil</span>
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary"><Sparkles className="size-5" /></div>
+          <div>
+            <p className="text-sm font-semibold">ChatGPT</p>
+            <p className="text-xs text-muted-foreground">Só colar o endereço e fazer login. Sem instalar nada.</p>
+          </div>
+          <ArrowRight className="ml-auto size-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={() => onEscolher("desktop")}
+          className="flex items-center gap-3 rounded-xl border border-border/60 bg-surface-2/30 p-4 text-left transition hover:border-primary/50 hover:bg-primary/5"
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary"><Monitor className="size-5" /></div>
+          <div>
+            <p className="text-sm font-semibold">Claude Desktop</p>
+            <p className="text-xs text-muted-foreground">O aplicativo do Claude no computador.</p>
+          </div>
+          <ArrowRight className="ml-auto size-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={() => onEscolher("code")}
+          className="flex items-center gap-3 rounded-xl border border-border/60 bg-surface-2/30 p-4 text-left transition hover:border-primary/50 hover:bg-primary/5"
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary"><Terminal className="size-5" /></div>
+          <div>
+            <p className="text-sm font-semibold">Claude Code</p>
+            <p className="text-xs text-muted-foreground">A versão de terminal (pra quem é mais técnico).</p>
+          </div>
+          <ArrowRight className="ml-auto size-4 text-muted-foreground" />
         </button>
       </div>
+    </div>
+  );
+}
 
-      {/* Passo a passo */}
-      <div className="mt-4 rounded-lg bg-surface-2/40 p-3 text-xs text-muted-foreground">
-        <p className="mb-1.5 font-medium text-foreground">Como conectar:</p>
-        <ol className="list-decimal space-y-1 pl-4">
-          <li>Copie o comando acima.</li>
-          <li>Abra o Terminal no seu computador.</li>
-          <li>Cole, pressione Enter e reinicie o Claude.</li>
-        </ol>
-        <p className="mt-2">Pronto — seu agente Claude já tem acesso ao Nervon. 🎬</p>
+function StepGerar({ gerando, token, onGerar }: { gerando: boolean; token: string | null; onGerar: () => void }) {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = async () => {
+    if (!token) return;
+    await navigator.clipboard.writeText(token);
+    setCopiado(true); setTimeout(() => setCopiado(false), 1800);
+  };
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Esta é a senha que liga o Claude ao seu MakersHub. Guarde-a — ela só aparece uma vez.
+      </p>
+      {!token ? (
+        <Button onClick={onGerar} disabled={gerando} className="h-10 w-full rounded-lg text-sm">
+          <KeyRound className="mr-1.5 size-4" /> {gerando ? "Gerando…" : "Gerar minha chave"}
+        </Button>
+      ) : (
+        <div className="rounded-xl border border-primary/40 bg-primary/5 p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-primary">
+            <Check className="size-3.5" /> Chave gerada
+          </div>
+          <div className="relative rounded-lg border border-border/60 bg-background/70 p-3 pr-11">
+            <code className="block break-all font-mono text-[12px] text-foreground">{token}</code>
+            <button onClick={copiar} className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1">
+              {copiado ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">Já vem embutida nos próximos passos — é só copiar lá.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StepAbrirAppsGPT() {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        No ChatGPT (site ou app), abra <strong>Configurações → Aplicativos</strong>, ative o
+        <strong> modo desenvolvedor</strong> e clique em <strong>“Novo app”</strong>.
+      </p>
+      <Mock label="ChatGPT · Configurações">
+        <div className="flex gap-3">
+          <div className="w-24 shrink-0 space-y-1.5 text-[10px] text-muted-foreground">
+            <div className="rounded px-2 py-1">Geral</div>
+            <div className="rounded bg-primary/15 px-2 py-1 font-medium text-primary">Aplicativos</div>
+            <div className="rounded px-2 py-1">Personalização</div>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="h-2 w-2/3 rounded bg-border" />
+            <div className="h-2 w-1/2 rounded bg-border" />
+            <div className="mt-3 inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium text-primary">
+              + Novo app
+            </div>
+          </div>
+        </div>
+      </Mock>
+    </div>
+  );
+}
+
+function StepCriarAppGPT() {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = async () => { await navigator.clipboard.writeText(MCP_URL); setCopiado(true); setTimeout(() => setCopiado(false), 1800); };
+  return (
+    <div>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Preencha assim e clique em <strong>Criar</strong>:
+      </p>
+      <div className="relative mb-3 rounded-lg border border-border/60 bg-background/80 p-3 pr-11">
+        <p className="mb-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">URL do servidor</p>
+        <code className="block break-all font-mono text-[12px] text-foreground">{MCP_URL}</code>
+        <button onClick={copiar} className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1">
+          {copiado ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+          {copiado ? "Copiado" : "Copiar"}
+        </button>
       </div>
+      <Mock label="Novo app">
+        <div className="space-y-2 text-[11px]">
+          <div><span className="text-muted-foreground">Nome:</span> <span className="text-foreground">MakersHub</span></div>
+          <div><span className="text-muted-foreground">Conexão:</span> <span className="rounded bg-primary/15 px-1.5 py-0.5 font-medium text-primary">URL do servidor</span></div>
+          <div className="rounded border border-border/50 bg-surface-2/40 px-2 py-1 font-mono text-foreground">{MCP_URL}</div>
+          <div><span className="text-muted-foreground">Autenticação:</span> <span className="text-foreground">OAuth</span></div>
+          <div className="flex items-center gap-1.5 text-muted-foreground"><span className="grid size-3.5 place-items-center rounded-sm bg-primary text-[8px] text-primary-foreground">✓</span> Entendi e quero continuar</div>
+          <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">Criar</div>
+        </div>
+      </Mock>
+    </div>
+  );
+}
 
-      <button onClick={onClose} className="mt-3 text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground">
-        Já copiei, fechar
-      </button>
+function StepLoginGPT() {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Vai abrir a <strong>tela de login do MakersHub</strong>. Entre com seu e-mail e senha e clique em
+        <strong> autorizar</strong>. Pronto — sem token, sem terminal.
+      </p>
+      <Mock label="Conectar ao MakersHub">
+        <div className="mx-auto max-w-[200px] space-y-2 py-1">
+          <div className="mx-auto grid size-8 place-items-center rounded-lg bg-primary text-[13px] font-bold text-primary-foreground">N</div>
+          <div className="h-7 rounded-md border border-border/60 bg-background/70" />
+          <div className="h-7 rounded-md border border-border/60 bg-background/70" />
+          <div className="h-7 rounded-md bg-primary text-center text-[11px] font-medium leading-7 text-primary-foreground">Entrar e autorizar</div>
+        </div>
+      </Mock>
+    </div>
+  );
+}
+
+function StepNode() {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        O Claude Desktop precisa do <strong>Node.js</strong> pra falar com o MakersHub. É grátis e instala
+        uma vez só. Se você já tem, pode pular.
+      </p>
+      <a
+        href="https://nodejs.org/pt-br/download/prebuilt-installer"
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-105"
+      >
+        <Download className="size-4" /> Baixar o Node.js
+      </a>
+      <p className="mt-3 text-[11px] text-muted-foreground">Baixe a versão “LTS”, abra o instalador e clique em avançar até o fim.</p>
+    </div>
+  );
+}
+
+function StepAbrirConfigDesktop() {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        No Claude Desktop, abra <strong>Configurações → Desenvolvedor</strong> e clique em
+        <strong> “Editar configuração”</strong>. Um arquivo vai abrir — é nele que vamos colar no próximo passo.
+      </p>
+      <Mock label="Claude · Configurações">
+        <div className="flex gap-3">
+          <div className="w-24 shrink-0 space-y-1.5 text-[10px] text-muted-foreground">
+            <div className="rounded px-2 py-1">Geral</div>
+            <div className="rounded px-2 py-1">Perfil</div>
+            <div className="rounded bg-primary/15 px-2 py-1 font-medium text-primary">Desenvolvedor</div>
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="h-2 w-3/4 rounded bg-border" />
+            <div className="h-2 w-1/2 rounded bg-border" />
+            <div className="mt-3 inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium text-primary">
+              Editar configuração
+            </div>
+          </div>
+        </div>
+      </Mock>
+    </div>
+  );
+}
+
+function StepColar({ texto, label, multiline }: { texto: string; label: string; multiline?: boolean }) {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = async () => { await navigator.clipboard.writeText(texto); setCopiado(true); setTimeout(() => setCopiado(false), 1800); };
+  return (
+    <div>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Copie {label === "comando" ? "o comando" : "a configuração"} abaixo e cole {label === "comando" ? "no terminal, depois aperte Enter" : "no arquivo que abriu (substituindo o conteúdo), e salve"}.
+        {label !== "comando" && " A sua chave já está embutida."}
+      </p>
+      <div className="relative rounded-lg border border-border/60 bg-background/80 p-3 pr-11">
+        <pre className={cn("overflow-x-auto font-mono text-[11px] leading-relaxed text-foreground", multiline ? "whitespace-pre" : "whitespace-pre-wrap break-all")}>{texto}</pre>
+        <button onClick={copiar} className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] transition hover:bg-surface-1">
+          {copiado ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+          {copiado ? "Copiado" : "Copiar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StepReiniciar() {
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Feche o Claude Desktop por completo (não só a janela) e abra de novo. Ele vai carregar o MakersHub.
+      </p>
+      <Mock label="Claude">
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <RotateCw className="size-6 text-primary" />
+          <p className="text-[11px] text-muted-foreground">Cmd+Q (Mac) ou fechar pela bandeja, e abrir de novo</p>
+        </div>
+      </Mock>
+    </div>
+  );
+}
+
+function StepPronto() {
+  return (
+    <div className="flex flex-col items-center gap-3 py-4 text-center">
+      <div className="grid size-14 place-items-center rounded-full bg-primary/15 text-primary">
+        <PartyPopper className="size-7" />
+      </div>
+      <p className="text-sm font-semibold text-foreground">Sua IA já está ligada ao MakersHub! 🎬</p>
+      <p className="max-w-xs text-xs text-muted-foreground">
+        No chat, é só pedir em português. Experimente:
+      </p>
+      <div className="w-full space-y-1.5 text-left">
+        {["Liste meus leads no MakersHub", "Lance uma despesa de R$ 800 de edição pro dia 30", "Qual meu resumo financeiro?"].map(ex => (
+          <div key={ex} className="rounded-lg border border-border/50 bg-surface-2/30 px-3 py-2 text-[12px] text-foreground">“{ex}”</div>
+        ))}
+      </div>
     </div>
   );
 }

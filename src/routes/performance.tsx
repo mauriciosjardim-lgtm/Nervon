@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute("/performance")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Performance — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Performance — MakersHub" }] }),
   component: PerformancePage,
 });
 
@@ -163,7 +163,7 @@ function TabGeral() {
 
         <Card>
           <div className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <Brain className="size-3 text-primary" /> Nervon Insights
+            <Brain className="size-3 text-primary" /> MakersHub Insights
           </div>
           <div className="space-y-2">
             {insights.map(i => <InsightRow key={i.id} insight={i} />)}

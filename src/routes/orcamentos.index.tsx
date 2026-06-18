@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { TIPOS_ORCAMENTO, TIPO_ICONS, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
 
 export const Route = createFileRoute("/orcamentos/")({
-  head: () => ({ meta: [{ title: "Orçamentos — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos — MakersHub" }] }),
   component: OrcamentosIndex,
 });
 
@@ -35,7 +35,7 @@ function OrcamentosIndex() {
           O que você deseja orçar hoje?
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Responda algumas perguntas e o Nervon calcula custo, preço e lucro automaticamente.
+          Responda algumas perguntas e o MakersHub calcula custo, preço e lucro automaticamente.
         </p>
       </header>
 

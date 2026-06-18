@@ -1,4 +1,4 @@
-// Nervon — Central de Recursos
+// MakersHub — Central de Recursos
 // Templates inteligentes com variáveis {{cliente}}, {{valor}}, etc.
 
 import { useSyncExternalStore } from "react";

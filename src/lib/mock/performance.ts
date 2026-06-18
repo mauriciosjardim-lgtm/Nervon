@@ -1,4 +1,4 @@
-// Nervon — Métricas de Performance da Produtora
+// MakersHub — Métricas de Performance da Produtora
 // Deriva indicadores dos stores existentes (financeiro, comercial, projetos)
 // e adiciona dados mock onde ainda não há fonte real.
 

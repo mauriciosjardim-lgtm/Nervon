@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { LogoNervon } from "@/components/logo-nervon";
+import { LogoMakersHub } from "@/components/logo-nervon";
 
 export const Route = createFileRoute("/auth/callback")({ component: AuthCallback });
 
@@ -20,8 +20,8 @@ function AuthCallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <LogoNervon className="h-12 w-12 animate-pulse rounded-xl" />
-        <p className="text-sm text-muted-foreground">Entrando no Nervon…</p>
+        <LogoMakersHub className="h-12 w-12 animate-pulse rounded-xl" />
+        <p className="text-sm text-muted-foreground">Entrando no MakersHub…</p>
       </div>
     </div>
   );

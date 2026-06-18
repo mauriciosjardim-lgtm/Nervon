@@ -1,4 +1,4 @@
-// Nervon mock store — fonte única para todos os módulos.
+// MakersHub mock store — fonte única para todos os módulos.
 // Tudo é referenciado por id. Nada é duplicado.
 
 export type Status =

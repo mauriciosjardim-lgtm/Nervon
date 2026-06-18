@@ -33,7 +33,7 @@ export function Topbar() {
   const match = Object.keys(titles)
     .sort((a, b) => b.length - a.length)
     .find(k => k === "/" ? pathname === "/" : pathname.startsWith(k));
-  const info = match ? titles[match] : { title: "Nervon", subtitle: "" };
+  const info = match ? titles[match] : { title: "MakersHub", subtitle: "" };
 
   const handleNovo = (tipo: string, to: string) => {
     setPendingCreate(tipo);

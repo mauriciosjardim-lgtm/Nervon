@@ -1,4 +1,4 @@
-// Nervon — Tabela de custos da produtora
+// MakersHub — Tabela de custos da produtora
 // Persiste em localStorage; alimenta o módulo de Orçamentos.
 
 import { useSyncExternalStore } from "react";

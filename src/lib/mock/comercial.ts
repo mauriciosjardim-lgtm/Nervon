@@ -1,4 +1,4 @@
-// Nervon — Mock store do módulo Comercial
+// MakersHub — Mock store do módulo Comercial
 // Em memória, com subscribe para reatividade. Sem persistência.
 
 import { useSyncExternalStore } from "react";

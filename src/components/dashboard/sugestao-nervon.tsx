@@ -107,7 +107,7 @@ function gerarSugestao(store: ReturnType<typeof useComercialSupa>): Sugestao | n
   };
 }
 
-export function SugestaoNervon() {
+export function SugestaoMakersHub() {
   const store = useComercialSupa();
   const navigate = useNavigate();
   const sugestao = useMemo(() => (store.loading ? null : gerarSugestao(store)), [store]);
@@ -124,7 +124,7 @@ export function SugestaoNervon() {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">Sugestão do Nervon</span>
+          <span className="text-sm font-medium text-foreground">Sugestão do MakersHub</span>
           <span className="rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-primary">IA</span>
         </div>
         <p className="truncate text-xs text-muted-foreground">{sugestao.texto}</p>

@@ -1,4 +1,4 @@
-// Nervon — Mock store do módulo Financeiro
+// MakersHub — Mock store do módulo Financeiro
 // Reativo via useSyncExternalStore, em memória, sem persistência.
 
 import { useSyncExternalStore } from "react";

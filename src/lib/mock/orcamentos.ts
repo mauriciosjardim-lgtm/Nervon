@@ -1,4 +1,4 @@
-// Nervon — Store de Orçamentos + engine de cálculo
+// MakersHub — Store de Orçamentos + engine de cálculo
 // Não é uma calculadora simples: cruza respostas do wizard com a TabelaCustos
 // da produtora e devolve custo operacional, preço sugerido, margem e lucro.
 

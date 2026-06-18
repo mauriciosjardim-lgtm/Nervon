@@ -1,4 +1,4 @@
-// Nervon — utilitários centrais de formatação (moeda, telefone, documentos, e-mail)
+// MakersHub — utilitários centrais de formatação (moeda, telefone, documentos, e-mail)
 // Toda formatação visível ao usuário deve passar por aqui para manter consistência.
 
 // ─── Moeda (BRL) ─────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { getOrcamento, TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL, orcamentosActions } 
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/orcamentos/$id")({
-  head: () => ({ meta: [{ title: "Orçamento — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Orçamento — MakersHub" }] }),
   component: OrcamentoView,
 });
 

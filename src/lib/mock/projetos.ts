@@ -1,4 +1,4 @@
-// Nervon — Mock store de Projetos
+// MakersHub — Mock store de Projetos
 // Sincroniza automaticamente tarefas com prazo e marcos na Agenda genérica.
 
 import { useSyncExternalStore } from "react";

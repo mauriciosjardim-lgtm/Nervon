@@ -48,7 +48,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="font-display text-[15px] font-semibold tracking-tight">{empresa?.nome ?? "Nervon"}</span>
+              <span className="font-display text-[15px] font-semibold tracking-tight">{empresa?.nome ?? "MakersHub"}</span>
             </div>
           )}
         </div>
@@ -114,7 +114,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Nervon Intelligence — Em breve" className="h-9 cursor-not-allowed opacity-50 hover:bg-transparent">
+                <SidebarMenuButton tooltip="MakersHub Intelligence — Em breve" className="h-9 cursor-not-allowed opacity-50 hover:bg-transparent">
                   <Sparkles className="size-4" />
                   <span>Intelligence</span>
                   {!collapsed && <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">Em breve</span>}

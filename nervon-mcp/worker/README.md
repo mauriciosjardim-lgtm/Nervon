@@ -1,7 +1,7 @@
-# Nervon MCP — servidor remoto (Cloudflare Worker)
+# MakersHub MCP — servidor remoto (Cloudflare Worker)
 
 Servidor MCP que cada produtora conecta no próprio Claude para alimentar o CRM
-Nervon de forma autônoma (criar leads, listar funil, mover etapas).
+MakersHub de forma autônoma (criar leads, listar funil, mover etapas).
 
 ## Arquitetura
 
@@ -19,7 +19,7 @@ Claude do cliente  ──HTTP/MCP──>  Worker (Cloudflare)  ──RPC──> 
 ### Dois jeitos de conectar
 
 1. **OAuth (Claude Desktop / app)** — o cliente adiciona o conector `mcp.nervon.com.br`,
-   faz login no Nervon e autoriza. Nenhum token manual.
+   faz login no MakersHub e autoriza. Nenhum token manual.
    - O Worker é um **servidor OAuth completo** e *stateless*: client_ids e códigos
      de autorização são tokens HMAC assinados (segredo `OAUTH_SIGNING_KEY`), sem
      KV/banco extra. Implementa discovery (`/.well-known/*`), registro dinâmico

@@ -22,7 +22,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/orcamentos/novo")({
-  head: () => ({ meta: [{ title: "Novo orçamento — Nervon" }] }),
+  head: () => ({ meta: [{ title: "Novo orçamento — MakersHub" }] }),
   validateSearch: searchSchema,
   component: NovoOrcamento,
 });

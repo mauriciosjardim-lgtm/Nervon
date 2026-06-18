@@ -439,7 +439,7 @@ const Metas = () => (
 const Assistant = () => (
   <div className="flex h-full flex-col gap-3">
     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      <Sparkles className="size-3.5 text-primary" /> Nervon Assistant
+      <Sparkles className="size-3.5 text-primary" /> MakersHub Assistant
       <span className="ml-auto rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">Em breve</span>
     </div>
     <p className="text-sm leading-relaxed text-muted-foreground">
@@ -477,7 +477,7 @@ export const widgetRegistry: Record<string, WidgetMeta & { component: React.Comp
   "ultimas-atividades":       { type: "ultimas-atividades",       title: "Últimas atividades",     description: "Feed do CRM",                       category: "Pessoal",       defaultSize: "md", icon: Activity,       component: UltimasAtividades },
   "metas":                    { type: "metas",                    title: "Metas",                  description: "Progresso das metas do mês",        category: "Pessoal",       defaultSize: "md", icon: Trophy,         component: Metas },
 
-  "assistant":                { type: "assistant",                title: "Nervon Assistant",    description: "Assistente IA contextual",          category: "Inteligência",  defaultSize: "md", icon: Sparkles,       component: Assistant },
+  "assistant":                { type: "assistant",                title: "MakersHub Assistant",    description: "Assistente IA contextual",          category: "Inteligência",  defaultSize: "md", icon: Sparkles,       component: Assistant },
 };
 
 export const widgetCatalog = Object.values(widgetRegistry);

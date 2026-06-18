@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Mail } from "lucide-react";
 import { AuthBackground } from "@/components/auth-background";
-import { LogoNervon } from "@/components/logo-nervon";
+import { LogoMakersHub } from "@/components/logo-nervon";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -68,7 +68,7 @@ function Login() {
           </p>
           <p className="mt-1 font-medium text-foreground">{emailEnviado}</p>
           <p className="mt-3 text-xs text-muted-foreground">
-            Clique no link do e-mail para ativar sua conta e entrar no Nervon. Verifique também a pasta de spam.
+            Clique no link do e-mail para ativar sua conta e entrar no MakersHub. Verifique também a pasta de spam.
           </p>
           <button
             onClick={() => setAguardandoEmail(false)}
@@ -86,9 +86,9 @@ function Login() {
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <LogoNervon className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
+          <LogoMakersHub className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
           <div className="text-center">
-            <h1 className="font-display text-xl font-semibold">Nervon</h1>
+            <h1 className="font-display text-xl font-semibold">MakersHub</h1>
             <p className="text-xs text-muted-foreground">O Hub Completo para Produtoras de Audiovisual</p>
           </div>
         </div>
