@@ -59,13 +59,13 @@ const css = `
 .auth-orb--b {
   width: 460px; height: 460px;
   bottom: -140px; left: -120px;
-  background: radial-gradient(circle at 50% 50%, oklch(0.7 0.18 230 / 0.45), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--primary) 40%, transparent), transparent 70%);
   animation: auth-float-b 28s ease-in-out infinite;
 }
 .auth-orb--c {
   width: 420px; height: 420px;
   top: 20%; right: -120px;
-  background: radial-gradient(circle at 50% 50%, oklch(0.72 0.2 320 / 0.35), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--primary) 30%, transparent), transparent 70%);
   animation: auth-float-c 34s ease-in-out infinite;
 }
 
@@ -78,7 +78,7 @@ const css = `
     transparent 0deg,
     color-mix(in oklch, var(--primary) 50%, transparent) 60deg,
     transparent 140deg,
-    oklch(0.7 0.18 230 / 0.5) 220deg,
+    color-mix(in oklch, var(--primary) 35%, transparent) 220deg,
     transparent 300deg,
     transparent 360deg);
   -webkit-mask-image: radial-gradient(circle, transparent 30%, #000 55%, transparent 72%);

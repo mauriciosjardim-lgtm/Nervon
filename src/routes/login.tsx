@@ -166,14 +166,15 @@ function Login() {
             ))}
           </div>
 
-          {/* Google OAuth */}
+          {/* Google OAuth — desabilitado até integração estar pronta */}
           <button
             type="button"
-            onClick={async () => { setErro(null); const { error } = await signInWithGoogle(); if (error) setErro(error); }}
-            className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-lg border border-border/60 bg-surface-2/40 py-2 text-sm font-medium transition hover:bg-surface-2/80 hover:border-border active:scale-[0.98]"
+            disabled
+            className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-lg border border-border/30 bg-surface-2/20 py-2 text-sm font-medium cursor-not-allowed opacity-50"
           >
             <GoogleIcon />
             Entrar com Google
+            <span className="ml-auto rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-normal text-muted-foreground">Em breve</span>
           </button>
 
           <div className="mb-4 flex items-center gap-3">

@@ -117,7 +117,7 @@ export const fmtBRLDetalhado = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export const fmtData = (iso: string) =>
-  new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 
 export const STATUS_META: Record<LancStatus, { label: string; color: string; bg: string; border: string }> = {
   previsto: { label: "Previsto", color: "text-info", bg: "bg-info/10", border: "border-info/30" },
@@ -169,8 +169,8 @@ export function serieMensal(lancs: Lancamento[]) {
     });
   }
   for (const l of lancs) {
-    const dt = new Date(l.pagamentoEm ?? l.vencimento);
-    const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    // Slice to "YYYY-MM" avoids UTC-midnight parsing bug for date-only strings from Supabase
+    const key = (l.pagamentoEm ?? l.vencimento).slice(0, 7);
     const m = meses.find(x => x.key === key);
     if (!m) continue;
     if (l.tipo === "receita") m.receita += l.valor;

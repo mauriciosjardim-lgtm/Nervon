@@ -26,7 +26,7 @@ function rowToLanc(r: any): Lancamento {
 
 function reconciliarStatus({ tipo, vencimento, pagamentoEm }: Pick<Lancamento, "tipo" | "vencimento" | "pagamentoEm">): LancStatus {
   if (pagamentoEm) return tipo === "receita" ? "recebido" : "pago";
-  const venc = new Date(vencimento);
+  const venc = new Date(vencimento.slice(0, 10) + "T12:00:00");
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   if (venc < hoje) return "atrasado";
   return "previsto";
