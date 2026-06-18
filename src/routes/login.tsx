@@ -6,19 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle2, Check, Eye, EyeOff } from "lucide-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [modo, setModo] = useState<"entrar" | "criar" | "esqueci">("entrar");
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [emailEnviado, setEmailEnviado] = useState("");
   const [resetEnviado, setResetEnviado] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ function Login() {
 
   const trocarModo = (m: "entrar" | "criar" | "esqueci") => {
     setModo(m); setErro(null); setAguardandoEmail(false); setResetEnviado(false);
-    setNome(""); setSenha(""); setConfirmarSenha("");
+    setNome(""); setSenha(""); setConfirmarSenha(""); setMostrarSenha(false);
   };
 
   const enviarReset = async (e: React.FormEvent) => {
@@ -48,15 +49,12 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
-
     if (modo === "criar") {
       if (!nome.trim()) { setErro("Informe seu nome."); return; }
       if (senha.length < 6) { setErro("A senha precisa ter pelo menos 6 caracteres."); return; }
       if (senha !== confirmarSenha) { setErro("As senhas não coincidem."); return; }
     }
-
     setLoading(true);
-
     if (modo === "entrar") {
       const { error } = await signIn(email, senha);
       if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
@@ -64,172 +62,234 @@ function Login() {
     } else {
       const { error } = await signUp(email, senha, nome);
       if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
-      navigate({ to: "/" });
+      setEmailEnviado(email);
+      setAguardandoEmail(true);
+      setLoading(false);
     }
   };
 
-  // Tela de aguardar confirmação de e-mail
-  if (aguardandoEmail) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+  return (
+    <div className="flex min-h-screen bg-background">
+
+      {/* ── Painel esquerdo — hero (só desktop) ── */}
+      <div className="relative hidden overflow-hidden lg:flex lg:w-[52%] flex-col justify-between p-10">
         <AuthBackground />
-        <div className="relative w-full max-w-sm text-center">
-          <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
-            <Mail className="size-8" />
+
+        {/* Gradiente de borda direita para fundir com o painel do form */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-r from-transparent to-background/80" />
+
+        {/* Logo wordmark */}
+        <div className="relative flex items-center gap-3">
+          <LogoMakersHub className="h-9 w-9" />
+          <span className="font-display text-lg font-semibold">
+            <span className="text-foreground">Makers</span><span className="text-primary">Hub</span>
+          </span>
+        </div>
+
+        {/* Headline principal */}
+        <div className="relative max-w-md">
+          <h1 className="font-display text-[2.6rem] font-bold leading-tight tracking-tight text-foreground">
+            Organize ideias.<br />
+            <span className="text-primary">Colabore</span> com seu time.<br />
+            Crie <span className="text-primary">sem limites.</span>
+          </h1>
+          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+            MakersHub é o espaço onde produtoras ganham forma e produções acontecem de verdade.
+          </p>
+        </div>
+
+        {/* Badge inferior */}
+        <div className="relative flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/30 bg-primary/15">
+            <Check className="h-4 w-4 text-primary" />
           </div>
-          <h1 className="font-display text-xl font-semibold">Confirme seu e-mail</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enviamos um link de confirmação para
-          </p>
-          <p className="mt-1 font-medium text-foreground">{emailEnviado}</p>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Clique no link do e-mail para ativar sua conta e entrar no MakersHub. Verifique também a pasta de spam.
-          </p>
-          <button
-            onClick={() => setAguardandoEmail(false)}
-            className="mt-6 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
-            Usar outro e-mail
-          </button>
+          <div>
+            <p className="text-sm font-medium text-foreground">Feito para criativos.</p>
+            <p className="text-xs text-muted-foreground">Pensado para produtoras.</p>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  if (modo === "esqueci") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <AuthBackground />
+      {/* ── Painel direito — formulário ── */}
+      <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-12 lg:border-l lg:border-border/30 lg:bg-surface-1/30">
+        {/* AuthBackground visível só no mobile (no desktop o esquerdo já tem) */}
+        <div className="lg:hidden">
+          <AuthBackground />
+        </div>
+
         <div className="relative w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center gap-3">
-            <LogoMakersHub className="h-20 w-20 drop-shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_70%,transparent)]" />
+
+          {/* Logo + título */}
+          <div className="mb-8 flex flex-col items-center gap-4 text-center">
+            <LogoMakersHub className="h-[72px] w-[72px] drop-shadow-[0_0_28px_color-mix(in_oklch,var(--primary)_60%,transparent)]" />
+            <div>
+              <h2 className="font-display text-2xl font-bold">
+                {aguardandoEmail
+                  ? "Confirme seu e-mail"
+                  : modo === "criar"
+                  ? "Criar conta"
+                  : modo === "esqueci"
+                  ? "Redefinir senha"
+                  : "Bem-vindo de volta!"}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {aguardandoEmail
+                  ? `Link enviado para ${emailEnviado}`
+                  : modo === "criar"
+                  ? "Preencha os dados para começar"
+                  : modo === "esqueci"
+                  ? "Enviaremos um link para seu e-mail"
+                  : "Faça login para continuar"}
+              </p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 shadow-xl backdrop-blur-sm">
-            {resetEnviado ? (
-              <div className="flex flex-col items-center gap-3 py-4 text-center">
-                <CheckCircle2 className="size-10 text-primary" />
-                <h2 className="font-display text-lg font-semibold">Link enviado!</h2>
-                <p className="text-sm text-muted-foreground">
-                  Verifique seu e-mail <strong className="text-foreground">{email}</strong> e clique no link para redefinir a senha. Confira também o spam.
-                </p>
-                <button onClick={() => trocarModo("entrar")} className="mt-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
-                  Voltar ao login
-                </button>
+
+          {/* ── Aguardando confirmação de e-mail ── */}
+          {aguardandoEmail ? (
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
+                <Mail className="size-7" />
               </div>
-            ) : (
-              <>
-                <button onClick={() => trocarModo("entrar")} className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-                  <ArrowLeft className="size-3.5" /> Voltar
-                </button>
-                <h2 className="mb-1 font-display text-lg font-semibold">Redefinir senha</h2>
-                <p className="mb-5 text-sm text-muted-foreground">Informe seu e-mail e enviaremos um link para criar uma nova senha.</p>
-                <form onSubmit={enviarReset} className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Clique no link do e-mail para ativar sua conta.<br />
+                Verifique também a pasta de spam.
+              </p>
+              <button
+                onClick={() => { setAguardandoEmail(false); trocarModo("entrar"); }}
+                className="mt-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition">
+                Usar outro e-mail
+              </button>
+            </div>
+
+          ) : modo === "esqueci" ? (
+            /* ── Esqueci minha senha ── */
+            <div>
+              {resetEnviado ? (
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <CheckCircle2 className="size-10 text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    Verifique seu e-mail <strong className="text-foreground">{email}</strong> e clique no link para redefinir a senha.
+                  </p>
+                  <button onClick={() => trocarModo("entrar")} className="mt-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition">
+                    Voltar ao login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={enviarReset} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs">E-mail</Label>
-                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="você@produtora.com" autoFocus />
+                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="seu@email.com" autoFocus />
                   </div>
-                  {erro && (
-                    <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
-                  )}
-                  <Button type="submit" className="mt-1 w-full" disabled={loading}>
+                  {erro && <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>}
+                  <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Enviando…" : "Enviar link de redefinição"}
                   </Button>
+                  <button type="button" onClick={() => trocarModo("entrar")}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+                    <ArrowLeft className="size-3.5" /> Voltar ao login
+                  </button>
                 </form>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+              )}
+            </div>
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <AuthBackground />
-
-      <div className="relative w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <LogoMakersHub className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
-          <div className="text-center">
-            <h1 className="font-display text-xl font-semibold">MakersHub</h1>
-            <p className="text-xs text-muted-foreground">O Hub Completo para Produtoras de Audiovisual</p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 shadow-xl backdrop-blur-sm">
-          <div className="mb-6 flex rounded-lg border border-border/40 bg-surface-2/40 p-1">
-            {(["entrar", "criar"] as const).map(m => (
-              <button key={m} onClick={() => trocarModo(m)}
-                className={cn("flex-1 rounded-md py-1.5 text-xs font-medium transition",
-                  modo === m ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground")}>
-                {m === "entrar" ? "Entrar" : "Criar conta"}
+          ) : (
+            /* ── Entrar / Criar conta ── */
+            <>
+              {/* Botão Google — desabilitado */}
+              <button type="button" disabled
+                className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-xl border border-border/30 bg-surface-2/20 py-2.5 text-sm font-medium cursor-not-allowed opacity-50">
+                <GoogleIcon />
+                Entrar com Google
+                <span className="ml-auto rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-normal text-muted-foreground">Em breve</span>
               </button>
-            ))}
-          </div>
 
-          {/* Google OAuth — desabilitado até integração estar pronta */}
-          <button
-            type="button"
-            disabled
-            className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-lg border border-border/30 bg-surface-2/20 py-2 text-sm font-medium cursor-not-allowed opacity-50"
-          >
-            <GoogleIcon />
-            Entrar com Google
-            <span className="ml-auto rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-normal text-muted-foreground">Em breve</span>
-          </button>
-
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex-1 border-t border-border/40" />
-            <span className="text-[11px] text-muted-foreground">ou continue com e-mail</span>
-            <div className="flex-1 border-t border-border/40" />
-          </div>
-
-          <form onSubmit={submit} className="space-y-3">
-            {modo === "criar" && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Seu nome</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="João Silva" autoFocus />
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex-1 border-t border-border/40" />
+                <span className="text-[11px] text-muted-foreground">ou continue com e-mail</span>
+                <div className="flex-1 border-t border-border/40" />
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <Label className="text-xs">E-mail</Label>
-              <Input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="você@produtora.com" autoFocus={modo === "entrar"} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Senha</Label>
-              <Input type="password" value={senha} onChange={e => setSenha(e.target.value)}
-                placeholder="••••••••" minLength={6} />
-            </div>
-
-            {modo === "criar" && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Confirmar senha</Label>
-                <Input type="password" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)}
-                  placeholder="••••••••"
-                  className={cn(confirmarSenha && confirmarSenha !== senha && "border-destructive/60 focus-visible:ring-destructive/30")} />
-                {confirmarSenha && confirmarSenha !== senha && (
-                  <p className="text-[11px] text-destructive">As senhas não coincidem</p>
+              <form onSubmit={submit} className="space-y-4">
+                {modo === "criar" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Seu nome</Label>
+                    <Input value={nome} onChange={e => setNome(e.target.value)}
+                      placeholder="João Silva" autoFocus />
+                  </div>
                 )}
-              </div>
-            )}
 
-            {erro && (
-              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                {erro}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">E-mail</Label>
+                  <Input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="seu@email.com" autoFocus={modo === "entrar"} />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Senha</Label>
+                    {modo === "entrar" && (
+                      <button type="button" onClick={() => trocarModo("esqueci")}
+                        className="text-[11px] text-primary transition hover:underline">
+                        Esqueci minha senha
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Input
+                      type={mostrarSenha ? "text" : "password"}
+                      value={senha}
+                      onChange={e => setSenha(e.target.value)}
+                      placeholder="••••••••"
+                      minLength={6}
+                      className="pr-10"
+                    />
+                    <button type="button" onClick={() => setMostrarSenha(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground">
+                      {mostrarSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {modo === "criar" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Confirmar senha</Label>
+                    <Input type="password" value={confirmarSenha}
+                      onChange={e => setConfirmarSenha(e.target.value)}
+                      placeholder="••••••••"
+                      className={cn(confirmarSenha && confirmarSenha !== senha && "border-destructive/60 focus-visible:ring-destructive/30")} />
+                    {confirmarSenha && confirmarSenha !== senha && (
+                      <p className="text-[11px] text-destructive">As senhas não coincidem</p>
+                    )}
+                  </div>
+                )}
+
+                {erro && (
+                  <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
+                )}
+
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-xs text-muted-foreground">
+                {modo === "entrar" ? (
+                  <>Ainda não tem uma conta?{" "}
+                    <button onClick={() => trocarModo("criar")} className="font-medium text-primary hover:underline">
+                      Criar conta
+                    </button>
+                  </>
+                ) : (
+                  <>Já tem uma conta?{" "}
+                    <button onClick={() => trocarModo("entrar")} className="font-medium text-primary hover:underline">
+                      Entrar
+                    </button>
+                  </>
+                )}
               </p>
-            )}
-
-            <Button type="submit" className="mt-1 w-full" disabled={loading}>
-              {loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}
-            </Button>
-            {modo === "entrar" && (
-              <button type="button" onClick={() => trocarModo("esqueci")} className="mt-3 w-full text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
-                Esqueci minha senha
-              </button>
-            )}
-          </form>
+            </>
+          )}
         </div>
       </div>
     </div>
