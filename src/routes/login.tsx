@@ -86,16 +86,18 @@ function Login() {
           </span>
         </div>
 
-        {/* Headline principal */}
-        <div className="relative max-w-md">
-          <h1 className="font-display text-[2.6rem] font-bold leading-tight tracking-tight text-foreground">
-            Organize ideias.<br />
-            <span className="text-primary">Colabore</span> com seu time.<br />
-            Crie <span className="text-primary">sem limites.</span>
-          </h1>
-          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            MakersHub é o espaço onde produtoras ganham forma e produções acontecem de verdade.
-          </p>
+        {/* Headline principal — flex-1 centraliza verticalmente entre logo e badge */}
+        <div className="relative flex flex-1 items-center">
+          <div className="max-w-md">
+            <h1 className="font-display text-[2.6rem] font-bold leading-tight tracking-tight text-foreground">
+              Organize ideias.<br />
+              <span className="text-primary">Colabore</span> com seu time.<br />
+              Crie <span className="text-primary">sem limites.</span>
+            </h1>
+            <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+              MakersHub é o espaço onde produtoras ganham forma e produções acontecem de verdade.
+            </p>
+          </div>
         </div>
 
         {/* Badge inferior */}
