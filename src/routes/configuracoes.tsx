@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, KeyRound, Terminal, ArrowRight, ArrowLeft, Monitor, Sparkles, PartyPopper, RotateCw, Download } from "lucide-react";
+import { Target, Rocket, Check, Upload, Palette, Building2, X, User, Bot, Copy, Trash2, KeyRound, Terminal, ArrowRight, ArrowLeft, Monitor, Sparkles, PartyPopper, RotateCw, Download, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -388,6 +388,7 @@ function AgenteIASection() {
   const [tokens, setTokens] = useState<McpToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardAberto, setWizardAberto] = useState(false);
+  const [mostrarAcessos, setMostrarAcessos] = useState(false);
 
   const carregar = async () => {
     if (!empresa) return;
@@ -426,8 +427,8 @@ function AgenteIASection() {
             <Sparkles className="size-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Conectar meu Claude</p>
-            <p className="text-xs text-muted-foreground">Passo a passo guiado — leva uns 2 minutos.</p>
+            <p className="text-sm font-semibold text-foreground">Conectar minha IA</p>
+            <p className="text-xs text-muted-foreground">ChatGPT ou Claude — passo a passo, uns 2 minutos.</p>
           </div>
         </div>
         <Button onClick={() => setWizardAberto(true)} className="h-10 shrink-0 rounded-lg px-5 text-sm">
@@ -435,39 +436,43 @@ function AgenteIASection() {
         </Button>
       </div>
 
-      {/* Acessos ativos */}
-      <div className="mt-6">
-        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          <KeyRound className="size-3" /> Acessos ativos
+      {/* Acessos ativos — colapsável */}
+      {!loading && tokens.length > 0 && (
+        <div className="mt-4">
+          <button
+            onClick={() => setMostrarAcessos(v => !v)}
+            className="flex w-full items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
+          >
+            <KeyRound className="size-3" />
+            Acessos ativos
+            <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] normal-case tracking-normal">{tokens.length}</span>
+            <ChevronDown className={cn("ml-auto size-3.5 transition", mostrarAcessos && "rotate-180")} />
+          </button>
+          {mostrarAcessos && (
+            <ul className="mt-2 divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+              {tokens.map(t => (
+                <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{t.nome}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
+                      {t.ultimo_uso
+                        ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
+                        : " · Nunca usado"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => revogar(t.id)}
+                    className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="size-3.5" /> Revogar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
-        ) : tokens.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum acesso ativo ainda. Clique em “Começar” pra conectar.</p>
-        ) : (
-          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
-            {tokens.map(t => (
-              <li key={t.id} className="flex items-center justify-between gap-3 bg-surface-2/30 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{t.nome}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Criado em {new Date(t.criado_em).toLocaleDateString("pt-BR")}
-                    {t.ultimo_uso
-                      ? ` · Último uso ${new Date(t.ultimo_uso).toLocaleString("pt-BR")}`
-                      : " · Nunca usado"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => revogar(t.id)}
-                  className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="size-3.5" /> Revogar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      )}
 
       {wizardAberto && (
         <ConectarWizard
@@ -517,7 +522,7 @@ function ConectarWizard({ empresa, onClose }: { empresa: any; onClose: () => voi
   const steps: { titulo: string; node: React.ReactNode }[] = [];
   if (app === "chatgpt") {
     steps.push(
-      { titulo: "Abra os Aplicativos do ChatGPT", node: <StepAbrirAppsGPT /> },
+      { titulo: "Ative o modo desenvolvedor", node: <StepDevModeGPT /> },
       { titulo: "Crie o app do MakersHub", node: <StepCriarAppGPT /> },
       { titulo: "Faça login e autorize", node: <StepLoginGPT /> },
       { titulo: "Tudo pronto!", node: <StepPronto /> },
@@ -710,14 +715,15 @@ function StepGerar({ gerando, token, onGerar }: { gerando: boolean; token: strin
   );
 }
 
-function StepAbrirAppsGPT() {
+function StepDevModeGPT() {
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
-        No ChatGPT (site ou app), abra <strong>Configurações → Aplicativos</strong>, ative o
-        <strong> modo desenvolvedor</strong> e clique em <strong>“Novo app”</strong>.
+        No ChatGPT (site ou app), abra <strong>Configurações → Aplicativos e conectores</strong>,
+        entre em <strong>Avançado</strong> e ligue o <strong>Modo desenvolvedor</strong>. É ele que
+        permite adicionar o MakersHub.
       </p>
-      <Mock label="ChatGPT · Configurações">
+      <Mock label="ChatGPT · Aplicativos → Avançado">
         <div className="flex gap-3">
           <div className="w-24 shrink-0 space-y-1.5 text-[10px] text-muted-foreground">
             <div className="rounded px-2 py-1">Geral</div>
@@ -726,9 +732,9 @@ function StepAbrirAppsGPT() {
           </div>
           <div className="flex-1 space-y-2">
             <div className="h-2 w-2/3 rounded bg-border" />
-            <div className="h-2 w-1/2 rounded bg-border" />
-            <div className="mt-3 inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium text-primary">
-              + Novo app
+            <div className="flex items-center justify-between rounded-md border border-border/50 bg-surface-2/40 px-2.5 py-1.5">
+              <span className="text-[11px] text-foreground">Modo desenvolvedor</span>
+              <span className="flex h-3.5 w-6 items-center rounded-full bg-primary px-0.5"><span className="ml-auto size-2.5 rounded-full bg-primary-foreground" /></span>
             </div>
           </div>
         </div>
@@ -743,7 +749,7 @@ function StepCriarAppGPT() {
   return (
     <div>
       <p className="mb-3 text-sm text-muted-foreground">
-        Preencha assim e clique em <strong>Criar</strong>:
+        Ainda em Aplicativos, clique em <strong>“Novo app”</strong>, preencha assim e clique em <strong>Criar</strong>:
       </p>
       <div className="relative mb-3 rounded-lg border border-border/60 bg-background/80 p-3 pr-11">
         <p className="mb-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">URL do servidor</p>
