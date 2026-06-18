@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Mail } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
 
@@ -14,9 +15,10 @@ export const Route = createFileRoute("/login")({ component: Login });
 function Login() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const [modo, setModo] = useState<"entrar" | "criar">("entrar");
+  const [modo, setModo] = useState<"entrar" | "criar" | "esqueci">("entrar");
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [emailEnviado, setEmailEnviado] = useState("");
+  const [resetEnviado, setResetEnviado] = useState(false);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -25,9 +27,22 @@ function Login() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const trocarModo = (m: "entrar" | "criar") => {
-    setModo(m); setErro(null); setAguardandoEmail(false);
+  const trocarModo = (m: "entrar" | "criar" | "esqueci") => {
+    setModo(m); setErro(null); setAguardandoEmail(false); setResetEnviado(false);
     setNome(""); setSenha(""); setConfirmarSenha("");
+  };
+
+  const enviarReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErro(null);
+    if (!email.trim()) { setErro("Informe seu e-mail."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setLoading(false);
+    if (error) { setErro(traduzirErro(error.message)); return; }
+    setResetEnviado(true);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -75,6 +90,53 @@ function Login() {
             className="mt-6 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
             Usar outro e-mail
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (modo === "esqueci") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <AuthBackground />
+        <div className="relative w-full max-w-sm">
+          <div className="mb-8 flex flex-col items-center gap-3">
+            <LogoMakersHub className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 shadow-xl backdrop-blur-sm">
+            {resetEnviado ? (
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <CheckCircle2 className="size-10 text-primary" />
+                <h2 className="font-display text-lg font-semibold">Link enviado!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Verifique seu e-mail <strong className="text-foreground">{email}</strong> e clique no link para redefinir a senha. Confira também o spam.
+                </p>
+                <button onClick={() => trocarModo("entrar")} className="mt-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                  Voltar ao login
+                </button>
+              </div>
+            ) : (
+              <>
+                <button onClick={() => trocarModo("entrar")} className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+                  <ArrowLeft className="size-3.5" /> Voltar
+                </button>
+                <h2 className="mb-1 font-display text-lg font-semibold">Redefinir senha</h2>
+                <p className="mb-5 text-sm text-muted-foreground">Informe seu e-mail e enviaremos um link para criar uma nova senha.</p>
+                <form onSubmit={enviarReset} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">E-mail</Label>
+                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="você@produtora.com" autoFocus />
+                  </div>
+                  {erro && (
+                    <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
+                  )}
+                  <Button type="submit" className="mt-1 w-full" disabled={loading}>
+                    {loading ? "Enviando…" : "Enviar link de redefinição"}
+                  </Button>
+                </form>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -161,6 +223,11 @@ function Login() {
             <Button type="submit" className="mt-1 w-full" disabled={loading}>
               {loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}
             </Button>
+            {modo === "entrar" && (
+              <button type="button" onClick={() => trocarModo("esqueci")} className="mt-3 w-full text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Esqueci minha senha
+              </button>
+            )}
           </form>
         </div>
       </div>

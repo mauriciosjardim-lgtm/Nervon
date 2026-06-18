@@ -34,7 +34,7 @@ export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: 
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined }}
+      style={{ transform: undefined }}
       {...attributes}
       {...listeners}
       onClick={(e) => {
@@ -48,7 +48,7 @@ export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: 
       className={cn(
         "group/card relative w-full select-none text-left rounded-2xl border border-border bg-card p-4 shadow-sm transition-all cursor-pointer",
         "hover:border-primary/40 hover:shadow-[0_10px_30px_-14px_oklch(0_0_0/0.7)] hover:-translate-y-0.5",
-        isDragging && "opacity-60 ring-2 ring-primary cursor-grabbing rotate-1",
+        isDragging && "opacity-30 pointer-events-none",
       )}
     >
       {onRemove && (

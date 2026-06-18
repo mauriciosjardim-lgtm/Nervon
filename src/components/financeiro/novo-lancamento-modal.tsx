@@ -70,7 +70,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
       tipo, categoria: categoria || "Outros", descricao: descricao.trim(),
       valor,
       vencimento: new Date(vencimento + "T12:00:00").toISOString(),
-      pagamentoEm: pago ? new Date().toISOString() : null,
+      pagamentoEm: pago ? new Date(vencimento + "T12:00:00").toISOString() : null,
       cliente: cliente.trim() || undefined,
       projeto: projeto.trim() || undefined,
       formaPagamento, observacoes: observacoes.trim() || undefined,

@@ -123,6 +123,8 @@ function PerfilSection() {
 
 // ─── Minha Produtora ─────────────────────────────────────────────────────────
 
+const LOGO_SIZE_KEY = "makershub:logo_size";
+
 function ProdutoraSection() {
   const { empresa, refreshEmpresa } = useAuth();
   const [nome, setNome] = useState(empresa?.nome ?? "");
@@ -130,12 +132,18 @@ function ProdutoraSection() {
   const [saved, setSaved] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(empresa?.logo_url ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoSize, setLogoSize] = useState<number>(() => Number(localStorage.getItem(LOGO_SIZE_KEY) ?? 2));
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNome(empresa?.nome ?? "");
     setLogoPreview(empresa?.logo_url ?? null);
   }, [empresa]);
+
+  const handleLogoSize = (v: number) => {
+    setLogoSize(v);
+    localStorage.setItem(LOGO_SIZE_KEY, String(v));
+  };
 
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,16 +196,31 @@ function ProdutoraSection() {
         <div className="flex flex-col items-center gap-2">
           <div className="relative grid size-24 place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-border/60 bg-surface-2/60 transition hover:border-primary/40">
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo" className="size-full object-contain p-2" />
+              <img
+                src={logoPreview}
+                alt="Logo"
+                className="size-full object-contain"
+                style={{ padding: `${logoSize * 4}px` }}
+              />
             ) : (
               <Upload className="size-6 text-muted-foreground" />
             )}
             <input ref={fileRef} type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={handleLogo} />
           </div>
           {logoPreview && (
-            <button onClick={removerLogo} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive">
-              <X className="size-3" /> Remover
-            </button>
+            <>
+              <div className="flex w-full max-w-[96px] flex-col gap-1">
+                <span className="text-center text-[10px] text-muted-foreground">Tamanho</span>
+                <input
+                  type="range" min={0} max={8} step={1} value={logoSize}
+                  onChange={e => handleLogoSize(Number(e.target.value))}
+                  className="h-1.5 w-full cursor-pointer accent-primary"
+                />
+              </div>
+              <button onClick={removerLogo} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive">
+                <X className="size-3" /> Remover
+              </button>
+            </>
           )}
           <p className="text-center text-[10px] text-muted-foreground">PNG ou SVG<br />Recomendado 200×200px</p>
         </div>
@@ -509,14 +532,14 @@ function ConectarWizard({ empresa, onClose }: { empresa: any; onClose: () => voi
 
   const configJson = `{
   "mcpServers": {
-    "nervon": {
+    "makershub": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "${MCP_URL}",
         "--header", "Authorization: Bearer ${token ?? "SEU_TOKEN"}"]
     }
   }
 }`;
-  const comandoCode = `claude mcp add --transport http nervon ${MCP_URL} --header "Authorization: Bearer ${token ?? "SEU_TOKEN"}"`;
+  const comandoCode = `claude mcp add --transport http makershub ${MCP_URL} --header "Authorization: Bearer ${token ?? "SEU_TOKEN"}"`;
 
   // monta os passos conforme o app escolhido
   const steps: { titulo: string; node: React.ReactNode }[] = [];

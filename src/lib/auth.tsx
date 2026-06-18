@@ -50,7 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    const fallback = setTimeout(() => {
+      setState(s => s.loading ? { ...s, loading: false } : s);
+    }, 5000);
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearTimeout(fallback);
       if (session?.user) {
         const perfil = await loadPerfil(session.user.id);
         setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
@@ -68,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => { clearTimeout(fallback); subscription.unsubscribe(); };
   }, []);
 
   const signIn = async (email: string, password: string) => {

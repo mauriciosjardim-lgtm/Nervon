@@ -4,7 +4,7 @@
     {
       "name": "nervon",
       "runtimeExecutable": "/Users/rastro/.bun/bin/bun",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["run", "dev", "--port", "8080"],
       "port": 8080
     }
   ]

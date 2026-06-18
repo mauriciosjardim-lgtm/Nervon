@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
-  DndContext, PointerSensor, useSensor, useSensors,
-  useDroppable, type DragEndEvent,
+  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  useDroppable, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { useComercial, comercial, ETAPAS, fmtBRL, type EtapaJornada, type Lead } from "@/lib/hooks/useComercial";
 import { LeadCard } from "./lead-card";
@@ -13,12 +13,19 @@ import { cn } from "@/lib/utils";
 export function JornadaBoard({ filtroFn }: { filtroFn?: (l: Lead) => boolean }) {
   const leads = useComercial(s => s.leads);
   const [openLead, setOpenLead] = useState<string | null>(null);
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
 
   const filtrados = useMemo(() => filtroFn ? leads.filter(filtroFn) : leads, [leads, filtroFn]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
+  function onDragStart(e: DragStartEvent) {
+    const lead = leads.find(l => l.id === e.active.id);
+    setActiveLead(lead ?? null);
+  }
+
   function onDragEnd(e: DragEndEvent) {
+    setActiveLead(null);
     const leadId = e.active.id as string;
     const destino = e.over?.id as EtapaJornada | undefined;
     if (!destino) return;
@@ -30,7 +37,7 @@ export function JornadaBoard({ filtroFn }: { filtroFn?: (l: Lead) => boolean }) 
 
   return (
     <>
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-4">
           {ETAPAS.map(etapa => {
             const dela = filtrados.filter(l => l.etapa === etapa.id);
@@ -52,6 +59,13 @@ export function JornadaBoard({ filtroFn }: { filtroFn?: (l: Lead) => boolean }) 
             );
           })}
         </div>
+        <DragOverlay dropAnimation={{ duration: 150, easing: "ease" }}>
+          {activeLead && (
+            <div className="rotate-2 opacity-95 shadow-2xl">
+              <LeadCard lead={activeLead} onOpen={() => {}} />
+            </div>
+          )}
+        </DragOverlay>
       </DndContext>
 
       <LeadDrawer leadId={openLead} onClose={() => setOpenLead(null)} />

@@ -51,6 +51,11 @@ export function Topbar() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
+          <span className="font-display text-sm font-light tracking-tight text-muted-foreground">MakersHub</span>
+          <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">beta</span>
+        </div>
+
         <button className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-surface-1/60 px-3 text-xs text-muted-foreground transition hover:border-border hover:bg-surface-2 hover:text-foreground md:flex">
           <Search className="size-3.5" />
           <span>Buscar em tudo</span>

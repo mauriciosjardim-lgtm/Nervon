@@ -249,15 +249,6 @@ function ProgressoMesWide() {
         </div>
       </div>
 
-      <div className="hidden text-right sm:block sm:w-40">
-        <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projeção</div>
-        <div className="mt-0.5 font-display text-base font-semibold tabular-nums text-foreground">
-          {brl(Math.round(p.projecao))}
-        </div>
-        <div className={`mt-0.5 text-[11px] ${p.projecao >= p.meta ? "text-primary" : "text-muted-foreground"}`}>
-          {p.projecao >= p.meta ? "Acima da meta" : "Abaixo da meta"}
-        </div>
-      </div>
     </section>
   );
 }

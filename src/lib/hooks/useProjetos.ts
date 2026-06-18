@@ -6,6 +6,7 @@ import type {
   Projeto, Tarefa, Marco, Entregavel,
 } from "@/lib/mock/projetos";
 import { FASES_PADRAO } from "@/lib/mock/projetos";
+import { agendaActions } from "./useAgenda";
 
 // ─── helpers de conversão snake_case ↔ camelCase ───────────────────────────
 
@@ -190,6 +191,15 @@ export const projetosActions = {
       const nova = rowToTarefa(data);
       setStore({ tarefas: [...store.tarefas, nova] });
       await atualizarProgresso(input.projetoId);
+      if (nova.prazo) {
+        await agendaActions.upsertPorRef("tarefa", nova.id, {
+          titulo: nova.titulo,
+          tipo: "tarefa",
+          inicio: nova.prazo,
+          fim: nova.prazo,
+          diaTodo: false,
+        });
+      }
     }
   },
 
@@ -206,6 +216,20 @@ export const projetosActions = {
     const tarefa = store.tarefas.find(t => t.id === id);
     setStore({ tarefas: store.tarefas.map(t => t.id === id ? { ...t, ...input } : t) });
     if (tarefa && input.concluida !== undefined) await atualizarProgresso(tarefa.projetoId);
+    if (input.prazo !== undefined) {
+      if (input.prazo) {
+        const titulo = input.titulo ?? tarefa?.titulo ?? "";
+        await agendaActions.upsertPorRef("tarefa", id, {
+          titulo,
+          tipo: "tarefa",
+          inicio: input.prazo,
+          fim: input.prazo,
+          diaTodo: false,
+        });
+      } else {
+        await agendaActions.removerPorRef("tarefa", id);
+      }
+    }
   },
 
   async removerTarefa(id: string) {
@@ -213,6 +237,7 @@ export const projetosActions = {
     await supabase.from("tarefas").delete().eq("id", id);
     setStore({ tarefas: store.tarefas.filter(t => t.id !== id) });
     if (tarefa) await atualizarProgresso(tarefa.projetoId);
+    await agendaActions.removerPorRef("tarefa", id);
   },
 
   async criarMarco(input: Omit<Marco, "id">) {
