@@ -559,33 +559,52 @@ function loginPage(params: Record<string, string>, erro?: string): Response {
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; padding:24px; }
   .card { width:100%; max-width:380px; background:#141416; border:1px solid #26262b; border-radius:20px;
     padding:32px 28px; box-shadow:0 24px 60px -20px rgba(0,0,0,.6); }
-  .logo { width:48px; height:48px; border-radius:12px; background:#c4f000; color:#0a0a0b; display:grid;
-    place-items:center; font-weight:800; font-size:24px; margin:0 auto 16px; box-shadow:0 0 28px -4px #c4f000; }
+  .logo-wrap { width:64px; height:64px; margin:0 auto 20px; display:block;
+    filter:drop-shadow(0 0 20px rgba(144,248,38,0.5)); }
   h1 { font-size:18px; text-align:center; margin:0 0 4px; }
   p.sub { font-size:13px; color:#9a9aa2; text-align:center; margin:0 0 24px; }
   label { display:block; font-size:12px; color:#9a9aa2; margin:0 0 6px; }
   input.field { width:100%; height:42px; padding:0 12px; margin-bottom:14px; border-radius:10px;
-    border:1px solid #2e2e34; background:#0e0e10; color:#e7e7ea; font-size:14px; }
-  input.field:focus { outline:none; border-color:#c4f000; }
-  button { width:100%; height:44px; border:0; border-radius:10px; background:#c4f000; color:#0a0a0b;
-    font-weight:700; font-size:14px; cursor:pointer; }
-  button:hover { filter:brightness(1.05); }
+    border:1px solid #2e2e34; background:#0e0e10; color:#e7e7ea; font-size:14px;
+    -webkit-appearance:none; appearance:none; }
+  input.field:focus { outline:none; border-color:#90f826; }
+  .pw-wrap { position:relative; margin-bottom:14px; }
+  .pw-wrap input.field { margin-bottom:0; padding-right:42px; width:100%; }
+  .pw-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; padding:0; cursor:pointer; color:#6b6b72; width:auto; height:auto;
+    display:flex; align-items:center; }
+  .pw-toggle:hover { color:#e7e7ea; filter:none; }
+  button.submit { width:100%; height:44px; border:0; border-radius:10px; background:#90f826; color:#0a0a0b;
+    font-weight:700; font-size:14px; cursor:pointer; margin-top:4px; }
+  button.submit:hover { filter:brightness(1.08); }
   .erro { background:#3a1416; border:1px solid #5a2326; color:#ffb4b4; font-size:12px; padding:10px 12px;
     border-radius:10px; margin-bottom:16px; }
   .foot { font-size:11px; color:#6b6b72; text-align:center; margin-top:18px; line-height:1.5; }
 </style></head><body>
   <form class="card" method="POST" action="/authorize">
-    <div class="logo">N</div>
+    <svg class="logo-wrap" viewBox="0 0 1500 1500" xmlns="http://www.w3.org/2000/svg" aria-label="MakersHub">
+      <path fill="#141c22" d="M 423.578125 156.542969 L 1076.464844 156.542969 L 1108.109375 158.207031 L 1148.082031 168.199219 L 1169.734375 176.527344 L 1196.382812 189.851562 L 1219.699219 206.507812 L 1238.019531 221.496094 L 1249.679688 231.488281 L 1261.335938 244.8125 L 1274.660156 261.46875 L 1286.320312 278.125 L 1299.644531 304.773438 L 1307.972656 324.757812 L 1316.300781 354.738281 L 1321.296875 393.046875 L 1321.296875 1059.257812 L 1316.300781 1099.230469 L 1304.640625 1135.871094 L 1297.976562 1150.859375 L 1284.652344 1177.507812 L 1268 1200.828125 L 1253.007812 1217.480469 L 1246.347656 1225.808594 L 1229.691406 1239.132812 L 1221.363281 1247.460938 L 1203.042969 1259.121094 L 1189.71875 1267.449219 L 1163.070312 1280.773438 L 1139.753906 1289.101562 L 1104.777344 1297.425781 L 396.929688 1297.425781 L 366.949219 1290.765625 L 341.964844 1282.4375 L 315.316406 1269.113281 L 295.332031 1257.453125 L 273.679688 1242.464844 L 265.351562 1235.804688 L 258.6875 1229.140625 L 258.6875 1225.808594 L 252.027344 1222.480469 L 243.699219 1214.152344 L 242.035156 1209.15625 L 237.039062 1207.488281 L 213.71875 1172.511719 L 207.058594 1160.855469 L 202.0625 1149.195312 L 195.398438 1134.207031 L 185.40625 1102.5625 L 180.410156 1069.25 L 180.410156 383.054688 L 183.742188 356.40625 L 195.398438 319.761719 L 202.0625 304.773438 L 215.386719 278.125 L 227.042969 261.46875 L 240.367188 244.8125 L 267.015625 218.164062 L 280.339844 206.507812 L 300.328125 193.183594 L 311.984375 186.519531 L 338.632812 173.195312 L 356.957031 166.535156 L 393.597656 158.207031 Z" fill-rule="nonzero"/>
+      <path fill="#90f826" d="M 426.90625 496.308594 L 576.804688 496.308594 L 578.46875 719.488281 L 605.117188 681.183594 L 626.769531 649.539062 L 650.089844 616.226562 L 676.738281 577.917969 L 700.054688 544.609375 L 718.375 517.960938 L 733.363281 496.308594 L 864.941406 496.308594 L 866.605469 719.488281 L 879.929688 701.167969 L 891.589844 684.511719 L 918.238281 646.207031 L 944.886719 607.898438 L 963.207031 581.25 L 986.523438 547.941406 L 1004.84375 521.292969 L 1021.5 497.972656 L 1023.167969 496.308594 L 1156.410156 496.308594 L 1156.410156 960.992188 L 1004.84375 960.992188 L 1003.179688 741.140625 L 981.527344 771.121094 L 959.875 802.765625 L 938.222656 832.746094 L 919.902344 859.394531 L 908.246094 876.050781 L 888.257812 904.363281 L 871.601562 927.679688 L 853.28125 954.328125 L 848.285156 960.992188 L 716.710938 960.992188 L 715.042969 739.476562 L 693.390625 771.121094 L 675.070312 796.105469 L 653.417969 827.75 L 631.765625 857.726562 L 608.449219 891.039062 L 588.464844 919.351562 L 566.8125 950.996094 L 560.148438 960.992188 L 430.238281 960.992188 L 428.574219 652.867188 L 383.605469 697.835938 L 376.941406 706.164062 L 370.28125 707.832031 L 345.296875 682.847656 L 333.636719 669.523438 L 300.328125 636.214844 L 296.996094 627.886719 L 346.960938 577.917969 L 358.621094 564.59375 Z" fill-rule="nonzero"/>
+    </svg>
     <h1>Conectar ao MakersHub</h1>
-    <p class="sub">Entre com sua conta para autorizar o Claude a acessar seu CRM.</p>
+    <p class="sub">Entre com sua conta para autorizar o acesso ao seu CRM.</p>
     ${erro ? `<div class="erro">${escapeHtml(erro)}</div>` : ""}
     ${hidden}
-    <label>E-mail</label>
-    <input class="field" type="email" name="email" placeholder="voce@produtora.com" required autofocus>
-    <label>Senha</label>
-    <input class="field" type="password" name="password" placeholder="••••••••" required>
-    <button type="submit">Entrar e autorizar</button>
-    <p class="foot">O Claude poderá criar e consultar leads no seu funil.<br>Você pode revogar o acesso a qualquer momento em Configurações → Agente IA.</p>
+    <label for="email">E-mail</label>
+    <input id="email" class="field" type="email" name="email" placeholder="voce@produtora.com" autocomplete="email" required autofocus>
+    <label for="password">Senha</label>
+    <div class="pw-wrap">
+      <input id="password" class="field" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+      <button type="button" class="pw-toggle" aria-label="Mostrar senha" onclick="var i=document.getElementById('password');i.type=i.type==='password'?'text':'password';this.innerHTML=i.type==='password'?eye:eyeOff;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+    <script>
+      var eye='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      var eyeOff='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+    </script>
+    <button class="submit" type="submit">Entrar e autorizar</button>
+    <p class="foot">Você pode revogar o acesso a qualquer momento em<br>Configurações → Agente IA.</p>
   </form>
 </body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", ...CORS } });
