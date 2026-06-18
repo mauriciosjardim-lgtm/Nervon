@@ -25,7 +25,7 @@ interface Env {
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "nervon", version: "2.0.0" };
+const SERVER_INFO = { name: "makershub", version: "2.0.0" };
 const CODE_TTL_SECONDS = 600; // código de autorização válido por 10 min
 
 const CORS = {
@@ -253,7 +253,7 @@ async function verifyToken<T = any>(secret: string, token: string): Promise<T | 
 
 function genNvnToken(): string {
   const b = crypto.getRandomValues(new Uint8Array(24));
-  return "nvn_" + [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  return "mkr_" + [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
 // ─── Supabase (REST/Auth via fetch, só com a chave anon) ─────────────────────

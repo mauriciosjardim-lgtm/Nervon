@@ -386,7 +386,7 @@ function MoneyField({ icon: Icon, label, hint, value, onChange }: {
 
 // URL do servidor MCP (Cloudflare Worker). Após o primeiro `wrangler deploy`,
 // confirme/atualize aqui com a URL que o deploy imprimir.
-const MCP_URL = "https://mcp.nervon.com.br";
+const MCP_URL = "https://mcp.makershub.app.br";
 
 interface McpToken {
   id: string;
@@ -398,7 +398,7 @@ interface McpToken {
 
 function gerarTokenPlano(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
-  return "nvn_" + [...bytes].map(b => b.toString(16).padStart(2, "0")).join("");
+  return "mkr_" + [...bytes].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function sha256Hex(s: string): Promise<string> {
