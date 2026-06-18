@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Mail } from "lucide-react";
 import { AuthBackground } from "@/components/auth-background";
-import { LogoMakersHub } from "@/components/logo-nervon";
+import { LogoMakersHub } from "@/components/logo-makershub";
 
 export const Route = createFileRoute("/login")({ component: Login });
 

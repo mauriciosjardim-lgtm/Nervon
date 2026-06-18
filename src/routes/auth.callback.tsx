@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { LogoMakersHub } from "@/components/logo-nervon";
+import { LogoMakersHub } from "@/components/logo-makershub";
 
 export const Route = createFileRoute("/auth/callback")({ component: AuthCallback });
 

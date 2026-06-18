@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { COR_PRESETS, applyBrandColor } from "@/lib/brandColor";
-import { LogoMakersHub } from "@/components/logo-nervon";
+import { LogoMakersHub } from "@/components/logo-makershub";
 
 export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
