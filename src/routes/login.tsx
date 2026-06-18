@@ -101,7 +101,7 @@ function Login() {
         <AuthBackground />
         <div className="relative w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center gap-3">
-            <LogoMakersHub className="h-12 w-12 rounded-xl shadow-[0_0_32px_-4px_var(--primary)]" />
+            <LogoMakersHub className="h-20 w-20 drop-shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_70%,transparent)]" />
           </div>
           <div className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 shadow-xl backdrop-blur-sm">
             {resetEnviado ? (
