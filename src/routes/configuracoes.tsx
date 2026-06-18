@@ -149,7 +149,9 @@ function ProdutoraSection() {
     const file = e.target.files?.[0];
     if (!file) return;
     setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
   };
 
   const removerLogo = () => {
@@ -164,20 +166,18 @@ function ProdutoraSection() {
     let logo_url = empresa.logo_url;
 
     if (logoFile) {
-      const ext = logoFile.name.split(".").pop();
-      const path = `${empresa.id}/logo.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("logos")
-        .upload(path, logoFile, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage.from("logos").getPublicUrl(path);
-        logo_url = data.publicUrl + `?t=${Date.now()}`;
-      }
+      // Converte para base64 e salva direto na coluna — sem depender do Storage
+      logo_url = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target?.result as string);
+        reader.readAsDataURL(logoFile);
+      });
     } else if (logoPreview === null && empresa.logo_url) {
       logo_url = null;
     }
 
     await supabase.from("empresas").update({ nome: nome.trim(), logo_url }).eq("id", empresa.id);
+    setLogoFile(null);
     await refreshEmpresa();
     setSaving(false);
     setSaved(true);
