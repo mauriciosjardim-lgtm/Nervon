@@ -200,7 +200,7 @@ function ProdutoraSection() {
                 src={logoPreview}
                 alt="Logo"
                 className="size-full object-contain"
-                style={{ padding: `${logoSize * 4}px` }}
+                style={{ padding: `${(8 - logoSize) * 4}px` }}
               />
             ) : (
               <Upload className="size-6 text-muted-foreground" />
