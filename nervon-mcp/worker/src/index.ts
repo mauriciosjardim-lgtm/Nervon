@@ -25,7 +25,7 @@ interface Env {
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "makershub", version: "2.0.0" };
+const SERVER_INFO = { name: "makershub", version: "3.0.0" };
 const CODE_TTL_SECONDS = 600; // código de autorização válido por 10 min
 
 const CORS = {
@@ -199,6 +199,155 @@ const TOOLS = [
         de: { type: "string", description: "Início do período (ISO 8601) (opcional)" },
         ate: { type: "string", description: "Fim do período (ISO 8601) (opcional)" },
       },
+    },
+  },
+
+  // ── Leads: editar / excluir ──
+  {
+    name: "atualizar_lead",
+    description:
+      "Edita um lead existente no CRM MakersHub. Use para enriquecer ou corrigir dados (valor, temperatura, origem, responsável) ou adicionar e-mail/telefone do contato. Só os campos enviados são alterados.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lead_id: { type: "string", description: "ID do lead (obtido via listar_leads)" },
+        valor: { type: "number", description: "Novo valor estimado em reais (opcional)" },
+        temperatura: { type: "string", enum: ["frio", "morno", "quente"], description: "Nova temperatura (opcional)" },
+        origem: { type: "string", description: "Nova origem (opcional)" },
+        responsavel: { type: "string", description: "Novo responsável (opcional)" },
+        email: { type: "string", description: "E-mail do contato principal — preenche/atualiza (opcional)" },
+        telefone: { type: "string", description: "Telefone do contato principal — preenche/atualiza (opcional)" },
+      },
+      required: ["lead_id"],
+    },
+  },
+  {
+    name: "excluir_lead",
+    description: "Exclui um lead do funil comercial do MakersHub (junto com sua timeline e follow-ups). Ação irreversível.",
+    inputSchema: {
+      type: "object",
+      properties: { lead_id: { type: "string", description: "ID do lead (obtido via listar_leads)" } },
+      required: ["lead_id"],
+    },
+  },
+
+  // ── Follow-ups: listar / concluir ──
+  {
+    name: "listar_followups",
+    description: "Lista os follow-ups (tarefas de lead) do MakersHub. Por padrão mostra só os pendentes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        apenas_pendentes: { type: "boolean", description: "Se true (padrão), oculta os já concluídos." },
+      },
+    },
+  },
+  {
+    name: "concluir_followup",
+    description: "Marca um follow-up (tarefa de lead) como concluído no MakersHub.",
+    inputSchema: {
+      type: "object",
+      properties: { followup_id: { type: "string", description: "ID do follow-up (obtido via listar_followups)" } },
+      required: ["followup_id"],
+    },
+  },
+
+  // ── Financeiro: editar / excluir / desfazer ──
+  {
+    name: "atualizar_lancamento",
+    description: "Edita um lançamento financeiro do MakersHub. Só os campos enviados são alterados; o status é recalculado pelo vencimento.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lancamento_id: { type: "string", description: "ID do lançamento (obtido via listar_lancamentos)" },
+        descricao: { type: "string", description: "Nova descrição (opcional)" },
+        valor: { type: "number", description: "Novo valor em reais (opcional)" },
+        categoria: { type: "string", description: "Nova categoria (opcional)" },
+        vencimento: { type: "string", description: "Novo vencimento (YYYY-MM-DD) (opcional)" },
+        cliente: { type: "string", description: "Novo cliente (opcional)" },
+        forma_pagamento: { type: "string", description: "Nova forma de pagamento (opcional)" },
+        observacoes: { type: "string", description: "Novas observações (opcional)" },
+      },
+      required: ["lancamento_id"],
+    },
+  },
+  {
+    name: "excluir_lancamento",
+    description: "Exclui um lançamento financeiro do MakersHub. Ação irreversível.",
+    inputSchema: {
+      type: "object",
+      properties: { lancamento_id: { type: "string", description: "ID do lançamento (obtido via listar_lancamentos)" } },
+      required: ["lancamento_id"],
+    },
+  },
+  {
+    name: "desfazer_pagamento",
+    description: "Desfaz o pagamento/recebimento de um lançamento (volta para previsto ou atrasado) no MakersHub.",
+    inputSchema: {
+      type: "object",
+      properties: { lancamento_id: { type: "string", description: "ID do lançamento (obtido via listar_lancamentos)" } },
+      required: ["lancamento_id"],
+    },
+  },
+
+  // ── Projetos: editar / excluir ──
+  {
+    name: "atualizar_projeto",
+    description: "Edita um projeto do MakersHub (nome, cliente, fase, progresso, valor, entrega). Só os campos enviados são alterados.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        projeto_id: { type: "string", description: "ID do projeto (obtido via listar_projetos)" },
+        nome: { type: "string", description: "Novo nome (opcional)" },
+        cliente: { type: "string", description: "Novo cliente (opcional)" },
+        descricao: { type: "string", description: "Nova descrição (opcional)" },
+        fase: {
+          type: "string",
+          enum: ["briefing", "pre_producao", "captacao", "edicao", "revisao", "entrega", "concluida"],
+          description: "Nova fase do projeto (opcional)",
+        },
+        progresso: { type: "number", description: "Progresso de 0 a 100 (opcional)" },
+        valor: { type: "number", description: "Novo valor em reais (opcional)" },
+        data_entrega: { type: "string", description: "Nova data de entrega (YYYY-MM-DD) (opcional)" },
+      },
+      required: ["projeto_id"],
+    },
+  },
+  {
+    name: "excluir_projeto",
+    description: "Exclui um projeto do MakersHub. Ação irreversível.",
+    inputSchema: {
+      type: "object",
+      properties: { projeto_id: { type: "string", description: "ID do projeto (obtido via listar_projetos)" } },
+      required: ["projeto_id"],
+    },
+  },
+
+  // ── Agenda: editar / excluir ──
+  {
+    name: "atualizar_evento",
+    description: "Edita um evento da agenda do MakersHub (título, horários, tipo, local). Só os campos enviados são alterados.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        evento_id: { type: "string", description: "ID do evento (obtido via listar_eventos)" },
+        titulo: { type: "string", description: "Novo título (opcional)" },
+        inicio: { type: "string", description: "Novo início (ISO 8601) (opcional)" },
+        fim: { type: "string", description: "Novo fim (ISO 8601) (opcional)" },
+        descricao: { type: "string", description: "Nova descrição (opcional)" },
+        tipo: { type: "string", enum: ["reuniao", "gravacao", "entrega", "tarefa", "outro"], description: "Novo tipo (opcional)" },
+        local: { type: "string", description: "Novo local (opcional)" },
+      },
+      required: ["evento_id"],
+    },
+  },
+  {
+    name: "excluir_evento",
+    description: "Exclui um evento da agenda do MakersHub. Ação irreversível.",
+    inputSchema: {
+      type: "object",
+      properties: { evento_id: { type: "string", description: "ID do evento (obtido via listar_eventos)" } },
+      required: ["evento_id"],
     },
   },
 ];
@@ -432,6 +581,113 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar eventos.", true);
       const es = r.eventos ?? [];
       return toolText(es.length === 0 ? "Nenhum evento encontrado." : JSON.stringify(es, null, 2));
+    }
+
+    // ── Leads: editar / excluir ──
+    case "atualizar_lead": {
+      const r: any = await callRpc(env, "mcp_atualizar_lead", {
+        p_token_hash: tokenHash,
+        p_lead_id: args.lead_id,
+        p_valor: args.valor ?? null,
+        p_temperatura: args.temperatura ?? null,
+        p_origem: args.origem ?? null,
+        p_responsavel: args.responsavel ?? null,
+        p_email: args.email ?? null,
+        p_telefone: args.telefone ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar lead.", true);
+      return toolText(`Lead ${r.lead_id} atualizado.`);
+    }
+    case "excluir_lead": {
+      const r: any = await callRpc(env, "mcp_excluir_lead", { p_token_hash: tokenHash, p_lead_id: args.lead_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao excluir lead.", true);
+      return toolText(`Lead ${r.lead_id} excluído.`);
+    }
+
+    // ── Follow-ups: listar / concluir ──
+    case "listar_followups": {
+      const r: any = await callRpc(env, "mcp_listar_followups", {
+        p_token_hash: tokenHash,
+        p_apenas_pendentes: args.apenas_pendentes ?? true,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar follow-ups.", true);
+      const fs = r.followups ?? [];
+      return toolText(fs.length === 0 ? "Nenhum follow-up encontrado." : JSON.stringify(fs, null, 2));
+    }
+    case "concluir_followup": {
+      const r: any = await callRpc(env, "mcp_concluir_followup", { p_token_hash: tokenHash, p_followup_id: args.followup_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao concluir follow-up.", true);
+      return toolText(`Follow-up ${r.followup_id} marcado como concluído.`);
+    }
+
+    // ── Financeiro: editar / excluir / desfazer ──
+    case "atualizar_lancamento": {
+      const r: any = await callRpc(env, "mcp_atualizar_lancamento", {
+        p_token_hash: tokenHash,
+        p_lancamento_id: args.lancamento_id,
+        p_descricao: args.descricao ?? null,
+        p_valor: args.valor ?? null,
+        p_categoria: args.categoria ?? null,
+        p_vencimento: args.vencimento ?? null,
+        p_cliente: args.cliente ?? null,
+        p_forma_pagamento: args.forma_pagamento ?? null,
+        p_observacoes: args.observacoes ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar lançamento.", true);
+      return toolText(`Lançamento ${r.lancamento_id} atualizado (status: ${r.status}).`);
+    }
+    case "excluir_lancamento": {
+      const r: any = await callRpc(env, "mcp_excluir_lancamento", { p_token_hash: tokenHash, p_lancamento_id: args.lancamento_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao excluir lançamento.", true);
+      return toolText(`Lançamento ${r.lancamento_id} excluído.`);
+    }
+    case "desfazer_pagamento": {
+      const r: any = await callRpc(env, "mcp_desfazer_pagamento", { p_token_hash: tokenHash, p_lancamento_id: args.lancamento_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao desfazer pagamento.", true);
+      return toolText(`Pagamento do lançamento ${r.lancamento_id} desfeito (status: ${r.status}).`);
+    }
+
+    // ── Projetos: editar / excluir ──
+    case "atualizar_projeto": {
+      const r: any = await callRpc(env, "mcp_atualizar_projeto", {
+        p_token_hash: tokenHash,
+        p_projeto_id: args.projeto_id,
+        p_nome: args.nome ?? null,
+        p_cliente: args.cliente ?? null,
+        p_descricao: args.descricao ?? null,
+        p_fase: args.fase ?? null,
+        p_progresso: args.progresso ?? null,
+        p_valor: args.valor ?? null,
+        p_data_entrega: args.data_entrega ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar projeto.", true);
+      return toolText(`Projeto ${r.projeto_id} atualizado.`);
+    }
+    case "excluir_projeto": {
+      const r: any = await callRpc(env, "mcp_excluir_projeto", { p_token_hash: tokenHash, p_projeto_id: args.projeto_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao excluir projeto.", true);
+      return toolText(`Projeto ${r.projeto_id} excluído.`);
+    }
+
+    // ── Agenda: editar / excluir ──
+    case "atualizar_evento": {
+      const r: any = await callRpc(env, "mcp_atualizar_evento", {
+        p_token_hash: tokenHash,
+        p_evento_id: args.evento_id,
+        p_titulo: args.titulo ?? null,
+        p_inicio: args.inicio ?? null,
+        p_fim: args.fim ?? null,
+        p_descricao: args.descricao ?? null,
+        p_tipo: args.tipo ?? null,
+        p_local: args.local ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar evento.", true);
+      return toolText(`Evento ${r.evento_id} atualizado.`);
+    }
+    case "excluir_evento": {
+      const r: any = await callRpc(env, "mcp_excluir_evento", { p_token_hash: tokenHash, p_evento_id: args.evento_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao excluir evento.", true);
+      return toolText(`Evento ${r.evento_id} excluído.`);
     }
 
     default:
