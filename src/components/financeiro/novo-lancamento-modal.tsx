@@ -12,6 +12,7 @@ import {
   type LancTipo, type Lancamento,
 } from "@/lib/mock/financeiro";
 import { financeiroActions, useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
+import { useProjetos } from "@/lib/hooks/useProjetos";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -28,15 +29,15 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
   const [valor, setValor] = useState(0);
   const [vencimento, setVencimento] = useState(() => new Date().toISOString().slice(0, 10));
   const [cliente, setCliente] = useState("");
-  const [projeto, setProjeto] = useState("");
+  const [projetoId, setProjetoId] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("PIX");
   const [observacoes, setObservacoes] = useState("");
   const [pago, setPago] = useState(false);
 
   const { lancamentos } = useFinanceiroSupa();
+  const { projetos } = useProjetos();
   const categorias = tipo === "receita" ? CATEGORIAS_RECEITA : CATEGORIAS_DESPESA;
   const clientes = useMemo(() => Array.from(new Set(lancamentos.map(l => l.cliente).filter(Boolean))) as string[], [lancamentos]);
-  const projetos = useMemo(() => Array.from(new Set(lancamentos.map(l => l.projeto).filter(Boolean))) as string[], [lancamentos]);
 
   useEffect(() => {
     if (open) {
@@ -47,7 +48,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
         setValor(editar.valor);
         setVencimento(editar.vencimento.slice(0, 10));
         setCliente(editar.cliente || "");
-        setProjeto(editar.projeto || "");
+        setProjetoId(editar.projetoId || "");
         setFormaPagamento(editar.formaPagamento || "PIX");
         setObservacoes(editar.observacoes || "");
         setPago(!!editar.pagamentoEm);
@@ -56,7 +57,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
         setCategoria(tipoInicial === "receita" ? "Projeto" : "Equipe");
         setDescricao(""); setValor(0);
         setVencimento(new Date().toISOString().slice(0, 10));
-        setCliente(""); setProjeto(""); setFormaPagamento("PIX");
+        setCliente(""); setProjetoId(""); setFormaPagamento("PIX");
         setObservacoes(""); setPago(false);
       }
     }
@@ -72,7 +73,8 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
       vencimento: new Date(vencimento + "T12:00:00").toISOString(),
       pagamentoEm: pago ? new Date(vencimento + "T12:00:00").toISOString() : null,
       cliente: cliente.trim() || undefined,
-      projeto: projeto.trim() || undefined,
+      projetoId: projetoId || undefined,
+      projeto: projetos.find(p => p.id === projetoId)?.nome || undefined,
       formaPagamento, observacoes: observacoes.trim() || undefined,
     };
 
@@ -175,10 +177,13 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
             </div>
             <div className="grid gap-1.5">
               <Label>Projeto (opcional)</Label>
-              <Input list="projetos-fin" value={projeto} onChange={e => setProjeto(e.target.value)} placeholder="Nome do projeto" />
-              <datalist id="projetos-fin">
-                {projetos.map(p => <option key={p} value={p} />)}
-              </datalist>
+              <Select value={projetoId || "__none__"} onValueChange={v => setProjetoId(v === "__none__" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Nenhum</SelectItem>
+                  {projetos.map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

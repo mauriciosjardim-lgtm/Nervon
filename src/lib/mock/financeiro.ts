@@ -16,7 +16,8 @@ export interface Lancamento {
   pagamentoEm?: string | null; // ISO ou null
   status: LancStatus;
   cliente?: string;
-  projeto?: string;
+  projeto?: string;      // nome do projeto (para exibição)
+  projetoId?: string;    // FK projetos.id (o que é persistido)
   formaPagamento?: string;
   observacoes?: string;
 }

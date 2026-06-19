@@ -161,7 +161,7 @@ function LancamentosPage() {
                       <Pencil className="size-3.5 text-primary" />
                     </Button>
                     <Button size="icon" variant="ghost" className="size-7" title="Excluir"
-                      onClick={() => { financeiroActions.remove(l.id); toast.success("Lançamento removido."); }}>
+                      onClick={() => { if (confirm(`Excluir o lançamento "${l.descricao}"?`)) { financeiroActions.remove(l.id); toast.success("Lançamento removido."); } }}>
                       <Trash2 className="size-3.5 text-primary" />
                     </Button>
                   </div>

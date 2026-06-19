@@ -18,7 +18,8 @@ function rowToLanc(r: any): Lancamento {
       tipo: r.tipo, vencimento: r.vencimento ?? r.data, pagamentoEm: r.pagamento_em,
     }),
     cliente: r.cliente ?? undefined,
-    projeto: r.projeto_id ?? undefined,
+    projetoId: r.projeto_id ?? undefined,
+    projeto: r.projetos?.nome ?? undefined,
     formaPagamento: r.forma_pagamento ?? undefined,
     observacoes: r.observacoes ?? undefined,
   };
@@ -44,14 +45,14 @@ let initialized = false;
 async function init() {
   if (initialized) return;
   initialized = true;
-  const { data } = await supabase.from("financeiro").select("*").order("vencimento", { ascending: true });
+  const { data } = await supabase.from("financeiro").select("*, projetos(nome)").order("vencimento", { ascending: true });
   lancamentos = (data ?? []).map(rowToLanc);
   loading = false;
   emit();
 
   supabase.channel("financeiro_realtime")
     .on("postgres_changes", { event: "*", schema: "public", table: "financeiro" }, async () => {
-      const { data: fresh } = await supabase.from("financeiro").select("*").order("vencimento", { ascending: true });
+      const { data: fresh } = await supabase.from("financeiro").select("*, projetos(nome)").order("vencimento", { ascending: true });
       lancamentos = (fresh ?? []).map(rowToLanc);
       emit();
     })
@@ -94,9 +95,10 @@ export const financeiroActions = {
       pagamento_em: input.pagamentoEm ?? null,
       status: reconciliarStatus(input),
       cliente: input.cliente ?? null,
+      projeto_id: input.projetoId ?? null,
       forma_pagamento: input.formaPagamento ?? null,
       observacoes: input.observacoes ?? null,
-    }).select().single();
+    }).select("*, projetos(nome)").single();
     if (!error && data) {
       lancamentos = [...lancamentos, rowToLanc(data)];
       emit();
@@ -118,6 +120,7 @@ export const financeiroActions = {
       pagamento_em: merged.pagamentoEm ?? null,
       status: reconciliarStatus(merged),
       cliente: merged.cliente ?? null,
+      projeto_id: merged.projetoId ?? null,
       forma_pagamento: merged.formaPagamento ?? null,
       observacoes: merged.observacoes ?? null,
     };

@@ -97,7 +97,8 @@ function agrupar(lancs: Lancamento[]) {
   const atrasados: Lancamento[] = [], hojeArr: Lancamento[] = [], semana: Lancamento[] = [], depois: Lancamento[] = [], quitados: Lancamento[] = [];
   for (const l of lancs.sort((a, b) => a.vencimento.localeCompare(b.vencimento))) {
     if (l.pagamentoEm) { quitados.push(l); continue; }
-    const v = new Date(l.vencimento); v.setHours(0, 0, 0, 0);
+    // slice(0,10)+T12:00 evita o bug de meia-noite UTC virar dia anterior no fuso BR
+    const v = new Date(l.vencimento.slice(0, 10) + "T12:00:00"); v.setHours(0, 0, 0, 0);
     if (v.getTime() < hoje.getTime()) atrasados.push(l);
     else if (v.getTime() === hoje.getTime()) hojeArr.push(l);
     else if (v <= fim7) semana.push(l);
