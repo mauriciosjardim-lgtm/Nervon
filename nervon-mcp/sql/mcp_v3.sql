@@ -63,7 +63,7 @@ begin
   end if;
 
   insert into public.timeline_lead (empresa_id, lead_id, tipo, titulo, descricao, quando, autor)
-  values (v_empresa, p_lead_id, 'editado', 'Lead atualizado pelo agente IA', 'Dados do lead foram editados.', now(), 'Agente IA');
+  values (v_empresa, p_lead_id, 'observacao', 'Lead atualizado pelo agente IA', 'Dados do lead foram editados.', now(), 'Agente IA');
 
   return jsonb_build_object('ok', true, 'lead_id', p_lead_id);
 end;
