@@ -14,6 +14,7 @@ import { NovoLancamentoModal } from "@/components/financeiro/novo-lancamento-mod
 import { StatusBadge } from "@/components/financeiro/status-badge";
 import {
   calcularMetricas, serieMensal, porCategoria, fmtBRL, fmtData,
+  type Lancamento,
 } from "@/lib/mock/financeiro";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
 
@@ -28,6 +29,7 @@ function FinanceiroDashboard() {
   const catDespesa = porCategoria(lancamentos, "despesa").slice(0, 6);
   const [novoOpen, setNovoOpen] = useState(false);
   const [tipoInicial, setTipoInicial] = useState<"receita" | "despesa">("receita");
+  const [editar, setEditar] = useState<Lancamento | undefined>();
 
   // Próximos vencimentos (7 dias) e atrasados
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -42,7 +44,7 @@ function FinanceiroDashboard() {
       <div className="flex flex-wrap items-center gap-2">
         <Button
           size="lg"
-          onClick={() => { setTipoInicial("receita"); setNovoOpen(true); }}
+          onClick={() => { setEditar(undefined); setTipoInicial("receita"); setNovoOpen(true); }}
           className="h-11 gap-2 px-5 shadow-[0_10px_30px_-12px_var(--primary)] hover:shadow-[0_14px_36px_-12px_var(--primary)]"
         >
           <Plus className="size-5 text-primary-foreground" />
@@ -51,7 +53,7 @@ function FinanceiroDashboard() {
         <Button
           size="lg"
           variant="outline"
-          onClick={() => { setTipoInicial("despesa"); setNovoOpen(true); }}
+          onClick={() => { setEditar(undefined); setTipoInicial("despesa"); setNovoOpen(true); }}
           className="h-11 gap-2 px-5"
         >
           <Plus className="size-5 text-primary" />
@@ -188,7 +190,11 @@ function FinanceiroDashboard() {
         ) : (
           <ul className="divide-y divide-border">
             {proximos.map(l => (
-              <li key={l.id} className="flex items-center justify-between gap-3 py-2.5">
+              <li
+                key={l.id}
+                onClick={() => { setEditar(l); setNovoOpen(true); }}
+                className="-mx-2 flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition hover:bg-surface-2/50"
+              >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className={`grid size-8 place-items-center rounded-lg ring-1 ${l.tipo === "receita" ? "bg-success/10 ring-success/30" : "bg-destructive/10 ring-destructive/30"}`}>
                     {l.tipo === "receita"
@@ -213,7 +219,7 @@ function FinanceiroDashboard() {
         )}
       </div>
 
-      <NovoLancamentoModal open={novoOpen} onOpenChange={setNovoOpen} tipoInicial={tipoInicial} />
+      <NovoLancamentoModal open={novoOpen} onOpenChange={setNovoOpen} tipoInicial={tipoInicial} editar={editar} />
     </div>
   );
 }

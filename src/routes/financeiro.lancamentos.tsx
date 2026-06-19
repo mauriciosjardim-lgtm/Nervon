@@ -115,7 +115,11 @@ function LancamentosPage() {
               </TableRow>
             )}
             {filtrados.map(l => (
-              <TableRow key={l.id} className="group">
+              <TableRow
+                key={l.id}
+                className="group cursor-pointer"
+                onClick={() => { setEditar(l); setNovoOpen(true); }}
+              >
                 <TableCell>
                   <span className={`grid size-7 place-items-center rounded-lg ring-1 ${l.tipo === "receita" ? "bg-success/10 ring-success/30" : "bg-destructive/10 ring-destructive/30"}`}>
                     {l.tipo === "receita"
@@ -137,7 +141,7 @@ function LancamentosPage() {
                   {l.tipo === "despesa" && "− "}{fmtBRL(l.valor)}
                 </TableCell>
                 <TableCell><StatusBadge status={l.status} /></TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100">
                     {l.pagamentoEm ? (
                       <Button
