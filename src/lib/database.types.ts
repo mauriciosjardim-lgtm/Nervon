@@ -10,8 +10,9 @@ export interface Database {
           logo_url: string | null;
           accent_color: string | null;
           criado_em: string;
+          trial_expires_at: string | null;
         };
-        Insert: { id?: string; nome: string; logo_url?: string | null; accent_color?: string | null; criado_em?: string };
+        Insert: { id?: string; nome: string; logo_url?: string | null; accent_color?: string | null; criado_em?: string; trial_expires_at?: string | null };
         Update: Partial<Database["public"]["Tables"]["empresas"]["Insert"]>;
         Relationships: [];
       };

@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/financeiro/kpi-card";
+import { KpiDetalheSheet } from "@/components/financeiro/kpi-detalhe-sheet";
 import { NovoLancamentoModal } from "@/components/financeiro/novo-lancamento-modal";
 import { StatusBadge } from "@/components/financeiro/status-badge";
 import {
@@ -30,6 +31,7 @@ function FinanceiroDashboard() {
   const [novoOpen, setNovoOpen] = useState(false);
   const [tipoInicial, setTipoInicial] = useState<"receita" | "despesa">("receita");
   const [editar, setEditar] = useState<Lancamento | undefined>();
+  const [kpiSheet, setKpiSheet] = useState<{ titulo: string; descricao?: string; lancamentos: Lancamento[] } | null>(null);
 
   // Próximos vencimentos (7 dias) e atrasados
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -69,15 +71,40 @@ function FinanceiroDashboard() {
         <KpiCard
           icon={ArrowUpRight} label="Recebido" value={fmtBRL(m.recebido)}
           hint={`${fmtBRL(m.aReceber)} a receber`} tone="positive"
+          onClick={() => setKpiSheet({
+            titulo: "Receitas recebidas",
+            descricao: "Lançamentos de receita já confirmados",
+            lancamentos: lancamentos.filter(l => l.tipo === "receita" && l.status === "recebido"),
+          })}
+          hintOnClick={() => setKpiSheet({
+            titulo: "A receber",
+            descricao: "Receitas previstas e atrasadas",
+            lancamentos: lancamentos.filter(l => l.tipo === "receita" && (l.status === "previsto" || l.status === "atrasado")),
+          })}
         />
         <KpiCard
           icon={ArrowDownRight} label="Pago" value={fmtBRL(m.pago)}
           hint={`${fmtBRL(m.aPagar)} a pagar`} tone="negative"
+          onClick={() => setKpiSheet({
+            titulo: "Despesas pagas",
+            descricao: "Lançamentos de despesa já quitados",
+            lancamentos: lancamentos.filter(l => l.tipo === "despesa" && l.status === "pago"),
+          })}
+          hintOnClick={() => setKpiSheet({
+            titulo: "A pagar",
+            descricao: "Despesas previstas e atrasadas",
+            lancamentos: lancamentos.filter(l => l.tipo === "despesa" && (l.status === "previsto" || l.status === "atrasado")),
+          })}
         />
         <KpiCard
           icon={Wallet} label="Saldo realizado" value={fmtBRL(m.saldoRealizado)}
           hint={`Previsto: ${fmtBRL(m.saldoPrevisto)}`}
           tone={m.saldoRealizado >= 0 ? "positive" : "negative"}
+          onClick={() => setKpiSheet({
+            titulo: "Saldo realizado",
+            descricao: "Todas as entradas e saídas confirmadas",
+            lancamentos: lancamentos.filter(l => !!l.pagamentoEm),
+          })}
         />
         <KpiCard
           icon={Percent} label="Margem realizada" value={`${m.margemRealizada.toFixed(1)}%`}
@@ -220,6 +247,14 @@ function FinanceiroDashboard() {
       </div>
 
       <NovoLancamentoModal open={novoOpen} onOpenChange={setNovoOpen} tipoInicial={tipoInicial} editar={editar} />
+
+      <KpiDetalheSheet
+        open={!!kpiSheet}
+        onOpenChange={v => { if (!v) setKpiSheet(null); }}
+        titulo={kpiSheet?.titulo ?? ""}
+        descricao={kpiSheet?.descricao}
+        lancamentos={kpiSheet?.lancamentos ?? []}
+      />
     </div>
   );
 }

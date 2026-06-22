@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,6 @@ const CORES = COR_PRESETS;
 function Onboarding() {
   const { user, usuario, refreshEmpresa } = useAuth();
   const navigate = useNavigate();
-
-  // Se já tem empresa (criada pelo trigger), vai direto pro dashboard
-  if (usuario) { navigate({ to: "/" }); return null; }
   const [step, setStep] = useState(1);
   const [nome, setNome] = useState("");
   const [cor, setCor] = useState(CORES[0].value);
@@ -26,6 +23,12 @@ function Onboarding() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Se já tem empresa (criada pelo trigger), vai direto pro dashboard
+  useEffect(() => {
+    if (usuario) navigate({ to: "/" });
+  }, [usuario]);
+  if (usuario) return null;
 
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,10 +53,13 @@ function Onboarding() {
       }
     }
 
-    // Cria empresa
+    // Cria empresa com trial de 7 dias
+    const trialExpires = new Date();
+    trialExpires.setDate(trialExpires.getDate() + 7);
+
     const { data: empresaData, error: empresaErr } = await supabase
       .from("empresas")
-      .insert({ nome: nome.trim(), accent_color: cor, logo_url })
+      .insert({ nome: nome.trim(), accent_color: cor, logo_url, trial_expires_at: trialExpires.toISOString() })
       .select("id")
       .single();
     if (empresaErr || !empresaData) {

@@ -203,7 +203,7 @@ function EmptyWorkspace({ onAdd }: { onAdd: () => void }) {
 }
 
 function ProgressoMesWide() {
-  const { lancamentos } = useFinanceiroSupa();
+  const { lancamentos } = useFinanceiroSupa({ somenteEmpresa: true });
   const p = progressoMes(loadMetas(), lancamentos);
 
   const barPct = Math.min(100, p.atingiuMeta ? p.pctSuper : p.pctMeta);

@@ -18,6 +18,7 @@ export interface Lancamento {
   cliente?: string;
   projeto?: string;      // nome do projeto (para exibição)
   projetoId?: string;    // FK projetos.id (o que é persistido)
+  carteiraId?: string;   // FK carteiras.id
   formaPagamento?: string;
   observacoes?: string;
 }

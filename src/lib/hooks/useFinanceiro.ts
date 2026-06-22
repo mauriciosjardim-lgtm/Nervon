@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
 import type { LancTipo, LancStatus, Lancamento } from "@/lib/mock/financeiro";
+import { getCarteiraAtiva, subscribeCarteiraAtiva, useCarteiras } from "./useCarteiras";
 
 // ─── conversão ──────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ function rowToLanc(r: any): Lancamento {
     cliente: r.cliente ?? undefined,
     projetoId: r.projeto_id ?? undefined,
     projeto: r.projetos?.nome ?? undefined,
+    carteiraId: r.carteira_id ?? undefined,
     formaPagamento: r.forma_pagamento ?? undefined,
     observacoes: r.observacoes ?? undefined,
   };
@@ -67,15 +69,27 @@ export function resetFinanceiroStore() {
 
 // ─── hook ────────────────────────────────────────────────────────────────────
 
-export function useFinanceiroSupa() {
+export function useFinanceiroSupa(opts?: { somenteEmpresa?: boolean }) {
   const [snap, setSnap] = useState({ lancamentos, loading });
+  const [carteiraId, setCarteiraId] = useState<string | null>(getCarteiraAtiva);
+  const { carteiras } = useCarteiras();
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => { if (session) init(); });
     const update = () => setSnap({ lancamentos: [...lancamentos], loading });
     listeners.add(update);
-    return () => { listeners.delete(update); };
+    const unsubCarteira = subscribeCarteiraAtiva(() => setCarteiraId(getCarteiraAtiva()));
+    return () => { listeners.delete(update); unsubCarteira(); };
   }, []);
-  return snap;
+  // Escopo "empresa" (somenteEmpresa OU chip Empresa/carteiraAtiva null):
+  //   inclui lancamentos sem carteira (padrão) + carteiras tipo "pj" (contas da empresa).
+  //   Assim o cockpit e o chip Empresa nunca ficam vazios se a pessoa criar uma conta PJ.
+  // uuid específico = só aquela carteira (inclusive pf/pj).
+  const empresaScope = opts?.somenteEmpresa || !carteiraId;
+  const pjIds = new Set(carteiras.filter(c => c.tipo === "pj").map(c => c.id));
+  const filtered = empresaScope
+    ? snap.lancamentos.filter(l => !l.carteiraId || pjIds.has(l.carteiraId))
+    : snap.lancamentos.filter(l => l.carteiraId === carteiraId);
+  return { lancamentos: filtered, loading: snap.loading };
 }
 
 // ─── actions ─────────────────────────────────────────────────────────────────
@@ -96,6 +110,7 @@ export const financeiroActions = {
       status: reconciliarStatus(input),
       cliente: input.cliente ?? null,
       projeto_id: input.projetoId ?? null,
+      carteira_id: input.carteiraId ?? null,
       forma_pagamento: input.formaPagamento ?? null,
       observacoes: input.observacoes ?? null,
     }).select("*, projetos(nome)").single();
@@ -121,6 +136,7 @@ export const financeiroActions = {
       status: reconciliarStatus(merged),
       cliente: merged.cliente ?? null,
       projeto_id: merged.projetoId ?? null,
+      carteira_id: merged.carteiraId ?? null,
       forma_pagamento: merged.formaPagamento ?? null,
       observacoes: merged.observacoes ?? null,
     };

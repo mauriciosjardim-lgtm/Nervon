@@ -13,6 +13,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Topbar } from "@/components/topbar";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { TrialExpirado } from "@/components/trial-expirado";
+import { LandingPage } from "@/components/landing/landing-page";
 
 function NotFoundComponent() {
   return (
@@ -115,13 +117,24 @@ function AppShell() {
     if (empresa?.accent_color) applyBrandColor(empresa.accent_color);
   }, [empresa?.accent_color]);
 
-  // Redireciona usuários não autenticados para login
+  // CTA da landing ("Entrar" / "Começar grátis") → tela de login
+  useEffect(() => {
+    const open = () => navigate({ to: "/login" });
+    window.addEventListener("makershub:open-auth", open);
+    return () => window.removeEventListener("makershub:open-auth", open);
+  }, []);
+
+  // Redireciona usuários não autenticados para login (exceto "/" deslogado, que mostra a landing)
   useEffect(() => {
     if (loading) return;
-    if (!session && !isPublic) navigate({ to: "/login" });
+    if (!session && !isPublic && pathname !== "/") navigate({ to: "/login" });
     if (session && !usuario && pathname !== "/onboarding") navigate({ to: "/onboarding" });
     if (session && usuario && isPublic) navigate({ to: "/" });
   }, [loading, session, usuario, isPublic, pathname]);
+
+  const trialExpirado = empresa?.trial_expires_at
+    ? new Date(empresa.trial_expires_at) < new Date()
+    : false;
 
   if (loading) {
     return (
@@ -131,7 +144,12 @@ function AppShell() {
     );
   }
 
+  // Visitante deslogado na raiz → landing page de marketing
+  if (!session && pathname === "/") return <LandingPage />;
+
   if (isPublic) return <Outlet />;
+
+  if (trialExpirado) return <TrialExpirado />;
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "15rem", "--sidebar-width-icon": "3.25rem" } as React.CSSProperties}>

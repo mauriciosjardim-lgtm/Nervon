@@ -25,7 +25,7 @@ interface Env {
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "makershub", version: "3.0.0" };
+const SERVER_INFO = { name: "makershub", version: "6.0.0" };
 const CODE_TTL_SECONDS = 600; // código de autorização válido por 10 min
 
 const CORS = {
@@ -104,18 +104,20 @@ const TOOLS = [
         forma_pagamento: { type: "string", description: "Forma de pagamento (ex: 'PIX', 'Boleto') (opcional)" },
         observacoes: { type: "string", description: "Observações (opcional)" },
         pago: { type: "boolean", description: "Se já foi pago/recebido (default false)" },
+        carteira_id: { type: "string", description: "ID da carteira (obtido via listar_carteiras) (opcional)" },
       },
       required: ["tipo", "descricao", "valor", "vencimento"],
     },
   },
   {
     name: "listar_lancamentos",
-    description: "Lista os lançamentos financeiros do MakersHub. Filtra opcionalmente por tipo (receita/despesa) e status.",
+    description: "Lista os lançamentos financeiros do MakersHub. Filtra opcionalmente por tipo, status e carteira.",
     inputSchema: {
       type: "object",
       properties: {
         tipo: { type: "string", enum: ["receita", "despesa"], description: "Filtrar por tipo (opcional)" },
         status: { type: "string", enum: ["previsto", "recebido", "pago", "atrasado"], description: "Filtrar por status (opcional)" },
+        carteira_id: { type: "string", description: "Filtrar por carteira (opcional)" },
       },
     },
   },
@@ -130,8 +132,82 @@ const TOOLS = [
   },
   {
     name: "resumo_financeiro",
-    description: "Retorna um resumo financeiro da produtora: total a receber, a pagar, atrasados e saldo do mês.",
+    description: "Retorna um resumo financeiro: a receber, a pagar, atrasados e saldo do mês. Por padrão considera só a conta da EMPRESA (lançamentos sem carteira). Passe 'carteira' com o nome ou ID de uma carteira para o resumo dela, ou 'todas' para o total geral.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        carteira: { type: "string", description: "Opcional. Nome ou ID de uma carteira específica, ou 'todas' para o total geral. Vazio = só a empresa." },
+      },
+    },
+  },
+
+  // ── Importação / Demo ──
+  {
+    name: "importar_lancamentos",
+    description: "Importa lançamentos financeiros em lote. Envie os dados como string JSON com um array de objetos. Cada item precisa de: tipo (receita|despesa), descricao, valor (número), vencimento (YYYY-MM-DD). Opcionais: categoria, carteira (nome ou id), cliente, pago (boolean).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        dados: {
+          type: "string",
+          description: 'String JSON com array de lançamentos. Exemplo: [{"tipo":"receita","descricao":"Projeto X","valor":5000,"vencimento":"2026-06-20","pago":true}]',
+        },
+      },
+      required: ["dados"],
+    },
+  },
+  {
+    name: "criar_cenario_demo_financeiro",
+    description: "Popula o financeiro com lançamentos realistas pré-definidos. Use nome='videomaker_10k' para cenário de produtora audiovisual com ~20 lançamentos (receitas de projetos, despesas de equipe/software/impostos, mix de status). Ideal para demos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nome:              { type: "string", description: "Nome do cenário: 'videomaker_10k' (default)", enum: ["videomaker_10k"] },
+        limpar_existentes: { type: "boolean", description: "Se true, apaga todos os lançamentos antes de criar o cenário (default false)" },
+      },
+    },
+  },
+
+  {
+    name: "limpar_financeiro",
+    description: "Apaga TODOS os lançamentos financeiros da empresa. Use antes de importar_lancamentos ou criar_cenario_demo_financeiro para começar do zero. Ação irreversível.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        confirmar: { type: "boolean", description: "Deve ser true para confirmar a exclusão de todos os lançamentos" },
+      },
+      required: ["confirmar"],
+    },
+  },
+
+  // ── Carteiras ──
+  {
+    name: "listar_carteiras",
+    description: "Lista as carteiras financeiras do MakersHub (ex: Conta PJ, Pessoal, Caixa). Use para obter IDs ao lançar ou filtrar lançamentos por carteira.",
     inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "criar_carteira",
+    description: "Cria uma nova carteira financeira no MakersHub (conta bancária, caixa, cartão, etc.).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nome: { type: "string", description: "Nome da carteira (ex: 'Conta PJ Bradesco', 'Caixa físico')" },
+        tipo: { type: "string", enum: ["pj", "pf", "dinheiro", "cartao", "outro"], description: "Tipo: pj (empresa), pf (pessoal), dinheiro, cartao ou outro (default: outro)" },
+      },
+      required: ["nome"],
+    },
+  },
+  {
+    name: "excluir_carteira",
+    description: "Exclui uma carteira financeira. Os lançamentos vinculados a ela voltam para a empresa (ficam sem carteira). Use listar_carteiras para obter o ID.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        carteira_id: { type: "string", description: "ID da carteira a excluir (obtido via listar_carteiras)" },
+      },
+      required: ["carteira_id"],
+    },
   },
 
   // ── Projetos ──
@@ -267,6 +343,7 @@ const TOOLS = [
         cliente: { type: "string", description: "Novo cliente (opcional)" },
         forma_pagamento: { type: "string", description: "Nova forma de pagamento (opcional)" },
         observacoes: { type: "string", description: "Novas observações (opcional)" },
+        carteira_id: { type: "string", description: "Nova carteira (ID, obtido via listar_carteiras) (opcional)" },
       },
       required: ["lancamento_id"],
     },
@@ -507,12 +584,13 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
         p_forma_pagamento: args.forma_pagamento ?? null,
         p_observacoes: args.observacoes ?? null,
         p_pago: args.pago ?? false,
+        p_carteira_id: args.carteira_id ?? null,
       });
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao criar lançamento.", true);
       return toolText(`Lançamento criado (${r.tipo}, R$ ${r.valor}, status: ${r.status}). ID: ${r.lancamento_id}`);
     }
     case "listar_lancamentos": {
-      const r: any = await callRpc(env, "mcp_listar_lancamentos", { p_token_hash: tokenHash, p_tipo: args.tipo ?? null, p_status: args.status ?? null });
+      const r: any = await callRpc(env, "mcp_listar_lancamentos", { p_token_hash: tokenHash, p_tipo: args.tipo ?? null, p_status: args.status ?? null, p_carteira_id: args.carteira_id ?? null });
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar lançamentos.", true);
       const ls = r.lancamentos ?? [];
       return toolText(ls.length === 0 ? "Nenhum lançamento encontrado." : JSON.stringify(ls, null, 2));
@@ -523,9 +601,65 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
       return toolText(`Lançamento ${r.lancamento_id} marcado como "${r.status}".`);
     }
     case "resumo_financeiro": {
-      const r: any = await callRpc(env, "mcp_resumo_financeiro", { p_token_hash: tokenHash });
+      const r: any = await callRpc(env, "mcp_resumo_financeiro", { p_token_hash: tokenHash, p_carteira: args.carteira ?? null });
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao gerar resumo.", true);
-      return toolText(JSON.stringify({ a_receber: r.a_receber, a_pagar: r.a_pagar, atrasados: r.atrasados, recebido_no_mes: r.recebido_no_mes, pago_no_mes: r.pago_no_mes, saldo_do_mes: r.saldo_do_mes }, null, 2));
+      return toolText(JSON.stringify({ escopo: r.escopo, a_receber: r.a_receber, a_pagar: r.a_pagar, atrasados: r.atrasados, recebido_no_mes: r.recebido_no_mes, pago_no_mes: r.pago_no_mes, saldo_do_mes: r.saldo_do_mes }, null, 2));
+    }
+
+    // ── Importação / Demo ──
+    case "importar_lancamentos": {
+      let parsed: unknown;
+      try { parsed = JSON.parse(args.dados); } catch {
+        return toolText("O campo 'dados' não é um JSON válido. Envie um array JSON como string.", true);
+      }
+      if (!Array.isArray(parsed)) return toolText("O JSON deve ser um array de lançamentos.", true);
+      const r: any = await callRpc(env, "mcp_importar_lancamentos", {
+        p_token_hash: tokenHash,
+        p_lancamentos: parsed,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao importar lançamentos.", true);
+      const errosMsg = r.erros?.length ? `\nErros (${r.erros.length}): ${JSON.stringify(r.erros)}` : "";
+      return toolText(`Importação concluída: ${r.inseridos}/${r.total_enviados} lançamentos inseridos.${errosMsg}`);
+    }
+    case "criar_cenario_demo_financeiro": {
+      const r: any = await callRpc(env, "mcp_criar_cenario_demo_financeiro", {
+        p_token_hash: tokenHash,
+        p_limpar_existentes: args.limpar_existentes ?? false,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao criar cenário demo.", true);
+      return toolText(r.mensagem);
+    }
+    case "limpar_financeiro": {
+      if (!args.confirmar) return toolText("Confirmação necessária: envie confirmar: true para apagar todos os lançamentos.", true);
+      const r: any = await callRpc(env, "mcp_limpar_financeiro", { p_token_hash: tokenHash });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao limpar financeiro.", true);
+      return toolText(r.mensagem);
+    }
+
+    // ── Carteiras ──
+    case "listar_carteiras": {
+      const r: any = await callRpc(env, "mcp_listar_carteiras", { p_token_hash: tokenHash });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar carteiras.", true);
+      const cs = r.carteiras ?? [];
+      return toolText(cs.length === 0 ? "Nenhuma carteira cadastrada ainda." : JSON.stringify(cs, null, 2));
+    }
+    case "criar_carteira": {
+      const r: any = await callRpc(env, "mcp_criar_carteira", {
+        p_token_hash: tokenHash,
+        p_nome: args.nome,
+        p_tipo: args.tipo ?? "outro",
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao criar carteira.", true);
+      return toolText(`Carteira "${r.nome}" criada (tipo: ${r.tipo}). ID: ${r.carteira_id}`);
+    }
+    case "excluir_carteira": {
+      const r: any = await callRpc(env, "mcp_excluir_carteira", {
+        p_token_hash: tokenHash,
+        p_carteira_id: args.carteira_id,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao excluir carteira.", true);
+      const movidos = r.lancamentos_movidos ?? 0;
+      return toolText(`Carteira "${r.nome}" excluída.${movidos > 0 ? ` ${movidos} lançamento(s) voltaram para a empresa.` : ""}`);
     }
 
     // ── Projetos ──
@@ -632,6 +766,7 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
         p_cliente: args.cliente ?? null,
         p_forma_pagamento: args.forma_pagamento ?? null,
         p_observacoes: args.observacoes ?? null,
+        p_carteira_id: args.carteira_id ?? null,
       });
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar lançamento.", true);
       return toolText(`Lançamento ${r.lancamento_id} atualizado (status: ${r.status}).`);
