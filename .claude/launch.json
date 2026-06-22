@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "nervon",
-      "runtimeExecutable": "/Users/rastro/.bun/bin/bun",
-      "runtimeArgs": ["run", "dev", "--port", "8080"],
-      "port": 8080
+      "runtimeExecutable": "/Users/rastro/MAKERShub/.claude/start-dev.sh",
+      "runtimeArgs": [],
+      "port": 8080,
+      "autoPort": false
     }
   ]
 }

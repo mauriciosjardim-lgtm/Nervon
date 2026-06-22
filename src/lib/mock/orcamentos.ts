@@ -1,10 +1,9 @@
-// MakersHub — Store de Orçamentos + engine de cálculo
-// Não é uma calculadora simples: cruza respostas do wizard com a TabelaCustos
-// da produtora e devolve custo operacional, preço sugerido, margem e lucro.
+// MakersHub — Tipos e engine de cálculo de orçamentos
+// Persistência via Supabase: src/lib/hooks/useOrcamentos.ts
 
-import { useSyncExternalStore } from "react";
 import { Film, Smartphone, Mic, Video, Scissors, Camera, Plus, type LucideIcon } from "lucide-react";
-import { getCustos, type TabelaCustos } from "./custos";
+import type { TabelaCustos } from "./custos";
+import { getCustos } from "./custos";
 
 export type TipoOrcamento =
   | "institucional" | "mensal" | "podcast" | "captacao" | "edicao" | "fotografia" | "custom";
@@ -32,13 +31,13 @@ export const TIPO_ICONS: Record<TipoOrcamento, LucideIcon> = {
 export interface OrcamentoGeral {
   cliente: string;
   nomeProjeto: string;
-  dataPrevista: string; // ISO
+  dataPrevista: string;
   responsavel: string;
 }
 
 export interface OrcamentoProducao {
   diarias: number;
-  cameras: number;          // total de câmeras (a primeira está inclusa na diária)
+  cameras: number;
   drone: boolean;
   droneFpv: boolean;
   iluminacao: boolean;
@@ -64,14 +63,14 @@ export interface OrcamentoPos {
 export interface ExtraCustom { id: string; label: string; qtd: number; valor: number }
 
 export interface OrcamentoExtras {
-  locucao: number;       // qtd vídeos com locução
-  roteiro: number;       // qtd vídeos com roteiro
+  locucao: number;
+  roteiro: number;
   direcaoCriativa: boolean;
-  fotografia: number;    // diárias
-  coberturaAdicional: number; // diárias
+  fotografia: number;
+  coberturaAdicional: number;
   entregaUrgente: boolean;
-  hospedagem: number;    // diárias
-  alimentacao: number;   // pessoas-dia
+  hospedagem: number;
+  alimentacao: number;
   custom: ExtraCustom[];
 }
 
@@ -81,7 +80,7 @@ export interface OrcamentoPayload {
   producao: OrcamentoProducao;
   pos: OrcamentoPos;
   extras: OrcamentoExtras;
-  margem: number; // override; default = custos.margemPadrao
+  margem: number;
 }
 
 export interface ItemCalculo { grupo: string; label: string; qtd: number; unitario: number; total: number }
@@ -160,7 +159,6 @@ export function calcular(payload: OrcamentoPayload, custos: TabelaCustos = getCu
     itens.push({ grupo, label, qtd, unitario, total: qtd * unitario });
   };
 
-  // Produção
   const { producao: p } = payload;
   add("Produção", "Diária videomaker", p.diarias, custos.diariaVideomaker);
   add("Produção", "Câmera extra", Math.max(0, p.cameras - 1) * p.diarias, custos.cameraExtra);
@@ -172,7 +170,6 @@ export function calcular(payload: OrcamentoPayload, custos: TabelaCustos = getCu
   if (p.audio) add("Produção", "Captação de áudio", p.diarias, custos.audio);
   if (p.deslocamento && p.km > 0) add("Produção", "Deslocamento", p.km, custos.km);
 
-  // Pós
   const { pos: q } = payload;
   add("Pós-produção", "Edição (vídeo cheio)", q.videos * 6, custos.editorPorHora);
   add("Pós-produção", "Motion graphics", q.motionHoras, custos.motionPorHora);
@@ -183,7 +180,6 @@ export function calcular(payload: OrcamentoPayload, custos: TabelaCustos = getCu
   if (q.vertical && q.horizontal) add("Pós-produção", "Versão extra (vert/horiz)", q.videos, custos.editorPorHora * 1.5);
   if (q.revisoes > 2) add("Pós-produção", `Revisões extras (${q.revisoes - 2})`, q.revisoes - 2, custos.horaExtra);
 
-  // Extras
   const { extras: e } = payload;
   add("Extras", "Locução", e.locucao, custos.locucao);
   add("Extras", "Roteiro", e.roteiro, custos.roteiro);
@@ -202,53 +198,6 @@ export function calcular(payload: OrcamentoPayload, custos: TabelaCustos = getCu
 
   return { itens, custoOperacional, margem, precoSugerido, lucroEstimado };
 }
-
-/* ============== Store ============== */
-let orcamentos: Orcamento[] = [];
-let templates: OrcamentoTemplate[] = [
-  { id: "tpl-1", nome: "Institucional Premium", tipo: "institucional", payload: presetInstitucional() },
-  { id: "tpl-2", nome: "Plano Mensal Social",   tipo: "mensal",        payload: presetMensal() },
-  { id: "tpl-3", nome: "Podcast Studio",        tipo: "podcast",       payload: presetPodcast() },
-  { id: "tpl-4", nome: "Ensaio Fotográfico",    tipo: "fotografia",    payload: presetFotografia() },
-];
-
-const listeners = new Set<() => void>();
-const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
-const emit = () => listeners.forEach(l => l());
-
-interface Snap { orcamentos: Orcamento[]; templates: OrcamentoTemplate[] }
-let snap: Snap = { orcamentos, templates };
-const rebuild = () => { snap = { orcamentos, templates }; };
-const snapshot = () => snap;
-
-export const useOrcamentos = () => useSyncExternalStore(subscribe, snapshot, snapshot);
-
-export const orcamentosActions = {
-  salvar(payload: OrcamentoPayload): Orcamento {
-    const calculo = calcular(payload);
-    const novo: Orcamento = { ...payload, id: `orc-${Date.now()}`, criadoEm: new Date().toISOString(), calculo };
-    orcamentos = [novo, ...orcamentos];
-    rebuild(); emit();
-    return novo;
-  },
-  remover(id: string) {
-    orcamentos = orcamentos.filter(o => o.id !== id);
-    rebuild(); emit();
-  },
-  salvarTemplate(nome: string, payload: OrcamentoPayload) {
-    const tpl: OrcamentoTemplate = { id: `tpl-${Date.now()}`, nome, tipo: payload.tipo, payload };
-    templates = [tpl, ...templates];
-    rebuild(); emit();
-    return tpl;
-  },
-  removerTemplate(id: string) {
-    templates = templates.filter(t => t.id !== id);
-    rebuild(); emit();
-  },
-};
-
-export const getOrcamento = (id: string) => orcamentos.find(o => o.id === id);
-export const getTemplate = (id: string) => templates.find(t => t.id === id);
 
 export const fmtBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });

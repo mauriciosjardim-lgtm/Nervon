@@ -4,7 +4,8 @@ import { Calculator, Sparkles, Trash2, History, SlidersHorizontal } from "lucide
 import { TipoCard } from "@/components/orcamentos/tipo-card";
 import { PrecosModal } from "@/components/orcamentos/precos-modal";
 import { Button } from "@/components/ui/button";
-import { TIPOS_ORCAMENTO, TIPO_ICONS, useOrcamentos, orcamentosActions, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
+import { TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL, type TipoOrcamento } from "@/lib/mock/orcamentos";
+import { useOrcamentos, orcamentosActions } from "@/lib/hooks/useOrcamentos";
 
 export const Route = createFileRoute("/orcamentos/")({
   head: () => ({ meta: [{ title: "Orçamentos — MakersHub" }] }),

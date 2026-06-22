@@ -1,6 +1,7 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, FileText, FolderPlus, Save, Copy } from "lucide-react";
-import { getOrcamento, TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL, orcamentosActions } from "@/lib/mock/orcamentos";
+import { TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL } from "@/lib/mock/orcamentos";
+import { useOrcamento, orcamentosActions } from "@/lib/hooks/useOrcamentos";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/orcamentos/$id")({
@@ -10,8 +11,24 @@ export const Route = createFileRoute("/orcamentos/$id")({
 
 function OrcamentoView() {
   const { id } = Route.useParams();
-  const o = getOrcamento(id);
-  if (!o) throw notFound();
+  const { orcamento: o, loading } = useOrcamento(id);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        Carregando…
+      </div>
+    );
+  }
+
+  if (!o) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
+        <p className="text-sm text-muted-foreground">Orçamento não encontrado.</p>
+        <Link to="/orcamentos" className="text-xs text-primary hover:underline">Voltar para orçamentos</Link>
+      </div>
+    );
+  }
 
   const tipo = TIPOS_ORCAMENTO[o.tipo];
   const TipoIcon = TIPO_ICONS[o.tipo];

@@ -11,9 +11,10 @@ import { CampoNumero } from "@/components/orcamentos/campo-numero";
 import { CampoToggle } from "@/components/orcamentos/campo-toggle";
 import {
   PAYLOAD_VAZIO, PRESETS_INICIAIS_POR_TIPO, TIPOS_ORCAMENTO, TIPO_ICONS,
-  orcamentosActions, getTemplate, calcular, fmtBRL,
+  calcular, fmtBRL,
   type OrcamentoPayload, type TipoOrcamento, type ExtraCustom,
 } from "@/lib/mock/orcamentos";
+import { orcamentosActions, getTemplate } from "@/lib/hooks/useOrcamentos";
 import { useCustos } from "@/lib/mock/custos";
 
 const searchSchema = z.object({
@@ -72,9 +73,15 @@ function NovoOrcamento() {
     if (step === 3) { setStep(4); } else { next(); }
   };
 
-  const salvarEAvancar = () => {
-    const orc = orcamentosActions.salvar(payload);
-    navigate({ to: "/orcamentos/$id", params: { id: orc.id } });
+  const [salvando, setSalvando] = useState(false);
+  const salvarEAvancar = async () => {
+    setSalvando(true);
+    try {
+      const orc = await orcamentosActions.salvar(payload);
+      navigate({ to: "/orcamentos/$id", params: { id: orc.id } });
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -98,7 +105,7 @@ function NovoOrcamento() {
           {step === 1 && <StepProducao payload={payload} setPart={setPart} />}
           {step === 2 && <StepPos payload={payload} setPart={setPart} />}
           {step === 3 && <StepExtras payload={payload} setPart={setPart} />}
-          {step === 4 && <StepResultado payload={payload} onSalvar={salvarEAvancar} />}
+          {step === 4 && <StepResultado payload={payload} onSalvar={salvarEAvancar} salvando={salvando} />}
 
           {step < 4 && (
             <footer className="flex items-center justify-between pt-2">
@@ -262,7 +269,7 @@ function StepExtras({ payload, setPart }: { payload: OrcamentoPayload; setPart: 
   );
 }
 
-function StepResultado({ payload, onSalvar }: { payload: OrcamentoPayload; onSalvar: () => void }) {
+function StepResultado({ payload, onSalvar, salvando }: { payload: OrcamentoPayload; onSalvar: () => void; salvando?: boolean }) {
   const custos = useCustos();
   const calc = useMemo(() => calcular(payload, custos), [payload, custos]);
 
@@ -287,8 +294,8 @@ function StepResultado({ payload, onSalvar }: { payload: OrcamentoPayload; onSal
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
-        <button onClick={onSalvar} className="rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[0_0_24px_-8px_var(--primary)] transition hover:bg-primary-glow">
-          Salvar orçamento
+        <button onClick={onSalvar} disabled={salvando} className="rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[0_0_24px_-8px_var(--primary)] transition hover:bg-primary-glow disabled:opacity-60">
+          {salvando ? "Salvando..." : "Salvar orçamento"}
         </button>
         <button onClick={onSalvar} className="rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition hover:border-primary/30">
           Gerar proposta

@@ -142,7 +142,7 @@ function TabGeral() {
               <span className="font-display text-2xl font-semibold tabular-nums">{vg.taxaConversao.toFixed(0)}%</span>
               <span className="text-xs text-muted-foreground">Ticket {fmtBRL(vg.ticketMedio)}</span>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">Receita recorrente: {fmtBRL(vg.receitaRecorrente)}</p>
+            <p className="mt-2 text-xs text-muted-foreground">Leads em aberto: {vg.taxaConversao > 0 ? `${vg.taxaConversao.toFixed(0)}% conversão` : "sem dados ainda"}</p>
           </Card>
         </div>
       </div>
@@ -234,7 +234,7 @@ function TabComercial() {
         <KPI label="Novos Leads" value={String(c.novos)} icon={Users} />
         <KPI label="Conversão" value={`${c.conversao.toFixed(0)}%`} hint={`${c.ganhos} ganhos / ${c.perdidos} perdidos`} icon={Activity} />
         <KPI label="Ticket Médio" value={fmtBRL(c.ticketMedio)} icon={DollarSign} />
-        <KPI label="Em Negociação" value={fmtBRL(c.emNegociacao)} hint={`${c.tempoMedioFechamento}d fechamento médio`} icon={Briefcase} />
+        <KPI label="Em Negociação" value={fmtBRL(c.emNegociacao)} icon={Briefcase} />
       </div>
 
       <Card>
@@ -271,7 +271,7 @@ function TabProducao() {
         <KPI label="Projetos Ativos" value={String(p.ativos)} icon={Briefcase} />
         <KPI label="Concluídos" value={String(p.concluidos)} icon={CheckCircle2} />
         <KPI label="Atrasados" value={String(p.atrasados)} icon={AlertTriangle} />
-        <KPI label="Tempo Médio" value={`${p.tempoMedioEntrega}d`} hint={`${p.mediaRevisoes} revisões em média`} icon={Activity} />
+        <KPI label="Tempo Médio" value="—" hint="disponível em breve" icon={Activity} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -309,8 +309,7 @@ function TabFinanceiro() {
         <KPI label="Pago" value={fmtBRL(f.pago)} icon={TrendingDown} />
         <KPI label="Saldo" value={fmtBRL(f.saldoRealizado)} hint={`${f.margemRealizada.toFixed(1)}% margem`} icon={TrendingUp} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KPI label="Receita Recorrente" value={fmtBRL(f.receitaRecorrente)} hint="estimativa" icon={DollarSign} />
+      <div className="grid gap-4 sm:grid-cols-2">
         <KPI label="A Pagar" value={fmtBRL(f.aPagar)} hint={`${fmtBRL(f.atrasadoPagar)} atrasado`} icon={Info} />
         <KPI label="Saldo Previsto" value={fmtBRL(f.saldoPrevisto)} icon={Activity} />
       </div>
@@ -323,10 +322,9 @@ function TabClientes() {
   const c = usePerformanceClientes();
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <KPI label="Total de Clientes" value={String(c.total)} icon={Users} />
-        <KPI label="Sem Contato 60d+" value={String(c.semContato)} icon={AlertTriangle} />
-        <KPI label="Relacionamento Médio" value={`${c.tempoMedioRelacionamento}m`} icon={Activity} />
+        <KPI label="Sem Contato 60d+" value="—" hint="rastreio em breve" icon={AlertTriangle} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -395,11 +393,9 @@ function TabCrescimento() {
   const c = usePerformanceCrescimento();
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <ComparativoCard label="Receita" atual={fmtBRL(c.receita.atual)} pct={c.receita.deltaPct} />
         <ComparativoCard label="Lucro" atual={fmtBRL(c.lucro.atual)} pct={c.lucro.deltaPct} />
-        <ComparativoCard label="Clientes" atual={String(c.clientes.atual)} pct={c.clientes.deltaPct} />
-        <ComparativoCard label="Projetos" atual={String(c.projetos.atual)} pct={c.projetos.deltaPct} />
       </div>
 
       <Card>

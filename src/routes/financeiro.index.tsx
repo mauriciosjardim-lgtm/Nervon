@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   TrendingUp, TrendingDown, Wallet, Percent, ArrowUpRight, ArrowDownRight,
-  AlertTriangle, Plus, Calendar,
+  AlertTriangle, Plus, Calendar, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
@@ -23,18 +23,43 @@ export const Route = createFileRoute("/financeiro/")({
   component: FinanceiroDashboard,
 });
 
+function nomeMes(mes: number, ano: number) {
+  return new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+}
+
 function FinanceiroDashboard() {
   const { lancamentos } = useFinanceiroSupa();
-  const m = calcularMetricas(lancamentos);
+
+  const hoje = new Date();
+  const [periodoMes, setPeriodoMes] = useState(hoje.getMonth() + 1);
+  const [periodoAno, setPeriodoAno] = useState(hoje.getFullYear());
+
+  const mesAtual = hoje.getMonth() + 1;
+  const anoAtual = hoje.getFullYear();
+  const eHoje = periodoMes === mesAtual && periodoAno === anoAtual;
+
+  function navMes(delta: number) {
+    let m = periodoMes + delta;
+    let a = periodoAno;
+    if (m > 12) { m = 1; a++; }
+    if (m < 1) { m = 12; a--; }
+    setPeriodoMes(m);
+    setPeriodoAno(a);
+  }
+
+  const periodoKey = `${periodoAno}-${String(periodoMes).padStart(2, "0")}`;
+  const lancsPeriodo = lancamentos.filter(l => l.vencimento.slice(0, 7) === periodoKey);
+
+  const m = calcularMetricas(lancsPeriodo);
   const serie = serieMensal(lancamentos);
-  const catDespesa = porCategoria(lancamentos, "despesa").slice(0, 6);
+  const catDespesa = porCategoria(lancsPeriodo, "despesa").slice(0, 6);
+
   const [novoOpen, setNovoOpen] = useState(false);
   const [tipoInicial, setTipoInicial] = useState<"receita" | "despesa">("receita");
   const [editar, setEditar] = useState<Lancamento | undefined>();
   const [kpiSheet, setKpiSheet] = useState<{ titulo: string; descricao?: string; lancamentos: Lancamento[] } | null>(null);
 
-  // Próximos vencimentos (7 dias) e atrasados
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  // Próximos vencimentos (todos os pendentes, sem filtro de período)
   const proximos = lancamentos
     .filter(l => l.status === "previsto" || l.status === "atrasado")
     .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
@@ -66,6 +91,33 @@ function FinanceiroDashboard() {
         </p>
       </div>
 
+      {/* Seletor de período */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => navMes(-1)}
+          className="grid size-8 place-items-center rounded-lg border border-border bg-surface-1/60 text-muted-foreground transition hover:bg-surface-2/80 hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+        <span className="min-w-[160px] text-center text-sm font-semibold capitalize">
+          {nomeMes(periodoMes, periodoAno)}
+        </span>
+        <button
+          onClick={() => navMes(1)}
+          className="grid size-8 place-items-center rounded-lg border border-border bg-surface-1/60 text-muted-foreground transition hover:bg-surface-2/80 hover:text-foreground"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+        {!eHoje && (
+          <button
+            onClick={() => { setPeriodoMes(mesAtual); setPeriodoAno(anoAtual); }}
+            className="rounded-lg border border-border bg-surface-1/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-surface-2/80 hover:text-foreground"
+          >
+            Hoje
+          </button>
+        )}
+      </div>
+
       {/* KPIs principais */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
@@ -74,12 +126,12 @@ function FinanceiroDashboard() {
           onClick={() => setKpiSheet({
             titulo: "Receitas recebidas",
             descricao: "Lançamentos de receita já confirmados",
-            lancamentos: lancamentos.filter(l => l.tipo === "receita" && l.status === "recebido"),
+            lancamentos: lancsPeriodo.filter(l => l.tipo === "receita" && l.status === "recebido"),
           })}
           hintOnClick={() => setKpiSheet({
             titulo: "A receber",
             descricao: "Receitas previstas e atrasadas",
-            lancamentos: lancamentos.filter(l => l.tipo === "receita" && (l.status === "previsto" || l.status === "atrasado")),
+            lancamentos: lancsPeriodo.filter(l => l.tipo === "receita" && (l.status === "previsto" || l.status === "atrasado")),
           })}
         />
         <KpiCard
@@ -88,12 +140,12 @@ function FinanceiroDashboard() {
           onClick={() => setKpiSheet({
             titulo: "Despesas pagas",
             descricao: "Lançamentos de despesa já quitados",
-            lancamentos: lancamentos.filter(l => l.tipo === "despesa" && l.status === "pago"),
+            lancamentos: lancsPeriodo.filter(l => l.tipo === "despesa" && l.status === "pago"),
           })}
           hintOnClick={() => setKpiSheet({
             titulo: "A pagar",
             descricao: "Despesas previstas e atrasadas",
-            lancamentos: lancamentos.filter(l => l.tipo === "despesa" && (l.status === "previsto" || l.status === "atrasado")),
+            lancamentos: lancsPeriodo.filter(l => l.tipo === "despesa" && (l.status === "previsto" || l.status === "atrasado")),
           })}
         />
         <KpiCard
@@ -103,7 +155,7 @@ function FinanceiroDashboard() {
           onClick={() => setKpiSheet({
             titulo: "Saldo realizado",
             descricao: "Todas as entradas e saídas confirmadas",
-            lancamentos: lancamentos.filter(l => !!l.pagamentoEm),
+            lancamentos: lancsPeriodo.filter(l => !!l.pagamentoEm),
           })}
         />
         <KpiCard
@@ -130,7 +182,7 @@ function FinanceiroDashboard() {
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Receita vs Despesa 6m */}
+        {/* Receita vs Despesa 6m — sempre histórico completo */}
         <div className="rounded-xl border border-border bg-surface-1/60 p-4 lg:col-span-2">
           <div className="mb-2 flex items-center justify-between">
             <div>
@@ -170,7 +222,7 @@ function FinanceiroDashboard() {
           </div>
         </div>
 
-        {/* Categoria de despesa */}
+        {/* Categoria de despesa — filtrada pelo período */}
         <div className="rounded-xl border border-border bg-surface-1/60 p-4">
           <div className="mb-2 flex items-center justify-between">
             <div>
@@ -184,28 +236,28 @@ function FinanceiroDashboard() {
           <div className="h-[260px] w-full">
             {catDespesa.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Sem despesas registradas ainda.
+                Sem despesas em {nomeMes(periodoMes, periodoAno)}.
               </div>
             ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={catDespesa} layout="vertical" margin={{ top: 6, right: 12, left: 8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}
-                  tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-                <YAxis dataKey="categoria" type="category" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={80} />
-                <Tooltip
-                  contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12 }}
-                  formatter={(v: number) => fmtBRL(v)}
-                />
-                <Bar dataKey="valor" fill="var(--primary)" radius={[0, 6, 6, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={catDespesa} layout="vertical" margin={{ top: 6, right: 12, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}
+                    tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                  <YAxis dataKey="categoria" type="category" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={80} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12 }}
+                    formatter={(v: number) => fmtBRL(v)}
+                  />
+                  <Bar dataKey="valor" fill="var(--primary)" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
       </div>
 
-      {/* Próximos vencimentos */}
+      {/* Próximos vencimentos — sem filtro de período, sempre futuros */}
       <div className="rounded-xl border border-border bg-surface-1/60 p-4">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">

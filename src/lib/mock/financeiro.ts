@@ -1,8 +1,3 @@
-// MakersHub — Mock store do módulo Financeiro
-// Reativo via useSyncExternalStore, em memória, sem persistência.
-
-import { useSyncExternalStore } from "react";
-
 export type LancTipo = "receita" | "despesa";
 export type LancStatus = "previsto" | "recebido" | "pago" | "atrasado";
 
@@ -13,105 +8,16 @@ export interface Lancamento {
   descricao: string;
   valor: number;
   vencimento: string; // ISO
-  pagamentoEm?: string | null; // ISO ou null
+  pagamentoEm?: string | null;
   status: LancStatus;
   cliente?: string;
-  projeto?: string;      // nome do projeto (para exibição)
-  projetoId?: string;    // FK projetos.id (o que é persistido)
-  carteiraId?: string;   // FK carteiras.id
+  projeto?: string;
+  projetoId?: string;
+  carteiraId?: string;
   formaPagamento?: string;
   observacoes?: string;
 }
 
-const today = new Date();
-const d = (offset: number) => {
-  const x = new Date(today); x.setDate(x.getDate() + offset);
-  return x.toISOString();
-};
-
-const seed: Lancamento[] = [
-  // Receitas
-  { id: "fr1", tipo: "receita", categoria: "Projeto", descricao: "Vibe Q1 — entrada (1/4)", valor: 16000, vencimento: d(-30), pagamentoEm: d(-29), status: "recebido", cliente: "Vibe Cosméticos", projeto: "Vibe Q1 — Conteúdo mensal", formaPagamento: "PIX" },
-  { id: "fr2", tipo: "receita", categoria: "Projeto", descricao: "Vibe Q1 — parcela 2/4", valor: 16000, vencimento: d(5), status: "previsto", cliente: "Vibe Cosméticos", projeto: "Vibe Q1 — Conteúdo mensal" },
-  { id: "fr3", tipo: "receita", categoria: "Projeto", descricao: "Vibe Q1 — parcela 3/4", valor: 16000, vencimento: d(35), status: "previsto", cliente: "Vibe Cosméticos", projeto: "Vibe Q1 — Conteúdo mensal" },
-  { id: "fr4", tipo: "receita", categoria: "Projeto", descricao: "Olympus — entrada documentário", valor: 13250, vencimento: d(-22), pagamentoEm: d(-20), status: "recebido", cliente: "Studio Olympus", projeto: "Olympus — Documentário curto", formaPagamento: "Transferência" },
-  { id: "fr5", tipo: "receita", categoria: "Projeto", descricao: "Olympus — final entrega", valor: 13250, vencimento: d(10), status: "previsto", cliente: "Studio Olympus", projeto: "Olympus — Documentário curto" },
-  { id: "fr6", tipo: "receita", categoria: "Projeto", descricao: "Atlas — entrada Tour 360", valor: 32500, vencimento: d(3), status: "previsto", cliente: "Atlas Imóveis", projeto: "Atlas — Tour 360 lançamento" },
-  { id: "fr7", tipo: "receita", categoria: "Projeto", descricao: "Fresh Burger — Reels Pack entrada", valor: 9250, vencimento: d(-3), status: "atrasado", cliente: "Fresh Burger Co.", projeto: "Fresh Burger — Reels Pack" },
-  { id: "fr8", tipo: "receita", categoria: "Avulso", descricao: "Edição extra — Nova Marca", valor: 4500, vencimento: d(-10), pagamentoEm: d(-9), status: "recebido", cliente: "Nova Marca Bebidas", formaPagamento: "PIX" },
-
-  // Despesas
-  { id: "fd1", tipo: "despesa", categoria: "Equipe", descricao: "Cachê Pedro — captação Vibe", valor: 2400, vencimento: d(-2), pagamentoEm: d(-2), status: "pago", projeto: "Vibe Q1 — Conteúdo mensal", formaPagamento: "PIX" },
-  { id: "fd2", tipo: "despesa", categoria: "Equipe", descricao: "Cachê Lucas — color grading", valor: 1800, vencimento: d(2), status: "previsto", projeto: "Olympus — Documentário curto" },
-  { id: "fd3", tipo: "despesa", categoria: "Equipe", descricao: "Cachê Ana — roteiro abril", valor: 1500, vencimento: d(7), status: "previsto", projeto: "Vibe Q1 — Conteúdo mensal" },
-  { id: "fd4", tipo: "despesa", categoria: "Equipamento", descricao: "Aluguel câmera FX6 (3 diárias)", valor: 1800, vencimento: d(-2), pagamentoEm: d(-2), status: "pago", projeto: "Vibe Q1 — Conteúdo mensal" },
-  { id: "fd5", tipo: "despesa", categoria: "Equipamento", descricao: "Drone Mavic 3 — diária", valor: 650, vencimento: d(4), status: "previsto", projeto: "Atlas — Tour 360 lançamento" },
-  { id: "fd6", tipo: "despesa", categoria: "Software", descricao: "Adobe CC + Frame.io", valor: 420, vencimento: d(-3), pagamentoEm: d(-3), status: "pago", formaPagamento: "Cartão" },
-  { id: "fd7", tipo: "despesa", categoria: "Software", descricao: "Frame.io upgrade Pro", valor: 280, vencimento: d(15), status: "previsto" },
-  { id: "fd8", tipo: "despesa", categoria: "Marketing", descricao: "Tráfego pago Instagram", valor: 1200, vencimento: d(-5), pagamentoEm: d(-5), status: "pago", formaPagamento: "Cartão" },
-  { id: "fd9", tipo: "despesa", categoria: "Impostos", descricao: "Simples Nacional — DAS", valor: 3800, vencimento: d(-4), status: "atrasado" },
-  { id: "fd10", tipo: "despesa", categoria: "Equipe", descricao: "Pró-labore — Você", valor: 8000, vencimento: d(0), status: "previsto" },
-  { id: "fd11", tipo: "despesa", categoria: "Estrutura", descricao: "Aluguel estúdio", valor: 4500, vencimento: d(8), status: "previsto" },
-  { id: "fd12", tipo: "despesa", categoria: "Estrutura", descricao: "Internet + telefone", valor: 320, vencimento: d(-8), pagamentoEm: d(-8), status: "pago" },
-];
-
-let state: { lancamentos: Lancamento[] } = { lancamentos: seed };
-
-const listeners = new Set<() => void>();
-const emit = () => listeners.forEach(l => l());
-const subscribe = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
-
-export function useFinanceiro<T>(selector: (s: typeof state) => T): T {
-  return useSyncExternalStore(subscribe, () => selector(state), () => selector(state));
-}
-
-function reconciliarStatus(l: Lancamento): Lancamento {
-  if (l.pagamentoEm) return { ...l, status: l.tipo === "receita" ? "recebido" : "pago" };
-  const venc = new Date(l.vencimento);
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-  if (venc < hoje && !l.pagamentoEm) return { ...l, status: "atrasado" };
-  return { ...l, status: "previsto" };
-}
-
-export const financeiro = {
-  add(input: Omit<Lancamento, "id" | "status"> & { status?: LancStatus }) {
-    const id = `f-${Date.now()}`;
-    const base: Lancamento = { ...input, id, status: input.status ?? "previsto" };
-    state = { lancamentos: [...state.lancamentos, reconciliarStatus(base)] };
-    emit();
-    return id;
-  },
-  update(id: string, patch: Partial<Omit<Lancamento, "id">>) {
-    state = {
-      lancamentos: state.lancamentos.map(l =>
-        l.id === id ? reconciliarStatus({ ...l, ...patch }) : l,
-      ),
-    };
-    emit();
-  },
-  remove(id: string) {
-    state = { lancamentos: state.lancamentos.filter(l => l.id !== id) };
-    emit();
-  },
-  marcarPago(id: string, quando: string = new Date().toISOString()) {
-    state = {
-      lancamentos: state.lancamentos.map(l =>
-        l.id === id ? reconciliarStatus({ ...l, pagamentoEm: quando }) : l,
-      ),
-    };
-    emit();
-  },
-  desfazerPago(id: string) {
-    state = {
-      lancamentos: state.lancamentos.map(l =>
-        l.id === id ? reconciliarStatus({ ...l, pagamentoEm: null }) : l,
-      ),
-    };
-    emit();
-  },
-};
-
-// ---------- Helpers / Métricas ----------
 export const fmtBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
@@ -138,8 +44,8 @@ export interface MetricasFin {
   pago: number;
   aPagar: number;
   atrasadoPagar: number;
-  saldoRealizado: number; // recebido - pago
-  saldoPrevisto: number;  // (recebido+aReceber) - (pago+aPagar)
+  saldoRealizado: number;
+  saldoPrevisto: number;
   margemRealizada: number;
 }
 
@@ -182,7 +88,6 @@ export function serieMensal(lancs: Lancamento[]) {
   return meses;
 }
 
-// Agrupamento por projeto/cliente
 export function porProjeto(lancs: Lancamento[]) {
   const map = new Map<string, { nome: string; cliente?: string; receita: number; despesa: number; saldo: number; margem: number }>();
   for (const l of lancs) {
@@ -209,8 +114,3 @@ export function porCategoria(lancs: Lancamento[], tipo: LancTipo) {
     .map(([categoria, valor]) => ({ categoria, valor }))
     .sort((a, b) => b.valor - a.valor);
 }
-
-export const getClientesUnicos = () =>
-  Array.from(new Set(state.lancamentos.map(l => l.cliente).filter(Boolean))) as string[];
-export const getProjetosUnicos = () =>
-  Array.from(new Set(state.lancamentos.map(l => l.projeto).filter(Boolean))) as string[];

@@ -1,7 +1,9 @@
 import { isSameMonth, subMonths } from "date-fns";
 import type { Lancamento } from "./financeiro";
+import { supabase } from "@/lib/supabase";
+import { getEmpresaId } from "@/lib/empresaId";
 
-const KEY = "frameos:metas:v1";
+const LS_KEY = "frameos:metas:v1";
 
 export interface MetasConfig {
   meta: number;
@@ -10,24 +12,44 @@ export interface MetasConfig {
 
 const DEFAULT: MetasConfig = { meta: 100000, superMeta: 150000 };
 
-export function loadMetas(): MetasConfig {
-  if (typeof window === "undefined") return DEFAULT;
+function loadFromLS(): MetasConfig | null {
+  if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return DEFAULT;
-    return { ...DEFAULT, ...(JSON.parse(raw) as Partial<MetasConfig>) };
-  } catch {
-    return DEFAULT;
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? { ...DEFAULT, ...(JSON.parse(raw) as Partial<MetasConfig>) } : null;
+  } catch { return null; }
+}
+
+let cached: MetasConfig | null = loadFromLS();
+
+// Carrega do Supabase na primeira autenticação
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (!session) return;
+  supabase.from("empresas").select("meta_mensal, meta_super").single().then(({ data }) => {
+    if (data && (data.meta_mensal != null || data.meta_super != null)) {
+      cached = {
+        meta: data.meta_mensal ?? DEFAULT.meta,
+        superMeta: data.meta_super ?? DEFAULT.superMeta,
+      };
+      window.dispatchEvent(new CustomEvent("frameos:metas"));
+    }
+  });
+});
+
+export function loadMetas(): MetasConfig {
+  return cached ?? DEFAULT;
+}
+
+export async function saveMetas(m: MetasConfig) {
+  cached = m;
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LS_KEY, JSON.stringify(m));
+    window.dispatchEvent(new CustomEvent("frameos:metas"));
   }
+  const empresa_id = await getEmpresaId();
+  await supabase.from("empresas").update({ meta_mensal: m.meta, meta_super: m.superMeta }).eq("id", empresa_id);
 }
 
-export function saveMetas(m: MetasConfig) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(m));
-  window.dispatchEvent(new CustomEvent("frameos:metas"));
-}
-
-// Snapshot derivado para o componente de Progresso.
 export function progressoMes(config: MetasConfig, lancamentos: Lancamento[]) {
   const hoje = new Date();
   const mesPassado = subMonths(hoje, 1);
