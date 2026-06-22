@@ -51,6 +51,9 @@ function ContatosPage() {
               </tr>
             );
           })}
+          {contatos.length === 0 && (
+            <tr><td colSpan={5} className="p-10 text-center text-sm text-muted-foreground">Nenhum contato ainda. Eles aparecem aqui automaticamente quando você cadastra leads.</td></tr>
+          )}
         </tbody>
       </table>
     </div>

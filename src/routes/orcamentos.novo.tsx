@@ -49,7 +49,11 @@ function NovoOrcamento() {
     }
     const t: TipoOrcamento = tipo ?? "custom";
     const preset = PRESETS_INICIAIS_POR_TIPO[t];
-    const base = preset ? preset() : PAYLOAD_VAZIO(t);
+    let base = preset ? preset() : PAYLOAD_VAZIO(t);
+    if (!preset && t === "custom") {
+      // "Monte do zero" começa realmente vazio — sem itens pré-carregados
+      base = { ...base, producao: { ...base.producao, diarias: 0 }, pos: { ...base.pos, videos: 0, revisoes: 0 } };
+    }
     return { ...base, margem: custos.margemPadrao };
   });
 

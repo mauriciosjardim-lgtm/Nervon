@@ -25,7 +25,7 @@ interface Env {
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "makershub", version: "6.0.0" };
+const SERVER_INFO = { name: "makershub", version: "6.1.0" };
 const CODE_TTL_SECONDS = 600; // código de autorização válido por 10 min
 
 const CORS = {
@@ -105,6 +105,7 @@ const TOOLS = [
         observacoes: { type: "string", description: "Observações (opcional)" },
         pago: { type: "boolean", description: "Se já foi pago/recebido (default false)" },
         carteira_id: { type: "string", description: "ID da carteira (obtido via listar_carteiras) (opcional)" },
+        projeto_id: { type: "string", description: "ID do projeto a vincular (obtido via listar_projetos) (opcional)" },
       },
       required: ["tipo", "descricao", "valor", "vencimento"],
     },
@@ -585,6 +586,7 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
         p_observacoes: args.observacoes ?? null,
         p_pago: args.pago ?? false,
         p_carteira_id: args.carteira_id ?? null,
+        p_projeto_id: args.projeto_id ?? null,
       });
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao criar lançamento.", true);
       return toolText(`Lançamento criado (${r.tipo}, R$ ${r.valor}, status: ${r.status}). ID: ${r.lancamento_id}`);

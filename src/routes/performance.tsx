@@ -166,6 +166,11 @@ function TabGeral() {
             <Brain className="size-3 text-primary" /> MakersHub Insights
           </div>
           <div className="space-y-2">
+            {insights.length === 0 && (
+              <p className="rounded-lg border border-border/40 bg-background/40 p-3 text-xs text-muted-foreground">
+                Comece a usar o MakersHub — cadastre leads, projetos e lançamentos — e os insights reais aparecem aqui.
+              </p>
+            )}
             {insights.map(i => <InsightRow key={i.id} insight={i} />)}
           </div>
         </Card>

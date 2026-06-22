@@ -134,7 +134,7 @@ export function usePerformanceClientes() {
     porReceita: [...arr].sort((a, b) => b.receita - a.receita),
     porLucro: [...arr].sort((a, b) => b.lucro - a.lucro),
     total: arr.length,
-    semContato: 4, // mock
+    semContato: 0, // TODO: derivar de último contato real quando houver rastreio
     tempoMedioRelacionamento: 8, // meses
   };
 }
@@ -193,17 +193,29 @@ export interface Insight { id: string; tipo: "positivo" | "alerta" | "neutro"; t
 
 export function useInsights(): Insight[] {
   const vg = useVisaoGeral();
+  const com = useComercial(s => s);
   const insights: Insight[] = [];
 
-  if (vg.pctMeta >= 100) insights.push({ id: "i1", tipo: "positivo", titulo: "Meta do mês atingida 🎯", descricao: `Você bateu ${vg.pctMeta.toFixed(0)}% da meta — parabéns.` });
-  else if (vg.pctMeta >= 70) insights.push({ id: "i1", tipo: "positivo", titulo: "Caminho certo para meta", descricao: `Projetando fechar o mês em ${vg.pctMeta.toFixed(0)}% da meta.` });
-  else insights.push({ id: "i1", tipo: "alerta", titulo: "Meta sob risco", descricao: `Apenas ${vg.pctMeta.toFixed(0)}% da meta atingida. Tem 4 propostas em aberto.` });
+  // Sem dados ainda → nenhum insight (a tela mostra um estado vazio honesto)
+  const temDados = com.leads.length > 0 || vg.receitaMes > 0 || vg.projetosAtivos > 0;
+  if (!temDados) return [];
 
-  if (vg.projetosCriticos > 0) insights.push({ id: "i2", tipo: "alerta", titulo: `${vg.projetosCriticos} projeto(s) em estado crítico`, descricao: "Prazo curto e progresso abaixo de 60%." });
-  insights.push({ id: "i3", tipo: "neutro", titulo: "Instagram gerou 62% dos novos leads", descricao: "Considere aumentar investimento no canal." });
-  insights.push({ id: "i4", tipo: "positivo", titulo: "Projeto mais lucrativo: Atlas Tour 360", descricao: "Margem estimada de 58% — replique o modelo." });
-  if (vg.taxaConversao < 50) insights.push({ id: "i5", tipo: "alerta", titulo: `Conversão caiu para ${vg.taxaConversao.toFixed(0)}%`, descricao: "Reveja qualificação de leads na entrada do funil." });
-  insights.push({ id: "i6", tipo: "alerta", titulo: "4 clientes sem contato há mais de 60 dias", descricao: "Reaqueça relacionamento — pode virar recompra." });
+  // Meta do mês (real)
+  if (vg.pctMeta >= 100) insights.push({ id: "meta", tipo: "positivo", titulo: "Meta do mês atingida 🎯", descricao: `Você bateu ${vg.pctMeta.toFixed(0)}% da meta — parabéns.` });
+  else if (vg.pctMeta >= 70) insights.push({ id: "meta", tipo: "positivo", titulo: "Caminho certo para a meta", descricao: `Projetando fechar o mês em ${vg.pctMeta.toFixed(0)}% da meta.` });
+  else if (vg.receitaMes > 0) insights.push({ id: "meta", tipo: "alerta", titulo: "Meta sob risco", descricao: `Apenas ${vg.pctMeta.toFixed(0)}% da meta atingida este mês.` });
+
+  // Propostas em aberto (real)
+  const propostasAbertas = com.leads.filter(l => l.etapa === "proposta" || l.etapa === "negociacao").length;
+  if (propostasAbertas > 0) insights.push({ id: "propostas", tipo: "neutro", titulo: `${propostasAbertas} proposta(s) em aberto`, descricao: "Acompanhe de perto para acelerar o fechamento." });
+
+  // Projetos críticos (real)
+  if (vg.projetosCriticos > 0) insights.push({ id: "criticos", tipo: "alerta", titulo: `${vg.projetosCriticos} projeto(s) em estado crítico`, descricao: "Prazo curto e progresso abaixo de 60%." });
+
+  // Conversão (real) — só com amostra mínima de leads decididos
+  const decididos = com.leads.filter(l => l.etapa === "fechado" || l.etapa === "perdido").length;
+  if (decididos >= 3 && vg.taxaConversao < 50) insights.push({ id: "conversao", tipo: "alerta", titulo: `Conversão em ${vg.taxaConversao.toFixed(0)}%`, descricao: "Reveja a qualificação de leads na entrada do funil." });
+  else if (decididos >= 3 && vg.taxaConversao >= 70) insights.push({ id: "conversao", tipo: "positivo", titulo: `Boa conversão: ${vg.taxaConversao.toFixed(0)}%`, descricao: "Seu funil está convertendo bem — mantenha o ritmo." });
 
   return insights;
 }

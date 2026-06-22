@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -204,7 +205,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
 
           <div className="grid gap-1.5">
             <Label>Observações</Label>
-            <Input value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Anotações internas" />
+            <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Anotações internas" rows={3} />
           </div>
 
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface-1 p-3 text-sm">

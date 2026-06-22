@@ -182,6 +182,11 @@ function FinanceiroDashboard() {
             </span>
           </div>
           <div className="h-[260px] w-full">
+            {catDespesa.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Sem despesas registradas ainda.
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={catDespesa} layout="vertical" margin={{ top: 6, right: 12, left: 8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
@@ -195,6 +200,7 @@ function FinanceiroDashboard() {
                 <Bar dataKey="valor" fill="var(--primary)" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

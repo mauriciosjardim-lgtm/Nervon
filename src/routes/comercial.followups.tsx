@@ -34,8 +34,15 @@ function FollowupsPage() {
     return { atrasados, hoje, amanha, futuros, sem };
   }, [leads]);
 
+  const total = grupos.atrasados.length + grupos.hoje.length + grupos.amanha.length + grupos.futuros.length + grupos.sem.length;
+
   return (
     <div className="space-y-5">
+      {total === 0 && (
+        <div className="rounded-xl border border-border bg-surface-1/40 p-10 text-center text-sm text-muted-foreground">
+          Nenhum follow-up pendente. Cadastre leads e defina a próxima ação para acompanhar tudo aqui.
+        </div>
+      )}
       <Secao titulo="Atrasados" tone="destructive" leads={grupos.atrasados} onOpen={setOpen} />
       <Secao titulo="Sem próxima ação" tone="destructive" leads={grupos.sem} onOpen={setOpen} hint="Defina uma próxima ação para não perder o ritmo." />
       <Secao titulo="Hoje" tone="primary" leads={grupos.hoje} onOpen={setOpen} />

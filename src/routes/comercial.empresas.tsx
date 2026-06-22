@@ -10,6 +10,14 @@ function EmpresasPage() {
   const empresas = useComercial(s => s.empresas);
   const leads = useComercial(s => s.leads);
 
+  if (empresas.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-surface-1/40 p-10 text-center text-sm text-muted-foreground">
+        Nenhuma empresa ainda. Elas aparecem aqui automaticamente quando você cadastra leads.
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {empresas.map(e => {
