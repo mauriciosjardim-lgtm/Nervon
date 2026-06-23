@@ -60,7 +60,7 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
-    if (!turnstileToken) { setErro("Confirme que você é humano."); return; }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) { setErro("Confirme que você é humano."); return; }
     if (modo === "criar") {
       if (!nome.trim()) { setErro("Informe seu nome completo."); return; }
       if (!tipo) { setErro("Selecione o tipo de operação."); return; }
@@ -69,11 +69,13 @@ function Login() {
       if (!termos) { setErro("Aceite os termos para continuar."); return; }
     }
     setLoading(true);
-    const verified = await verifyTurnstile({ data: { token: turnstileToken } });
-    if (!verified.success) {
-      setErro("Validação de segurança falhou. Tente novamente.");
-      setTurnstileToken(null); turnstileRef.current?.reset();
-      setLoading(false); return;
+    if (TURNSTILE_SITE_KEY && turnstileToken) {
+      const verified = await verifyTurnstile({ data: { token: turnstileToken } });
+      if (!verified.success) {
+        setErro("Validação de segurança falhou. Tente novamente.");
+        setTurnstileToken(null); turnstileRef.current?.reset();
+        setLoading(false); return;
+      }
     }
     if (modo === "entrar") {
       const { error } = await signIn(email, senha);
@@ -325,20 +327,22 @@ function Login() {
                   </label>
                 )}
 
-                <Turnstile
-                  ref={turnstileRef}
-                  siteKey={TURNSTILE_SITE_KEY}
-                  onSuccess={setTurnstileToken}
-                  onExpire={() => setTurnstileToken(null)}
-                  options={{ theme: "dark", language: "pt-BR", size: "flexible" }}
-                  className="mt-1"
-                />
+                {TURNSTILE_SITE_KEY && (
+                  <Turnstile
+                    ref={turnstileRef}
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onSuccess={setTurnstileToken}
+                    onExpire={() => setTurnstileToken(null)}
+                    options={{ theme: "dark", language: "pt-BR", size: "flexible" }}
+                    className="mt-1"
+                  />
+                )}
 
                 {erro && (
                   <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
                 )}
 
-                <Button type="submit" size="lg" className="w-full" disabled={loading || !turnstileToken}>
+                <Button type="submit" size="lg" className="w-full" disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}>
                   {loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}
                 </Button>
               </form>
