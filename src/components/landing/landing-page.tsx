@@ -600,7 +600,7 @@ const FEATURES = [
   "Agenda e calendário integrados",
   "Biblioteca de assets e contratos",
   "Dashboard personalizável por função",
-  "Acesso vitalício · sem mensalidade",
+  "Sem cobranças mensais · renovação anual simples",
   "Atualizações gratuitas por 12 meses",
 ];
 
@@ -642,11 +642,15 @@ function Pricing() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#90F826]/30 bg-[#90F826]/[0.08] px-3 py-1 text-xs font-semibold text-[#c8ff8a]">
                 <Flash size={12} color="currentColor" variant="Linear" /> Mais popular
               </span>
-              <span className="text-xs text-white/40">Acesso vitalício</span>
+              <span className="text-xs text-white/40">Condição de lançamento</span>
             </div>
 
             {/* price */}
             <div className="relative mt-7">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-base text-white/35 line-through">R$ 149</span>
+                <span className="rounded-full bg-[#90F826]/15 border border-[#90F826]/30 px-2 py-0.5 text-[11px] font-semibold text-[#c8ff8a]">Aproveite condição de lançamento</span>
+              </div>
               <div className="flex items-end gap-2">
                 <span className="text-sm font-medium text-white/50 mb-2">R$</span>
                 <span className="font-display text-7xl font-bold leading-none text-white">97</span>

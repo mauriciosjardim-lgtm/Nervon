@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  TrendingUp, TrendingDown, Target, DollarSign, Briefcase, Users,
-  Activity, Brain, AlertTriangle, CheckCircle2, Info,
-} from "lucide-react";
+import { Target, Brain } from "lucide-react";
+import { TrendUp, TrendDown, DollarCircle, Briefcase, Profile2User, Activity, Danger, TickCircle, InfoCircle } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import {
   useVisaoGeral, usePerformanceComercial, usePerformanceProducao,
   usePerformanceFinanceiro, usePerformanceClientes, usePerformanceEquipe,
@@ -34,7 +33,7 @@ function PerformancePage() {
     <div className="flex flex-col gap-6 p-5 md:p-7">
       <header>
         <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <TrendingUp className="size-3.5 text-primary" /> Performance
+          <TrendUp size={14} color="currentColor" variant="Linear" className="text-primary" /> Performance
         </p>
         <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight md:text-3xl">
           Centro Estratégico
@@ -81,12 +80,12 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 }
 
 function KPI({ label, value, hint, icon: Icon }: {
-  label: string; value: string; hint?: string; icon: React.ComponentType<{ className?: string }>;
+  label: string; value: string; hint?: string; icon: typeof IconsaxIcon;
 }) {
   return (
     <Card>
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        <Icon className="size-3 text-primary" /> {label}
+        <Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}
       </div>
       <div className="font-display text-2xl font-semibold tabular-nums">{value}</div>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
@@ -96,10 +95,10 @@ function KPI({ label, value, hint, icon: Icon }: {
 
 function Delta({ pct }: { pct: number }) {
   const up = pct >= 0;
-  const Icon = up ? TrendingUp : TrendingDown;
+  const Icon = up ? TrendUp : TrendDown;
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? "text-primary" : "text-destructive"}`}>
-      <Icon className="size-3" />
+      <Icon size={12} color="currentColor" variant="Linear" />
       {Math.abs(pct).toFixed(1)}%
     </span>
   );
@@ -114,10 +113,10 @@ function TabGeral() {
     <div className="grid gap-5 lg:grid-cols-3">
       <div className="space-y-5 lg:col-span-2">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KPI label="Receita do Mês" value={fmtBRL(vg.receitaMes)} icon={DollarSign} />
-          <KPI label="Lucro" value={fmtBRL(vg.lucroMes)} hint={`${vg.margemMes.toFixed(1)}% margem`} icon={TrendingUp} />
+          <KPI label="Receita do Mês" value={fmtBRL(vg.receitaMes)} icon={DollarCircle} />
+          <KPI label="Lucro" value={fmtBRL(vg.lucroMes)} hint={`${vg.margemMes.toFixed(1)}% margem`} icon={TrendUp} />
           <KPI label="Projetos Ativos" value={String(vg.projetosAtivos)} hint={`${vg.projetosCriticos} críticos`} icon={Briefcase} />
-          <KPI label="Clientes Ativos" value={String(vg.clientesAtivos)} icon={Users} />
+          <KPI label="Clientes Ativos" value={String(vg.clientesAtivos)} icon={Profile2User} />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -212,11 +211,11 @@ function SaudeRow({ label, value }: { label: string; value: number }) {
 }
 
 function InsightRow({ insight }: { insight: Insight }) {
-  const Icon = insight.tipo === "positivo" ? CheckCircle2 : insight.tipo === "alerta" ? AlertTriangle : Info;
+  const Icon = insight.tipo === "positivo" ? TickCircle : insight.tipo === "alerta" ? Danger : InfoCircle;
   const color = insight.tipo === "positivo" ? "text-primary" : insight.tipo === "alerta" ? "text-destructive" : "text-muted-foreground";
   return (
     <div className="flex gap-2 rounded-lg border border-border/40 bg-background/40 p-3">
-      <Icon className={`mt-0.5 size-4 shrink-0 ${color}`} />
+      <Icon size={16} color="currentColor" variant="Linear" className={`mt-0.5 shrink-0 ${color}`} />
       <div>
         <div className="text-sm font-medium">{insight.titulo}</div>
         <div className="mt-0.5 text-xs text-muted-foreground">{insight.descricao}</div>
@@ -231,9 +230,9 @@ function TabComercial() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KPI label="Novos Leads" value={String(c.novos)} icon={Users} />
+        <KPI label="Novos Leads" value={String(c.novos)} icon={Profile2User} />
         <KPI label="Conversão" value={`${c.conversao.toFixed(0)}%`} hint={`${c.ganhos} ganhos / ${c.perdidos} perdidos`} icon={Activity} />
-        <KPI label="Ticket Médio" value={fmtBRL(c.ticketMedio)} icon={DollarSign} />
+        <KPI label="Ticket Médio" value={fmtBRL(c.ticketMedio)} icon={DollarCircle} />
         <KPI label="Em Negociação" value={fmtBRL(c.emNegociacao)} icon={Briefcase} />
       </div>
 
@@ -269,14 +268,14 @@ function TabProducao() {
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPI label="Projetos Ativos" value={String(p.ativos)} icon={Briefcase} />
-        <KPI label="Concluídos" value={String(p.concluidos)} icon={CheckCircle2} />
-        <KPI label="Atrasados" value={String(p.atrasados)} icon={AlertTriangle} />
+        <KPI label="Concluídos" value={String(p.concluidos)} icon={TickCircle} />
+        <KPI label="Atrasados" value={String(p.atrasados)} icon={Danger} />
         <KPI label="Tempo Médio" value="—" hint="disponível em breve" icon={Activity} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <KPI label="Tarefas Concluídas" value={String(p.tarefasConcluidas)} icon={CheckCircle2} />
-        <KPI label="Tarefas Pendentes" value={String(p.tarefasPendentes)} icon={Info} />
+        <KPI label="Tarefas Concluídas" value={String(p.tarefasConcluidas)} icon={TickCircle} />
+        <KPI label="Tarefas Pendentes" value={String(p.tarefasPendentes)} icon={InfoCircle} />
       </div>
 
       <Card>
@@ -304,13 +303,13 @@ function TabFinanceiro() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KPI label="Recebido" value={fmtBRL(f.recebido)} icon={DollarSign} />
+        <KPI label="Recebido" value={fmtBRL(f.recebido)} icon={DollarCircle} />
         <KPI label="A Receber" value={fmtBRL(f.aReceber)} hint={`${fmtBRL(f.atrasadoReceber)} atrasado`} icon={Activity} />
-        <KPI label="Pago" value={fmtBRL(f.pago)} icon={TrendingDown} />
-        <KPI label="Saldo" value={fmtBRL(f.saldoRealizado)} hint={`${f.margemRealizada.toFixed(1)}% margem`} icon={TrendingUp} />
+        <KPI label="Pago" value={fmtBRL(f.pago)} icon={TrendDown} />
+        <KPI label="Saldo" value={fmtBRL(f.saldoRealizado)} hint={`${f.margemRealizada.toFixed(1)}% margem`} icon={TrendUp} />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <KPI label="A Pagar" value={fmtBRL(f.aPagar)} hint={`${fmtBRL(f.atrasadoPagar)} atrasado`} icon={Info} />
+        <KPI label="A Pagar" value={fmtBRL(f.aPagar)} hint={`${fmtBRL(f.atrasadoPagar)} atrasado`} icon={InfoCircle} />
         <KPI label="Saldo Previsto" value={fmtBRL(f.saldoPrevisto)} icon={Activity} />
       </div>
     </div>
@@ -323,8 +322,8 @@ function TabClientes() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <KPI label="Total de Clientes" value={String(c.total)} icon={Users} />
-        <KPI label="Sem Contato 60d+" value="—" hint="rastreio em breve" icon={AlertTriangle} />
+        <KPI label="Total de Clientes" value={String(c.total)} icon={Profile2User} />
+        <KPI label="Sem Contato 60d+" value="—" hint="rastreio em breve" icon={Danger} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

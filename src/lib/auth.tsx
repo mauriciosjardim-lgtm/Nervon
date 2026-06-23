@@ -22,7 +22,6 @@ interface AuthState {
 interface AuthContext extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshEmpresa: () => Promise<void>;
 }
@@ -81,14 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    return { error: error?.message ?? null };
-  };
-
   const signUp = async (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => {
     const { data, error } = await supabase.auth.signUp({
       email, password,
@@ -111,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ ...state, signIn, signUp, signInWithGoogle, signOut, refreshEmpresa }}>
+    <Ctx.Provider value={{ ...state, signIn, signUp, signOut, refreshEmpresa }}>
       {children}
     </Ctx.Provider>
   );

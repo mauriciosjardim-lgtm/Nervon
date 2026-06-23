@@ -5,7 +5,8 @@ import {
   isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, Users } from "lucide-react";
+import { ArrowLeft2, ArrowRight2, Add, Clock, Location, Profile2User } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { GoogleCalendarIcon } from "@/components/icons/google-calendar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,9 +60,9 @@ function AgendaPage() {
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-1 rounded-md border border-border bg-surface-1/50 p-0.5">
-            <Button variant="ghost" size="icon" className="size-7" onClick={() => navegar(-1)}><ChevronLeft className="size-4" /></Button>
+            <Button variant="ghost" size="icon" className="size-7" onClick={() => navegar(-1)}><ArrowLeft2 size={16} color="currentColor" variant="Linear" /></Button>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setCursor(new Date())}>Hoje</Button>
-            <Button variant="ghost" size="icon" className="size-7" onClick={() => navegar(1)}><ChevronRight className="size-4" /></Button>
+            <Button variant="ghost" size="icon" className="size-7" onClick={() => navegar(1)}><ArrowRight2 size={16} color="currentColor" variant="Linear" /></Button>
           </div>
         </div>
       </header>
@@ -80,7 +81,7 @@ function AgendaPage() {
 function Legenda({ onNovo }: { onNovo: () => void }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-surface-1/40 px-2 py-2">
-      <Button size="sm" onClick={onNovo} className="shrink-0"><Plus className="size-4" /> Novo evento</Button>
+      <Button size="sm" onClick={onNovo} className="shrink-0"><Add size={16} color="currentColor" variant="Linear" /> Novo evento</Button>
       <button
         type="button"
         disabled
@@ -191,7 +192,7 @@ function VisaoSemana({ cursor, eventos, onDia, onEvento }: {
                     {format(new Date(e.inicio), "HH:mm")} – {format(new Date(e.fim), "HH:mm")}
                   </p>
                   <p className="mt-0.5 truncate text-xs font-medium text-foreground">{e.titulo}</p>
-                  {e.local && <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] opacity-70"><MapPin className="size-2.5" /> {e.local}</p>}
+                  {e.local && <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] opacity-70"><Location size={10} color="currentColor" variant="Linear" /> {e.local}</p>}
                 </button>
               ))}
             </div>
@@ -233,7 +234,7 @@ function VisaoDia({ cursor, eventos, onNovo, onEvento }: {
                           {format(new Date(e.inicio), "HH:mm")}–{format(new Date(e.fim), "HH:mm")}
                         </span>
                       </div>
-                      {e.local && <p className="mt-1 flex items-center gap-1 text-[11px] opacity-80"><MapPin className="size-3" /> {e.local}</p>}
+                      {e.local && <p className="mt-1 flex items-center gap-1 text-[11px] opacity-80"><Location size={12} color="currentColor" variant="Linear" /> {e.local}</p>}
                     </button>
                   ))}
                 </div>
@@ -248,9 +249,9 @@ function VisaoDia({ cursor, eventos, onNovo, onEvento }: {
           <h3 className="mb-2 font-display text-sm font-semibold">Resumo do dia</h3>
           <div className="space-y-2">
             <Stat icon={Clock} label="Eventos" valor={String(doDia.length)} />
-            <Stat icon={Users} label="Reuniões" valor={String(doDia.filter(e => e.tipo === "reuniao").length)} />
+            <Stat icon={Profile2User} label="Reuniões" valor={String(doDia.filter(e => e.tipo === "reuniao").length)} />
           </div>
-          <Button size="sm" className="mt-3 w-full" onClick={onNovo}><Plus className="size-4" /> Novo evento</Button>
+          <Button size="sm" className="mt-3 w-full" onClick={onNovo}><Add size={16} color="currentColor" variant="Linear" /> Novo evento</Button>
         </div>
         <div className="rounded-xl border border-border bg-surface-1/40 p-4">
           <h3 className="mb-2 font-display text-sm font-semibold">Próximos</h3>
@@ -278,10 +279,10 @@ function VisaoDia({ cursor, eventos, onNovo, onEvento }: {
   );
 }
 
-function Stat({ icon: Icon, label, valor }: { icon: typeof Clock; label: string; valor: string }) {
+function Stat({ icon: Icon, label, valor }: { icon: typeof IconsaxIcon; label: string; valor: string }) {
   return (
     <div className="flex items-center justify-between rounded-md bg-surface-2/40 px-2.5 py-1.5">
-      <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><Icon className="size-3.5 text-primary" /> {label}</span>
+      <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><Icon size={14} color="currentColor" variant="Linear" className="text-primary" /> {label}</span>
       <span className="font-display text-sm font-semibold tabular-nums">{valor}</span>
     </div>
   );

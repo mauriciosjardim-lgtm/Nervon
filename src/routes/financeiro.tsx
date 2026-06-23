@@ -122,7 +122,7 @@ function CarteiraSwitcher() {
                         : "hover:bg-surface-3",
                     )}
                   >
-                    <MoreHorizontal className="size-3" />
+                    <More size={12} color="currentColor" variant="Linear" />
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-40">
@@ -131,7 +131,7 @@ function CarteiraSwitcher() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => abrirExcluir(c)} className="gap-2 text-destructive focus:text-destructive">
-                    <Trash2 className="size-3.5" /> Excluir
+                    <Trash size={14} color="currentColor" variant="Linear" /> Excluir
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
