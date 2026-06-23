@@ -593,25 +593,32 @@ function Testimonials() {
 
 /* ---------- pricing ---------- */
 const FEATURES = [
-  "Pipeline de vendas e CRM completo",
-  "Gestão financeira com lançamentos e carteiras",
+  "CRM e pipeline de vendas completo",
+  "Gestão financeira com carteiras e lançamentos",
   "Orçamentos e propostas profissionais",
   "Controle de projetos por fases",
   "Agenda e calendário integrados",
   "Biblioteca de assets e contratos",
   "Dashboard personalizável por função",
-  "Sem cobranças mensais · renovação anual simples",
-  "Atualizações gratuitas por 12 meses",
+  "Atualizações gratuitas incluídas",
 ];
 
 function Pricing() {
   const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   async function handleBuy() {
+    setErro(null);
     setLoading(true);
     try {
       const result = await createCheckoutSession({ data: { origin: window.location.origin } });
-      if (result?.url) window.location.href = result.url;
+      if (result?.url) {
+        window.location.href = result.url;
+      } else {
+        setErro("Não foi possível iniciar o pagamento. Tente novamente.");
+      }
+    } catch {
+      setErro("Erro ao conectar com o servidor. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -620,78 +627,82 @@ function Pricing() {
   return (
     <section id="precos" className="relative px-5 py-24 md:px-8 md:py-32">
       <div className="mx-auto max-w-5xl">
+
+        {/* cabeçalho */}
         <div className="mb-14 text-center">
           <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#90F826]">Preços</span>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
             Um preço justo,<br />
             <span className="text-[#90F826]">sem cobrança mensal.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base text-white/60">
+          <p className="mx-auto mt-4 max-w-lg text-base text-white/55">
             Acesso completo por menos de um café por semana.
-            IA e créditos de automação são opcionais.
           </p>
         </div>
 
-        <div className="mx-auto max-w-md">
-          <div className="relative overflow-hidden rounded-3xl border border-[#90F826]/40 bg-gradient-to-b from-[#90F826]/[0.08] to-transparent p-8 md:p-10">
-            {/* glow */}
-            <div className="pointer-events-none absolute -top-20 left-1/2 h-56 w-[400px] -translate-x-1/2 rounded-full bg-[#90F826]/20 blur-[80px]" />
+        {/* card */}
+        <div className="mx-auto max-w-[420px]">
+          <div className="relative overflow-hidden rounded-3xl border border-[#90F826]/35 bg-[#13150f] p-8 md:p-10">
 
-            {/* badge */}
-            <div className="relative flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#90F826]/30 bg-[#90F826]/[0.08] px-3 py-1 text-xs font-semibold text-[#c8ff8a]">
-                <Flash size={12} color="currentColor" variant="Linear" /> Mais popular
+            {/* glow atrás do card */}
+            <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[500px] -translate-x-1/2 rounded-full bg-[#90F826]/18 blur-[90px]" />
+
+            {/* badge de lançamento */}
+            <div className="relative mb-8 flex justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#90F826]/40 bg-[#90F826]/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-[#c8ff8a]">
+                <Flash size={11} color="currentColor" variant="Linear" />
+                Condição de lançamento
               </span>
-              <span className="text-xs text-white/40">Condição de lançamento</span>
             </div>
 
-            {/* price */}
-            <div className="relative mt-7">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-base text-white/35 line-through">R$ 149</span>
-                <span className="rounded-full bg-[#90F826]/15 border border-[#90F826]/30 px-2 py-0.5 text-[11px] font-semibold text-[#c8ff8a]">Aproveite condição de lançamento</span>
+            {/* bloco de preço */}
+            <div className="relative text-center">
+              <p className="text-sm text-white/40 line-through mb-1">De R$ 149/ano</p>
+              <div className="flex items-end justify-center gap-1.5">
+                <span className="text-xl font-medium text-white/60 mb-3">R$</span>
+                <span className="font-display text-[88px] font-bold leading-none tracking-tight text-white">97</span>
+                <span className="text-xl font-medium text-white/60 mb-3">/ano</span>
               </div>
-              <div className="flex items-end gap-2">
-                <span className="text-sm font-medium text-white/50 mb-2">R$</span>
-                <span className="font-display text-7xl font-bold leading-none text-white">97</span>
-                <span className="text-sm font-medium text-white/50 mb-2">/ano</span>
-              </div>
-              <p className="mt-1.5 text-sm text-white/50">menos de R$ 8/mês · renovação anual</p>
+              <p className="mt-2 text-sm text-white/40">menos de R$ 8 por mês</p>
             </div>
 
             {/* divider */}
-            <div className="relative my-8 border-t border-white/8" />
+            <div className="relative my-8 border-t border-white/[0.07]" />
 
-            {/* features */}
-            <ul className="relative space-y-3">
+            {/* lista de features */}
+            <ul className="relative space-y-3.5">
               {FEATURES.map(f => (
-                <li key={f} className="flex items-start gap-3 text-sm text-white/80">
-                  <TickCircle size={18} color="#90F826" variant="Bold" className="mt-0.5 shrink-0" />
+                <li key={f} className="flex items-center gap-3 text-sm text-white/75">
+                  <TickCircle size={17} color="#90F826" variant="Bold" className="shrink-0" />
                   {f}
                 </li>
               ))}
             </ul>
 
-            {/* cta */}
+            {/* erro */}
+            {erro && (
+              <p className="relative mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-400 text-center">{erro}</p>
+            )}
+
+            {/* botão */}
             <button
               onClick={handleBuy}
               disabled={loading}
-              className="relative mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-[#90F826] py-4 text-base font-bold text-[#0a0a0a] shadow-[0_0_48px_-8px_rgba(144,248,38,0.65)] transition hover:bg-[#a3ff45] disabled:opacity-60"
+              className="relative mt-8 flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#90F826] py-4 text-[15px] font-bold text-[#0d0f0a] shadow-[0_0_60px_-10px_rgba(144,248,38,0.55)] transition-all hover:bg-[#a3ff45] hover:shadow-[0_0_70px_-8px_rgba(144,248,38,0.7)] active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? "Redirecionando…" : "Comprar agora"}
-              {!loading && <ArrowRight2 size={18} color="currentColor" variant="Linear" />}
+              {!loading && <ArrowRight2 size={17} color="currentColor" variant="Linear" />}
             </button>
 
-            {/* guarantee */}
-            <div className="relative mt-5 flex items-center justify-center gap-2 text-xs text-white/45">
-              <ShieldTick size={14} color="currentColor" variant="Linear" />
+            {/* garantia */}
+            <div className="relative mt-4 flex items-center justify-center gap-1.5 text-xs text-white/35">
+              <ShieldTick size={13} color="currentColor" variant="Linear" />
               Garantia de 7 dias · reembolso sem perguntas
             </div>
           </div>
 
-          {/* ai upsell note */}
-          <p className="mt-6 text-center text-xs text-white/35">
-            Quer usar IA integrada? Créditos de IA disponíveis como add-on dentro da plataforma.
+          <p className="mt-5 text-center text-xs text-white/30">
+            IA integrada disponível como créditos opcionais dentro da plataforma.
           </p>
         </div>
       </div>

@@ -105,12 +105,14 @@ function RootComponent() {
 }
 
 const PUBLIC_PATHS = ["/login", "/onboarding"];
+const ALWAYS_PUBLIC = ["/home"]; // acessível com ou sem login
 
 function AppShell() {
   const { session, usuario, loading, empresa } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: s => s.location.pathname });
   const isPublic = PUBLIC_PATHS.includes(pathname);
+  const isAlwaysPublic = ALWAYS_PUBLIC.includes(pathname);
 
   // Aplica accent color da empresa ao carregar
   useEffect(() => {
@@ -127,10 +129,11 @@ function AppShell() {
   // Redireciona usuários não autenticados para login (exceto "/" deslogado, que mostra a landing)
   useEffect(() => {
     if (loading) return;
+    if (isAlwaysPublic) return;
     if (!session && !isPublic && pathname !== "/") navigate({ to: "/login" });
     if (session && !usuario && pathname !== "/onboarding") navigate({ to: "/onboarding" });
     if (session && usuario && isPublic) navigate({ to: "/" });
-  }, [loading, session, usuario, isPublic, pathname]);
+  }, [loading, session, usuario, isPublic, isAlwaysPublic, pathname]);
 
   const trialExpirado = empresa?.trial_expires_at
     ? new Date(empresa.trial_expires_at) < new Date()
@@ -146,6 +149,8 @@ function AppShell() {
 
   // Visitante deslogado na raiz → landing page de marketing
   if (!session && pathname === "/") return <LandingPage />;
+
+  if (isAlwaysPublic) return <Outlet />;
 
   if (isPublic) return <Outlet />;
 
