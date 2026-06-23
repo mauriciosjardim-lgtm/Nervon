@@ -3,8 +3,9 @@ import {
   Users, FileText, Clapperboard, Calendar, Wallet, LayoutDashboard,
   MessageSquareText, Quote, Instagram, Linkedin, Youtube,
 } from "lucide-react";
-import { ArrowRight2, MagicStar, Microphone, Cpu, TickCircle } from "iconsax-react";
+import { ArrowRight2, MagicStar, Microphone, Cpu, TickCircle, ShieldTick, Flash } from "iconsax-react";
 import { LogoMakersHub } from "@/components/logo-makershub";
+import { createCheckoutSession } from "@/lib/api/stripe.functions";
 const openAuth = () => window.dispatchEvent(new Event("makershub:open-auth"));
 
 function Wordmark({ className = "h-9 w-9" }: { className?: string }) {
@@ -30,6 +31,7 @@ export function LandingPage() {
         <AISection />
         <HowItWorks />
         <Testimonials />
+        <Pricing />
         <FinalCTA />
       </main>
       <Footer />
@@ -85,6 +87,7 @@ function Header() {
           <a className="transition hover:text-white" href="#ia">IA</a>
           <a className="transition hover:text-white" href="#como">Como funciona</a>
           <a className="transition hover:text-white" href="#depoimentos">Depoimentos</a>
+          <a className="transition hover:text-white" href="#precos">Preços</a>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -582,6 +585,110 @@ function Testimonials() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- pricing ---------- */
+const FEATURES = [
+  "Pipeline de vendas e CRM completo",
+  "Gestão financeira com lançamentos e carteiras",
+  "Orçamentos e propostas profissionais",
+  "Controle de projetos por fases",
+  "Agenda e calendário integrados",
+  "Biblioteca de assets e contratos",
+  "Dashboard personalizável por função",
+  "Acesso vitalício · sem mensalidade",
+  "Atualizações gratuitas por 12 meses",
+];
+
+function Pricing() {
+  const [loading, setLoading] = useState(false);
+
+  async function handleBuy() {
+    setLoading(true);
+    try {
+      const result = await createCheckoutSession({ data: { origin: window.location.origin } });
+      if (result?.url) window.location.href = result.url;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section id="precos" className="relative px-5 py-24 md:px-8 md:py-32">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-14 text-center">
+          <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#90F826]">Preços</span>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
+            Um preço justo,<br />
+            <span className="text-[#90F826]">sem cobrança mensal.</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-base text-white/60">
+            Acesso completo por menos de um café por semana.
+            IA e créditos de automação são opcionais.
+          </p>
+        </div>
+
+        <div className="mx-auto max-w-md">
+          <div className="relative overflow-hidden rounded-3xl border border-[#90F826]/40 bg-gradient-to-b from-[#90F826]/[0.08] to-transparent p-8 md:p-10">
+            {/* glow */}
+            <div className="pointer-events-none absolute -top-20 left-1/2 h-56 w-[400px] -translate-x-1/2 rounded-full bg-[#90F826]/20 blur-[80px]" />
+
+            {/* badge */}
+            <div className="relative flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#90F826]/30 bg-[#90F826]/[0.08] px-3 py-1 text-xs font-semibold text-[#c8ff8a]">
+                <Flash size={12} color="currentColor" variant="Linear" /> Mais popular
+              </span>
+              <span className="text-xs text-white/40">Acesso vitalício</span>
+            </div>
+
+            {/* price */}
+            <div className="relative mt-7">
+              <div className="flex items-end gap-2">
+                <span className="text-sm font-medium text-white/50 mb-2">R$</span>
+                <span className="font-display text-7xl font-bold leading-none text-white">97</span>
+                <span className="text-sm font-medium text-white/50 mb-2">/ano</span>
+              </div>
+              <p className="mt-1.5 text-sm text-white/50">menos de R$ 8/mês · renovação anual</p>
+            </div>
+
+            {/* divider */}
+            <div className="relative my-8 border-t border-white/8" />
+
+            {/* features */}
+            <ul className="relative space-y-3">
+              {FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-3 text-sm text-white/80">
+                  <TickCircle size={18} color="#90F826" variant="Bold" className="mt-0.5 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            {/* cta */}
+            <button
+              onClick={handleBuy}
+              disabled={loading}
+              className="relative mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-[#90F826] py-4 text-base font-bold text-[#0a0a0a] shadow-[0_0_48px_-8px_rgba(144,248,38,0.65)] transition hover:bg-[#a3ff45] disabled:opacity-60"
+            >
+              {loading ? "Redirecionando…" : "Comprar agora"}
+              {!loading && <ArrowRight2 size={18} color="currentColor" variant="Linear" />}
+            </button>
+
+            {/* guarantee */}
+            <div className="relative mt-5 flex items-center justify-center gap-2 text-xs text-white/45">
+              <ShieldTick size={14} color="currentColor" variant="Linear" />
+              Garantia de 7 dias · reembolso sem perguntas
+            </div>
+          </div>
+
+          {/* ai upsell note */}
+          <p className="mt-6 text-center text-xs text-white/35">
+            Quer usar IA integrada? Créditos de IA disponíveis como add-on dentro da plataforma.
+          </p>
         </div>
       </div>
     </section>

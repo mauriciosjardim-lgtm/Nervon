@@ -15,6 +15,7 @@ import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as ContratosRouteImport } from './routes/contratos'
@@ -70,6 +71,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
+  '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
+  '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
+  '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/crm'
     | '/financeiro'
+    | '/home'
     | '/login'
     | '/onboarding'
     | '/orcamentos'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/crm'
+    | '/home'
     | '/login'
     | '/onboarding'
     | '/performance'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/crm'
     | '/financeiro'
+    | '/home'
     | '/login'
     | '/onboarding'
     | '/orcamentos'
@@ -410,6 +422,7 @@ export interface RootRouteChildren {
   ContratosRoute: typeof ContratosRoute
   CrmRoute: typeof CrmRoute
   FinanceiroRoute: typeof FinanceiroRouteWithChildren
+  HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   OrcamentosRoute: typeof OrcamentosRouteWithChildren
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financeiro': {
@@ -741,6 +761,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContratosRoute: ContratosRoute,
   CrmRoute: CrmRoute,
   FinanceiroRoute: FinanceiroRouteWithChildren,
+  HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   OrcamentosRoute: OrcamentosRouteWithChildren,

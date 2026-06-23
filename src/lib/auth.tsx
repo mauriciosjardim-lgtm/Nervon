@@ -21,7 +21,7 @@ interface AuthState {
 
 interface AuthContext extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, nome: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshEmpresa: () => Promise<void>;
@@ -89,11 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string, nome: string) => {
+  const signUp = async (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => {
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { nome },
+        data: { nome, ...meta },
         emailRedirectTo: window.location.origin,
       },
     });

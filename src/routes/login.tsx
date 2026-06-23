@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Sms, ArrowLeft2, TickCircle, Eye, EyeSlash } from "iconsax-react";
+import { Sms, ArrowLeft2, TickCircle, Eye, EyeSlash, Call } from "iconsax-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
 
@@ -22,6 +22,9 @@ function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [nome, setNome] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [tipo, setTipo] = useState("");
+  const [termos, setTermos] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -30,7 +33,8 @@ function Login() {
 
   const trocarModo = (m: "entrar" | "criar" | "esqueci") => {
     setModo(m); setErro(null); setAguardandoEmail(false); setResetEnviado(false);
-    setNome(""); setSenha(""); setConfirmarSenha(""); setMostrarSenha(false);
+    setNome(""); setWhatsapp(""); setTipo(""); setTermos(false);
+    setSenha(""); setConfirmarSenha(""); setMostrarSenha(false);
   };
 
   const enviarReset = async (e: React.FormEvent) => {
@@ -50,9 +54,11 @@ function Login() {
     e.preventDefault();
     setErro(null);
     if (modo === "criar") {
-      if (!nome.trim()) { setErro("Informe seu nome."); return; }
+      if (!nome.trim()) { setErro("Informe seu nome completo."); return; }
+      if (!tipo) { setErro("Selecione o tipo de operação."); return; }
       if (senha.length < 6) { setErro("A senha precisa ter pelo menos 6 caracteres."); return; }
       if (senha !== confirmarSenha) { setErro("As senhas não coincidem."); return; }
+      if (!termos) { setErro("Aceite os termos para continuar."); return; }
     }
     setLoading(true);
     if (modo === "entrar") {
@@ -60,7 +66,7 @@ function Login() {
       if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
       navigate({ to: "/" });
     } else {
-      const { error } = await signUp(email, senha, nome);
+      const { error } = await signUp(email, senha, nome, { whatsapp, tipo });
       if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
       setEmailEnviado(email);
       setAguardandoEmail(true);
@@ -214,11 +220,44 @@ function Login() {
 
               <form onSubmit={submit} className="space-y-4">
                 {modo === "criar" && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Seu nome</Label>
-                    <Input value={nome} onChange={e => setNome(e.target.value)}
-                      placeholder="João Silva" autoFocus />
-                  </div>
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nome completo</Label>
+                      <Input value={nome} onChange={e => setNome(e.target.value)}
+                        placeholder="João Silva" autoFocus />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">WhatsApp</Label>
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">🇧🇷</span>
+                          <Input
+                            value={whatsapp}
+                            onChange={e => setWhatsapp(e.target.value)}
+                            placeholder="(11) 99999-9999"
+                            className="pl-8"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Tipo de operação <span className="text-destructive">*</span></Label>
+                        <select
+                          value={tipo}
+                          onChange={e => setTipo(e.target.value)}
+                          className="flex h-9 w-full rounded-md border border-input bg-input px-3 text-sm text-foreground transition focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          <option value="" disabled>Selecione…</option>
+                          <option value="produtora">Produtora</option>
+                          <option value="videomaker">Videomaker</option>
+                          <option value="estudio">Estúdio</option>
+                          <option value="agencia">Agência</option>
+                          <option value="freelancer">Freelancer</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 <div className="space-y-1.5">
@@ -251,6 +290,9 @@ function Login() {
                       {mostrarSenha ? <EyeSlash size={16} color="currentColor" variant="Linear" /> : <Eye size={16} color="currentColor" variant="Linear" />}
                     </button>
                   </div>
+                  {modo === "criar" && senha.length > 0 && (
+                    <PasswordStrength senha={senha} />
+                  )}
                 </div>
 
                 {modo === "criar" && (
@@ -264,6 +306,23 @@ function Login() {
                       <p className="text-[11px] text-destructive">As senhas não coincidem</p>
                     )}
                   </div>
+                )}
+
+                {modo === "criar" && (
+                  <label className="flex cursor-pointer items-start gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      checked={termos}
+                      onChange={e => setTermos(e.target.checked)}
+                      className="mt-0.5 accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground leading-relaxed">
+                      Li e aceito os{" "}
+                      <a href="#" className="text-primary hover:underline">Termos de Uso</a>
+                      {" "}e a{" "}
+                      <a href="#" className="text-primary hover:underline">Política de Privacidade</a>.
+                    </span>
+                  </label>
                 )}
 
                 {erro && (
@@ -294,6 +353,22 @@ function Login() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function PasswordStrength({ senha }: { senha: string }) {
+  const score = [/.{8,}/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(r => r.test(senha)).length;
+  const labels = ["Fraca", "Razoável", "Boa", "Forte"];
+  const colors = ["bg-destructive", "bg-warning", "bg-info", "bg-success"];
+  return (
+    <div className="space-y-1">
+      <div className="flex gap-1">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className={cn("h-1 flex-1 rounded-full transition-all", i < score ? colors[score - 1] : "bg-border")} />
+        ))}
+      </div>
+      <p className="text-[11px] text-muted-foreground">{labels[score - 1] ?? "Digite sua senha"}</p>
     </div>
   );
 }
