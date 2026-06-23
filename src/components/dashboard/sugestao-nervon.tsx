@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { MagicStar } from "iconsax-react";
 import { useComercialSupa } from "@/lib/hooks/useComercial";
 import { labelEtapa, fmtBRL, type Lead } from "@/lib/hooks/useComercial";
 
@@ -120,7 +120,7 @@ export function SugestaoMakersHub() {
       className="group mb-6 flex w-full items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.08] via-primary/[0.04] to-transparent p-4 text-left transition hover:border-primary/40 hover:from-primary/[0.12]"
     >
       <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-primary/10 text-primary shadow-[0_0_20px_-4px_var(--primary)]">
-        <Sparkles className="size-4" />
+        <MagicStar size={16} color="currentColor" variant="Linear" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">

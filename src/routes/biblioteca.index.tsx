@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { Search, Library } from "lucide-react";
+import { SearchNormal, ArchiveBook } from "iconsax-react";
 import { CategoriaCard } from "@/components/biblioteca/categoria-card";
 import { RecursoCard } from "@/components/biblioteca/recurso-card";
 import { RecursoModal } from "@/components/biblioteca/recurso-modal";
@@ -40,7 +40,7 @@ function BibliotecaIndex() {
     <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
       <header className="mb-8 text-center">
         <p className="flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <Library className="size-3.5 text-primary" /> Central de Recursos
+          <ArchiveBook size={14} color="currentColor" variant="Linear" className="text-primary" /> Central de Recursos
         </p>
         <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
           Tudo o que sua produtora reusa
@@ -48,7 +48,7 @@ function BibliotecaIndex() {
         <p className="mt-2 text-sm text-muted-foreground">Propostas, contratos, briefings, checklists, roteiros e mensagens — em um só lugar.</p>
 
         <div className="relative mx-auto mt-6 max-w-xl">
-          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchNormal size={16} color="currentColor" variant="Linear" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar em todos os recursos…"
             className="h-12 w-full rounded-xl border border-border/60 bg-surface-1/60 pl-10 pr-4 text-sm outline-none transition focus:border-primary/40 focus:bg-surface-1" />
         </div>

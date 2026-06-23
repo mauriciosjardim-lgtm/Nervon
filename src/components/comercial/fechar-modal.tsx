@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { FileText, FileSignature, FolderKanban, UserCheck, PartyPopper, DollarSign, CalendarCheck } from "lucide-react";
+import { DocumentText1, Kanban, UserTick, MagicStar, DollarCircle, Calendar } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import { toast } from "sonner";
 import { comercial, getEmpresa, fmtBRL, type Lead } from "@/lib/hooks/useComercial";
 
@@ -43,7 +44,7 @@ export function FecharModal({ lead, open, onOpenChange }: { lead: Lead; open: bo
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <div className="mx-auto mb-2 grid size-14 place-items-center rounded-2xl bg-primary/15 ring-1 ring-primary/30">
-            <PartyPopper className="size-7 text-primary" />
+            <MagicStar size={28} color="currentColor" variant="Linear" className="text-primary" />
           </div>
           <DialogTitle className="text-center font-display text-xl">Parabéns!</DialogTitle>
           <DialogDescription className="text-center">
@@ -53,12 +54,12 @@ export function FecharModal({ lead, open, onOpenChange }: { lead: Lead; open: bo
         </DialogHeader>
 
         <div className="space-y-2 py-1">
-          <Linha icon={FileText}      title="Gerar proposta"     desc="Documento da proposta vinculada ao lead"   checked={proposta}   onChange={setProposta} />
-          <Linha icon={FileSignature} title="Gerar contrato"     desc="Contrato pronto para envio de assinatura"  checked={contrato}   onChange={setContrato} />
-          <Linha icon={FolderKanban}  title="Criar projeto"      desc="Abrir projeto no módulo de operação"       checked={projeto}    onChange={setProjeto} />
-          <Linha icon={DollarSign}    title="Criar cobrança"     desc="Lançamento financeiro com o valor fechado" checked={cobranca}   onChange={setCobranca} />
-          <Linha icon={UserCheck}     title="Promover a cliente" desc="Transformar de lead em cliente ativo"      checked={cliente}    onChange={setCliente} />
-          <Linha icon={CalendarCheck} title="Agendar onboarding" desc="Reunião inicial com o novo cliente"        checked={onboarding} onChange={setOnboarding} />
+          <Linha icon={DocumentText1} title="Gerar proposta"     desc="Documento da proposta vinculada ao lead"   checked={proposta}   onChange={setProposta} />
+          <Linha icon={DocumentText1} title="Gerar contrato"     desc="Contrato pronto para envio de assinatura"  checked={contrato}   onChange={setContrato} />
+          <Linha icon={Kanban}        title="Criar projeto"      desc="Abrir projeto no módulo de operação"       checked={projeto}    onChange={setProjeto} />
+          <Linha icon={DollarCircle}  title="Criar cobrança"     desc="Lançamento financeiro com o valor fechado" checked={cobranca}   onChange={setCobranca} />
+          <Linha icon={UserTick}      title="Promover a cliente" desc="Transformar de lead em cliente ativo"      checked={cliente}    onChange={setCliente} />
+          <Linha icon={Calendar}      title="Agendar onboarding" desc="Reunião inicial com o novo cliente"        checked={onboarding} onChange={setOnboarding} />
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
@@ -74,11 +75,11 @@ export function FecharModal({ lead, open, onOpenChange }: { lead: Lead; open: bo
 
 function Linha({
   icon: Icon, title, desc, checked, onChange,
-}: { icon: typeof FileText; title: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) {
+}: { icon: typeof IconsaxIcon; title: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-1/40 p-3 transition hover:border-primary/40 hover:bg-surface-2/40">
       <Checkbox checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
-      <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+      <Icon size={16} color="currentColor" variant="Linear" className="mt-0.5 shrink-0 text-primary" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium leading-tight">{title}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>

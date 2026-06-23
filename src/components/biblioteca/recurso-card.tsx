@@ -1,4 +1,4 @@
-import { Star, Share2, Copy, Trash2, Edit3 } from "lucide-react";
+import { Star, Share, Copy, Trash, Edit2 } from "iconsax-react";
 import { bibliotecaActions, type Recurso } from "@/lib/mock/biblioteca";
 
 export function RecursoCard({ r, onOpen }: { r: Recurso; onOpen: (r: Recurso) => void }) {
@@ -11,15 +11,15 @@ export function RecursoCard({ r, onOpen }: { r: Recurso; onOpen: (r: Recurso) =>
         </button>
         <div className="flex shrink-0 gap-0.5 opacity-0 transition group-hover:opacity-100">
           <Icon onClick={() => bibliotecaActions.toggleFavorito(r.id)} active={r.favorito} title="Favoritar">
-            <Star className={`size-3.5 ${r.favorito ? "fill-warning text-warning" : ""}`} />
+            <Star size={14} color="currentColor" variant="Linear" className={r.favorito ? "fill-warning text-warning" : ""} />
           </Icon>
           <Icon onClick={() => bibliotecaActions.toggleCompartilhado(r.id)} active={r.compartilhado} title="Compartilhar">
-            <Share2 className="size-3.5" />
+            <Share size={14} color="currentColor" variant="Linear" />
           </Icon>
-          <Icon onClick={() => bibliotecaActions.duplicar(r.id)} title="Duplicar"><Copy className="size-3.5" /></Icon>
-          <Icon onClick={() => onOpen(r)} title="Editar"><Edit3 className="size-3.5" /></Icon>
+          <Icon onClick={() => bibliotecaActions.duplicar(r.id)} title="Duplicar"><Copy size={14} color="currentColor" variant="Linear" /></Icon>
+          <Icon onClick={() => onOpen(r)} title="Editar"><Edit2 size={14} color="currentColor" variant="Linear" /></Icon>
           <Icon onClick={() => { if (confirm("Remover este recurso?")) bibliotecaActions.remover(r.id); }} title="Remover" danger>
-            <Trash2 className="size-3.5" />
+            <Trash size={14} color="currentColor" variant="Linear" />
           </Icon>
         </div>
       </header>
@@ -29,8 +29,8 @@ export function RecursoCard({ r, onOpen }: { r: Recurso; onOpen: (r: Recurso) =>
       <footer className="flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Atualizado {new Date(r.atualizadoEm).toLocaleDateString("pt-BR")}</span>
         <div className="flex gap-1">
-          {r.favorito && <Star className="size-3 fill-warning text-warning" />}
-          {r.compartilhado && <Share2 className="size-3 text-info" />}
+          {r.favorito && <Star size={12} color="currentColor" variant="Linear" className="fill-warning text-warning" />}
+          {r.compartilhado && <Share size={12} color="currentColor" variant="Linear" className="text-info" />}
         </div>
       </footer>
     </div>

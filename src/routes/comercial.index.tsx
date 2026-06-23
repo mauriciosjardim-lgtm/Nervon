@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { Add } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { JornadaBoard } from "@/components/comercial/jornada-board";
 import { FiltrosBar, aplicarFiltro, filtroInicial } from "@/components/comercial/filtros-bar";
@@ -33,7 +33,7 @@ function JornadaPage() {
           onClick={() => setNovoAberto(true)}
           className="h-11 gap-2 px-5 shadow-[0_10px_30px_-12px_var(--primary)] hover:shadow-[0_14px_36px_-12px_var(--primary)]"
         >
-          <Plus className="size-5 text-primary-foreground" />
+          <Add size={20} color="currentColor" variant="Linear" className="text-primary-foreground" />
           Novo lead
         </Button>
         <p className="text-xs text-muted-foreground">

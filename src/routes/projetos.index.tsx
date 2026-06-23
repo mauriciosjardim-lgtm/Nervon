@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Users, Calendar, DollarSign, CheckSquare, Flag, X } from "lucide-react";
+import { Add, SearchNormal, Profile2User, Calendar, DollarCircle, TickSquare, Flag, CloseCircle } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,9 +48,9 @@ function ProjetosPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface-1/40 p-2">
-        <Button size="sm" onClick={() => setModal(true)} className="shrink-0"><Plus className="size-4" /> Novo projeto</Button>
+        <Button size="sm" onClick={() => setModal(true)} className="shrink-0"><Add size={16} color="currentColor" variant="Linear" /> Novo projeto</Button>
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <SearchNormal size={14} color="currentColor" variant="Linear" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-8 pl-8 text-xs" />
         </div>
         <Select value={filtroFase} onValueChange={v => setFiltroFase(v as FaseProjeto | "todos")}>
@@ -82,7 +83,7 @@ function ProjetosPage() {
                   className="absolute right-2 top-2 z-10 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/80 hover:text-white"
                   title="Remover projeto"
                 >
-                  <X className="size-3" />
+                  <CloseCircle size={12} color="currentColor" variant="Linear" />
                 </button>
 
                 <div className="flex items-start justify-between gap-2 pr-6">
@@ -101,9 +102,9 @@ function ProjetosPage() {
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                  <Stat icon={CheckSquare} label={`${ts.filter(t => t.concluida).length}/${ts.length} tarefas`} />
+                  <Stat icon={TickSquare} label={`${ts.filter(t => t.concluida).length}/${ts.length} tarefas`} />
                   <Stat icon={Flag} label={`${ms.length} marcos`} />
-                  <Stat icon={Users} label={`${p.equipe.length} pessoas`} />
+                  <Stat icon={Profile2User} label={`${p.equipe.length} pessoas`} />
                   <Stat icon={Calendar} label={format(new Date(p.dataEntrega), "dd MMM", { locale: ptBR })} />
                 </div>
 
@@ -116,7 +117,7 @@ function ProjetosPage() {
                     ))}
                     {p.equipe.length > 4 && <div className="grid size-6 place-items-center rounded-full border-2 border-card bg-surface-2 text-[9px] text-muted-foreground">+{p.equipe.length - 4}</div>}
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground"><DollarSign className="size-3 text-primary" />{(p.valor / 1000).toFixed(1)}k</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground"><DollarCircle size={12} color="currentColor" variant="Linear" className="text-primary" />{(p.valor / 1000).toFixed(1)}k</span>
                 </div>
               </div>
             );
@@ -129,6 +130,6 @@ function ProjetosPage() {
   );
 }
 
-function Stat({ icon: Icon, label }: { icon: typeof Users; label: string }) {
-  return <span className="inline-flex items-center gap-1 truncate text-muted-foreground"><Icon className="size-3 text-primary" /> {label}</span>;
+function Stat({ icon: Icon, label }: { icon: typeof IconsaxIcon; label: string }) {
+  return <span className="inline-flex items-center gap-1 truncate text-muted-foreground"><Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}</span>;
 }

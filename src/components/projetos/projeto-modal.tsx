@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FASES, type Projeto, type FaseProjeto } from "@/lib/mock/projetos";
 import { projetosActions } from "@/lib/hooks/useProjetos";
-import { Trash2 } from "lucide-react";
+import { Trash } from "iconsax-react";
 
 const toDate = (iso: string) => iso.slice(0, 10);
 const fromDate = (s: string) => { const d = new Date(s); d.setHours(10, 0, 0, 0); return d.toISOString(); };
@@ -79,7 +79,7 @@ export function ProjetoModal({ open, onClose, projeto }: { open: boolean; onClos
           <div className="space-y-1.5"><Label className="text-xs">Descrição</Label><Textarea rows={3} value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Briefing, escopo, observações…" /></div>
         </div>
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
-          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash2 className="size-4" /> Remover</Button> : <span />}
+          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar projeto"}</Button></div>
         </DialogFooter>
       </DialogContent>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TIPOS_ENTREGAVEL, TIPO_ENTREGAVEL_ICONS, STATUS_ENTREGAVEL, type Entregavel, type TipoEntregavel, type StatusEntregavel } from "@/lib/mock/projetos";
 import { projetosActions } from "@/lib/hooks/useProjetos";
-import { Trash2 } from "lucide-react";
+import { Trash } from "iconsax-react";
 
 export function EntregavelModal({
   open, onClose, projetoId, entregavel,
@@ -71,7 +71,7 @@ export function EntregavelModal({
           <div className="space-y-1.5"><Label className="text-xs">Notas</Label><Textarea rows={3} value={notas} onChange={e => setNotas(e.target.value)} placeholder="Observações, feedback do cliente, versão…" /></div>
         </div>
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
-          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash2 className="size-4" /> Remover</Button> : <span />}
+          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button></div>
         </DialogFooter>
       </DialogContent>

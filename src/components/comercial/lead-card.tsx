@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
-import { Flame, Snowflake, Thermometer, AlertCircle, Calendar, Building2, DollarSign, User, X } from "lucide-react";
+import { Flame, Snowflake, Thermometer } from "lucide-react";
+import { Danger, Calendar, Buildings2, DollarCircle, Profile, CloseCircle } from "iconsax-react";
 import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { type Lead, getEmpresa, getContato, fmtBRL } from "@/lib/hooks/useComercial";
@@ -57,7 +58,7 @@ export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: 
           className="absolute left-2 top-2 z-10 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-muted-foreground/40 opacity-0 transition-opacity group-hover/card:opacity-100 hover:bg-destructive/80 hover:text-white"
           title="Remover lead"
         >
-          <X className="size-3" />
+          <CloseCircle size={12} color="currentColor" variant="Linear" />
         </button>
       )}
 
@@ -70,18 +71,18 @@ export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: 
 
       {/* Empresa */}
       <p className="flex items-center gap-1.5 pr-5 text-[14px] font-semibold leading-tight text-foreground">
-        <Building2 className="size-3.5 shrink-0 text-primary" /> {empresa?.nome}
+        <Buildings2 size={14} color="currentColor" variant="Linear" className="shrink-0 text-primary" /> {empresa?.nome}
       </p>
 
       {/* Contato */}
       <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
-        <User className="size-3.5 shrink-0 text-primary" /> {contato?.nome}
+        <Profile size={14} color="currentColor" variant="Linear" className="shrink-0 text-primary" /> {contato?.nome}
       </p>
 
       {/* Valor */}
       <div className="mt-3 flex items-center justify-between">
         <p className="font-display text-lg font-semibold tracking-tight text-foreground">
-          <DollarSign className="mr-1 inline size-4 align-[-2px] text-primary" /> {fmtBRL(lead.valor)}
+          <DollarCircle size={16} color="currentColor" variant="Linear" className="mr-1 inline align-[-2px] text-primary" /> {fmtBRL(lead.valor)}
         </p>
         <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium", temp.text)}>
           <TempIcon className="size-3" /> {temp.label}
@@ -97,12 +98,12 @@ export function LeadCard({ lead, onOpen, onRemove }: { lead: Lead; onOpen: (id: 
       )}>
         {semAcao ? (
           <div className="flex items-center gap-1.5 text-[11px] text-destructive">
-            <AlertCircle className="size-3" /> Sem próxima ação
+            <Danger size={12} color="currentColor" variant="Linear" /> Sem próxima ação
           </div>
         ) : (
           <>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Calendar className="size-3 text-primary" /> Próxima ação
+              <Calendar size={12} color="currentColor" variant="Linear" className="text-primary" /> Próxima ação
             </div>
             <p className="mt-0.5 truncate text-[12px] font-medium text-foreground">
               {lead.proximaAcao!.titulo}

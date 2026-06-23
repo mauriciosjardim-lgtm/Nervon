@@ -1,10 +1,9 @@
 import { cn } from "@/lib/utils";
 import { STATUS_META, type LancStatus } from "@/lib/mock/financeiro";
-import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Danger, Clock, TickCircle } from "iconsax-react";
 
 export function StatusBadge({ status, className }: { status: LancStatus; className?: string }) {
   const meta = STATUS_META[status];
-  const Icon = status === "atrasado" ? AlertTriangle : status === "previsto" ? Clock : CheckCircle2;
   return (
     <span
       className={cn(
@@ -12,7 +11,11 @@ export function StatusBadge({ status, className }: { status: LancStatus; classNa
         meta.bg, meta.border, meta.color, className,
       )}
     >
-      <Icon className="size-3" />
+      {status === "atrasado"
+        ? <Danger size={12} color="currentColor" variant="Linear" />
+        : status === "previsto"
+          ? <Clock size={12} color="currentColor" variant="Linear" />
+          : <TickCircle size={12} color="currentColor" variant="Linear" />}
       {meta.label}
     </span>
   );

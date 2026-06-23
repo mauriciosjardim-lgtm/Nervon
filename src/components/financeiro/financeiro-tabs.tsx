@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutGrid, ArrowLeftRight, CalendarClock, FolderKanban } from "lucide-react";
+import { Element3, ArrangeHorizontal, Calendar, Kanban } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/financeiro", label: "Visão geral", icon: LayoutGrid, exact: true },
-  { to: "/financeiro/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
-  { to: "/financeiro/contas", label: "Contas", icon: CalendarClock },
-  { to: "/financeiro/projetos", label: "Por projeto", icon: FolderKanban },
+  { to: "/financeiro", label: "Visão geral", icon: Element3, exact: true },
+  { to: "/financeiro/lancamentos", label: "Lançamentos", icon: ArrangeHorizontal },
+  { to: "/financeiro/contas", label: "Contas", icon: Calendar },
+  { to: "/financeiro/projetos", label: "Por projeto", icon: Kanban },
 ];
 
 export function FinanceiroTabs() {
@@ -27,7 +27,7 @@ export function FinanceiroTabs() {
                 : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
             )}
           >
-            <Icon className="size-3.5 text-primary" />
+            <Icon size={14} color="currentColor" variant="Linear" className="text-primary" />
             {t.label}
           </Link>
         );

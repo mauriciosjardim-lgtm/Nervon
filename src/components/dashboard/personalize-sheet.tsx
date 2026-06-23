@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { widgetCatalog } from "@/lib/dashboard/widgets";
 import type { WidgetInstance } from "@/lib/dashboard/types";
-import { Plus, Check } from "lucide-react";
+import { Add, TickCircle } from "iconsax-react";
 
 export function PersonalizeSheet({
   open, onOpenChange, widgets, onAdd,
@@ -52,8 +52,8 @@ export function PersonalizeSheet({
                         <div className="truncate text-[11px] text-muted-foreground">{w.description}</div>
                       </div>
                       {added
-                        ? <Check className="size-4 text-primary" />
-                        : <Plus className="size-4 text-muted-foreground group-hover:text-primary" />}
+                        ? <TickCircle size={16} color="currentColor" variant="Linear" className="text-primary" />
+                        : <Add size={16} color="currentColor" variant="Linear" className="text-muted-foreground group-hover:text-primary" />}
                     </button>
                   );
                 })}

@@ -1,7 +1,7 @@
 import type { DashboardLayout } from "./types";
 import { presetLayouts, layoutForRole, type Role } from "./presets";
 
-const STORAGE_KEY = "frameos:dashboard:v1";
+const STORAGE_KEY = "frameos:dashboard:v2";
 
 interface PersistedState {
   layouts: DashboardLayout[];

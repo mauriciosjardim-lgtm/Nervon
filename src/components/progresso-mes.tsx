@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { TrendingUp, Target, Rocket, Trophy, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Target, Rocket } from "lucide-react";
+import { TrendUp, Cup, ArrowUp, ArrowDown } from "iconsax-react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -25,7 +26,7 @@ export function ProgressoMes() {
         aria-label="Progresso do mês"
         className="group hidden h-9 w-[260px] items-center gap-3 rounded-lg border border-border/60 bg-surface-1/60 px-3 backdrop-blur-sm transition hover:border-primary/40 hover:bg-surface-2 lg:flex"
       >
-        <TrendingUp className="size-3.5 shrink-0 text-primary" />
+        <TrendUp size={14} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Progresso do Mês</span>
@@ -42,7 +43,7 @@ export function ProgressoMes() {
           <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
             <span className="tabular-nums">{brl(p.realizado)} <span className="opacity-60">de {brl(labelDe)}</span></span>
             {p.atingiuSuper
-              ? <span className="flex items-center gap-1 text-primary"><Trophy className="size-2.5" />Super Meta</span>
+              ? <span className="flex items-center gap-1 text-primary"><Cup size={10} color="currentColor" variant="Linear" />Super Meta</span>
               : p.atingiuMeta
                 ? <span className="text-primary">Rumo à Super Meta</span>
                 : <span className="opacity-60">Meta {brl(p.meta)}</span>}
@@ -65,7 +66,7 @@ function ProgressoDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: 
       <SheetContent side="right" className="w-full overflow-y-auto border-border/60 bg-background/95 backdrop-blur-xl sm:max-w-md">
         <SheetHeader className="text-left">
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            <TrendingUp className="size-3.5 text-primary" /> Progresso do Mês
+            <TrendUp size={14} color="currentColor" variant="Linear" className="text-primary" /> Progresso do Mês
           </div>
           <SheetTitle className="font-display text-3xl font-semibold tracking-tight">
             {brl(p.realizado)}
@@ -102,7 +103,7 @@ function ProgressoDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
         {p.atingiuSuper && (
           <div className="mt-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/[0.06] px-3 py-2 text-xs text-primary">
-            <Trophy className="size-3.5" /> Super Meta alcançada neste mês.
+            <Cup size={14} color="currentColor" variant="Linear" /> Super Meta alcançada neste mês.
           </div>
         )}
 
@@ -125,7 +126,7 @@ function ProgressoDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: 
             </div>
           </div>
           <div className={`grid size-9 place-items-center rounded-lg ${p.crescimento >= 0 ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
-            {p.crescimento >= 0 ? <ArrowUpRight className="size-4" /> : <ArrowDownRight className="size-4" />}
+            {p.crescimento >= 0 ? <ArrowUp size={16} color="currentColor" variant="Linear" /> : <ArrowDown size={16} color="currentColor" variant="Linear" />}
           </div>
         </div>
 

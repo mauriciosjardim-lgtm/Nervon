@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PRIORIDADES, getFaseInfo, type Tarefa, type Prioridade, type StatusTarefa } from "@/lib/mock/projetos";
 import { projetosActions } from "@/lib/hooks/useProjetos";
-import { Trash2 } from "lucide-react";
+import { Trash } from "iconsax-react";
 
 const toLocalInput = (iso: string) => {
   const d = new Date(iso); const pad = (n: number) => String(n).padStart(2, "0");
@@ -74,7 +74,7 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
           {prazo && <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-[11px] text-primary">📅 Esta tarefa aparecerá na Agenda automaticamente</p>}
         </div>
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
-          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash2 className="size-4" /> Remover</Button> : <span />}
+          {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button></div>
         </DialogFooter>
       </DialogContent>

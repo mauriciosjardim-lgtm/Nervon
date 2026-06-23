@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Search, Plus, Command, Users, Wallet, Calendar } from "lucide-react";
+import { Command } from "lucide-react";
+import {
+  Notification, SearchNormal, Add, Profile2User, EmptyWallet, Calendar,
+} from "iconsax-react";
 import { useRouterState, useNavigate } from "@tanstack/react-router";
 import { setPendingCreate } from "@/lib/pendingCreate";
 
@@ -22,9 +25,9 @@ const titles: Record<string, { title: string; subtitle: string }> = {
 };
 
 const ACOES = [
-  { tipo: "lead",       label: "Novo lead",              icon: Users,        to: "/comercial/" },
-  { tipo: "lancamento", label: "Lançamento financeiro",  icon: Wallet,       to: "/financeiro" },
-  { tipo: "evento",     label: "Novo evento na agenda",  icon: Calendar,     to: "/agenda" },
+  { tipo: "lead",       label: "Novo lead",             icon: Profile2User, to: "/comercial/" },
+  { tipo: "lancamento", label: "Lançamento financeiro", icon: EmptyWallet,  to: "/financeiro" },
+  { tipo: "evento",     label: "Novo evento na agenda", icon: Calendar,     to: "/agenda"     },
 ] as const;
 
 export function Topbar() {
@@ -57,7 +60,7 @@ export function Topbar() {
         </div>
 
         <button className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-surface-1/60 px-3 text-xs text-muted-foreground transition hover:border-border hover:bg-surface-2 hover:text-foreground md:flex">
-          <Search className="size-3.5" />
+          <SearchNormal size={14} color="currentColor" variant="Linear" />
           <span>Buscar em tudo</span>
           <span className="ml-6 flex items-center gap-1 rounded-md border border-border bg-background/60 px-1.5 py-0.5 text-[10px] font-medium">
             <Command className="size-2.5" />K
@@ -65,21 +68,21 @@ export function Topbar() {
         </button>
 
         <Button size="icon" variant="ghost" className="relative size-9 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground">
-          <Bell className="size-4" />
+          <Notification size={16} color="currentColor" variant="Linear" />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="h-9 gap-1.5 rounded-lg bg-primary px-3 text-primary-foreground shadow-[0_0_24px_-4px_var(--primary)] hover:bg-primary-glow">
-              <Plus className="size-4" />
+              <Add size={16} color="currentColor" variant="Linear" />
               <span className="hidden sm:inline">Novo</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             {ACOES.map(a => (
               <DropdownMenuItem key={a.tipo} onClick={() => handleNovo(a.tipo, a.to)} className="gap-2.5">
-                <a.icon className="size-4 text-primary" />
+                <a.icon size={16} color="currentColor" variant="Linear" />
                 {a.label}
               </DropdownMenuItem>
             ))}

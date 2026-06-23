@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Wallet, Plus, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { Pencil } from "lucide-react";
+import { EmptyWallet, Add, Trash, More } from "iconsax-react";
 import { useState } from "react";
 import { FinanceiroTabs } from "@/components/financeiro/financeiro-tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -143,7 +144,7 @@ function CarteiraSwitcher() {
           onClick={abrirNova}
           className="inline-flex h-7 items-center gap-1 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground transition hover:border-primary/50 hover:text-primary"
         >
-          <Plus className="size-3" />
+          <Add size={12} color="currentColor" variant="Linear" />
           Nova carteira
         </button>
       </div>
@@ -229,7 +230,7 @@ function FinanceiroLayout() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            <Wallet className="size-3.5 text-primary" /> Financeiro
+            <EmptyWallet size={14} color="currentColor" variant="Linear" className="text-primary" /> Financeiro
           </p>
           <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight md:text-3xl">Controle Financeiro</h1>
           <p className="mt-1 text-sm text-muted-foreground">

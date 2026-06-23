@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  TrendingUp, TrendingDown, Wallet, Percent, ArrowUpRight, ArrowDownRight,
-  AlertTriangle, Plus, Calendar, ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { TrendUp, TrendDown, EmptyWallet, PercentageSquare, ArrowUp, ArrowDown, Danger, Add, Calendar, ArrowLeft2, ArrowRight2 } from "iconsax-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
   BarChart, Bar,
@@ -74,7 +71,7 @@ function FinanceiroDashboard() {
           onClick={() => { setEditar(undefined); setTipoInicial("receita"); setNovoOpen(true); }}
           className="h-11 gap-2 px-5 shadow-[0_10px_30px_-12px_var(--primary)] hover:shadow-[0_14px_36px_-12px_var(--primary)]"
         >
-          <Plus className="size-5 text-primary-foreground" />
+          <Add size={20} color="currentColor" variant="Linear" className="text-primary-foreground" />
           Nova receita
         </Button>
         <Button
@@ -83,7 +80,7 @@ function FinanceiroDashboard() {
           onClick={() => { setEditar(undefined); setTipoInicial("despesa"); setNovoOpen(true); }}
           className="h-11 gap-2 px-5"
         >
-          <Plus className="size-5 text-primary" />
+          <Add size={20} color="currentColor" variant="Linear" className="text-primary" />
           Nova despesa
         </Button>
         <p className="text-xs text-muted-foreground">
@@ -97,7 +94,7 @@ function FinanceiroDashboard() {
           onClick={() => navMes(-1)}
           className="grid size-8 place-items-center rounded-lg border border-border bg-surface-1/60 text-muted-foreground transition hover:bg-surface-2/80 hover:text-foreground"
         >
-          <ChevronLeft className="size-4" />
+          <ArrowLeft2 size={16} color="currentColor" variant="Linear" />
         </button>
         <span className="min-w-[160px] text-center text-sm font-semibold capitalize">
           {nomeMes(periodoMes, periodoAno)}
@@ -106,7 +103,7 @@ function FinanceiroDashboard() {
           onClick={() => navMes(1)}
           className="grid size-8 place-items-center rounded-lg border border-border bg-surface-1/60 text-muted-foreground transition hover:bg-surface-2/80 hover:text-foreground"
         >
-          <ChevronRight className="size-4" />
+          <ArrowRight2 size={16} color="currentColor" variant="Linear" />
         </button>
         {!eHoje && (
           <button
@@ -121,7 +118,7 @@ function FinanceiroDashboard() {
       {/* KPIs principais */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
-          icon={ArrowUpRight} label="Recebido" value={fmtBRL(m.recebido)}
+          icon={ArrowUp} label="Recebido" value={fmtBRL(m.recebido)}
           hint={`${fmtBRL(m.aReceber)} a receber`} tone="positive"
           onClick={() => setKpiSheet({
             titulo: "Receitas recebidas",
@@ -135,7 +132,7 @@ function FinanceiroDashboard() {
           })}
         />
         <KpiCard
-          icon={ArrowDownRight} label="Pago" value={fmtBRL(m.pago)}
+          icon={ArrowDown} label="Pago" value={fmtBRL(m.pago)}
           hint={`${fmtBRL(m.aPagar)} a pagar`} tone="negative"
           onClick={() => setKpiSheet({
             titulo: "Despesas pagas",
@@ -149,7 +146,7 @@ function FinanceiroDashboard() {
           })}
         />
         <KpiCard
-          icon={Wallet} label="Saldo realizado" value={fmtBRL(m.saldoRealizado)}
+          icon={EmptyWallet} label="Saldo realizado" value={fmtBRL(m.saldoRealizado)}
           hint={`Previsto: ${fmtBRL(m.saldoPrevisto)}`}
           tone={m.saldoRealizado >= 0 ? "positive" : "negative"}
           onClick={() => setKpiSheet({
@@ -159,7 +156,7 @@ function FinanceiroDashboard() {
           })}
         />
         <KpiCard
-          icon={Percent} label="Margem realizada" value={`${m.margemRealizada.toFixed(1)}%`}
+          icon={PercentageSquare} label="Margem realizada" value={`${m.margemRealizada.toFixed(1)}%`}
           hint={m.recebido ? "sobre o recebido" : "sem receita ainda"}
         />
       </div>
@@ -168,7 +165,7 @@ function FinanceiroDashboard() {
       {(m.atrasadoReceber > 0 || m.atrasadoPagar > 0) && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5">
           <span className="grid size-8 place-items-center rounded-lg bg-destructive/15 ring-1 ring-destructive/30">
-            <AlertTriangle className="size-4 text-destructive" />
+            <Danger size={16} color="currentColor" variant="Linear" className="text-destructive" />
           </span>
           <div className="text-sm">
             <p className="font-medium text-foreground">Você tem atrasos para resolver.</p>
@@ -190,7 +187,7 @@ function FinanceiroDashboard() {
               <h3 className="font-display text-base font-semibold">Receita vs Despesa</h3>
             </div>
             <span className="grid size-7 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-              <TrendingUp className="size-3.5 text-primary" />
+              <TrendUp size={14} color="currentColor" variant="Linear" className="text-primary" />
             </span>
           </div>
           <div className="h-[260px] w-full">
@@ -230,7 +227,7 @@ function FinanceiroDashboard() {
               <h3 className="font-display text-base font-semibold">Despesa por categoria</h3>
             </div>
             <span className="grid size-7 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-              <TrendingDown className="size-3.5 text-primary" />
+              <TrendDown size={14} color="currentColor" variant="Linear" className="text-primary" />
             </span>
           </div>
           <div className="h-[260px] w-full">
@@ -262,7 +259,7 @@ function FinanceiroDashboard() {
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-              <Calendar className="size-3.5 text-primary" />
+              <Calendar size={14} color="currentColor" variant="Linear" className="text-primary" />
             </span>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Próximos dias</p>
@@ -283,8 +280,8 @@ function FinanceiroDashboard() {
                 <div className="flex min-w-0 items-center gap-3">
                   <span className={`grid size-8 place-items-center rounded-lg ring-1 ${l.tipo === "receita" ? "bg-success/10 ring-success/30" : "bg-destructive/10 ring-destructive/30"}`}>
                     {l.tipo === "receita"
-                      ? <TrendingUp className="size-3.5 text-success" />
-                      : <TrendingDown className="size-3.5 text-destructive" />}
+                      ? <TrendUp size={14} color="currentColor" variant="Linear" className="text-success" />
+                      : <TrendDown size={14} color="currentColor" variant="Linear" className="text-destructive" />}
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{l.descricao}</p>

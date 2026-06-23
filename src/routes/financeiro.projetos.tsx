@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FolderKanban, TrendingUp, TrendingDown, Percent } from "lucide-react";
+import { Kanban, TrendUp, TrendDown, PercentageSquare } from "iconsax-react";
 import { porProjeto, fmtBRL } from "@/lib/mock/financeiro";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
 import { cn } from "@/lib/utils";
@@ -19,15 +19,15 @@ function PorProjetoPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-1/60 p-4">
         <div className="grid size-9 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-          <FolderKanban className="size-4 text-primary" />
+          <Kanban size={16} color="currentColor" variant="Linear" className="text-primary" />
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rentabilidade</p>
           <p className="font-display text-base font-semibold">Resultado por projeto</p>
         </div>
         <div className="ml-auto flex gap-4 text-xs">
-          <span className="flex items-center gap-1.5"><TrendingUp className="size-3 text-primary" /> Receita: <strong className="tabular-nums text-foreground">{fmtBRL(totalRec)}</strong></span>
-          <span className="flex items-center gap-1.5"><TrendingDown className="size-3 text-primary" /> Despesa: <strong className="tabular-nums text-foreground">{fmtBRL(totalDesp)}</strong></span>
+          <span className="flex items-center gap-1.5"><TrendUp size={12} color="currentColor" variant="Linear" className="text-primary" /> Receita: <strong className="tabular-nums text-foreground">{fmtBRL(totalRec)}</strong></span>
+          <span className="flex items-center gap-1.5"><TrendDown size={12} color="currentColor" variant="Linear" className="text-primary" /> Despesa: <strong className="tabular-nums text-foreground">{fmtBRL(totalDesp)}</strong></span>
           <span>Saldo: <strong className={`tabular-nums ${totalRec - totalDesp >= 0 ? "text-success" : "text-destructive"}`}>{fmtBRL(totalRec - totalDesp)}</strong></span>
         </div>
       </div>
@@ -51,7 +51,7 @@ function PorProjetoPage() {
                   p.margem >= 0 ? "border-warning/30 bg-warning/10 text-warning" :
                   "border-destructive/30 bg-destructive/10 text-destructive",
                 )}>
-                  <Percent className="size-3" />
+                  <PercentageSquare size={12} color="currentColor" variant="Linear" />
                   {p.margem.toFixed(1)}%
                 </span>
               </div>
@@ -59,13 +59,13 @@ function PorProjetoPage() {
               <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
                 <div className="rounded-lg border border-border bg-surface-2/40 p-2.5">
                   <p className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <TrendingUp className="size-3 text-primary" /> Receita
+                    <TrendUp size={12} color="currentColor" variant="Linear" className="text-primary" /> Receita
                   </p>
                   <p className="mt-1 font-display text-sm font-semibold tabular-nums">{fmtBRL(p.receita)}</p>
                 </div>
                 <div className="rounded-lg border border-border bg-surface-2/40 p-2.5">
                   <p className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <TrendingDown className="size-3 text-primary" /> Despesa
+                    <TrendDown size={12} color="currentColor" variant="Linear" className="text-primary" /> Despesa
                   </p>
                   <p className="mt-1 font-display text-sm font-semibold tabular-nums">{fmtBRL(p.despesa)}</p>
                 </div>

@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Plus, Edit3, Calendar, Users, DollarSign, CheckCircle2, Circle, Flag, ExternalLink, Link2, Trash2, FileText, Save, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Circle } from "lucide-react";
+import { ArrowLeft2, Add, Edit2, Calendar, Profile2User, DollarCircle, TickCircle, Flag, Export, Link2, Trash, DocumentText1, DocumentDownload, ArrowRight2, CloseCircle } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, useDraggable, type DragEndEvent } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -37,7 +39,7 @@ function ProjetoDetalhe() {
   if (!projeto) {
     return (
       <div className="space-y-3">
-        <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft className="size-3" /> Voltar</Link>
+        <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Voltar</Link>
         <div className="rounded-xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">Projeto não encontrado.</div>
       </div>
     );
@@ -50,7 +52,7 @@ function ProjetoDetalhe() {
 
   return (
     <div className="space-y-4">
-      <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft className="size-3" /> Todos os projetos</Link>
+      <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Todos os projetos</Link>
 
       <header className="rounded-xl border border-border bg-surface-1/40 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -68,14 +70,14 @@ function ProjetoDetalhe() {
               <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>{Object.entries(FASES).map(([id, f]) => <SelectItem key={id} value={id}>{f.label}</SelectItem>)}</SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={() => setEditandoProjeto(true)}><Edit3 className="size-3.5" /> Editar</Button>
+            <Button variant="outline" size="sm" onClick={() => setEditandoProjeto(true)}><Edit2 size={14} color="currentColor" variant="Linear" /> Editar</Button>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard icon={Calendar} label="Entrega" valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })} />
-          <StatCard icon={DollarSign} label="Valor" valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`} />
-          <StatCard icon={Users} label="Equipe" valor={`${projeto.equipe.length} pessoas`} />
+          <StatCard icon={DollarCircle} label="Valor" valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`} />
+          <StatCard icon={Profile2User} label="Equipe" valor={`${projeto.equipe.length} pessoas`} />
           <StatCard icon={Flag} label="Progresso" valor={`${projeto.progresso}%`} extra={<Progress value={projeto.progresso} className="mt-1 h-1" />} />
         </div>
       </header>
@@ -91,7 +93,7 @@ function ProjetoDetalhe() {
 
         <TabsContent value="tarefas" className="mt-3">
           <div className="mb-3 flex items-center gap-3">
-            <Button size="sm" onClick={() => setTarefaModal({ open: true })}><Plus className="size-4" /> Nova tarefa</Button>
+            <Button size="sm" onClick={() => setTarefaModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Nova tarefa</Button>
             <p className="text-xs text-muted-foreground">Arraste entre colunas para mudar fase · clique no card para editar</p>
           </div>
           <div className="overflow-x-auto">
@@ -102,7 +104,7 @@ function ProjetoDetalhe() {
         <TabsContent value="entregaveis" className="mt-3">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Cada item representa um vídeo, foto, doc ou peça que você precisa entregar — com link pro Drive e status.</p>
-            <Button size="sm" onClick={() => setEntregavelModal({ open: true })}><Plus className="size-4" /> Novo entregável</Button>
+            <Button size="sm" onClick={() => setEntregavelModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Novo entregável</Button>
           </div>
           <ListaEntregaveis entregaveis={meusEntregaveis} onEditar={e => setEntregavelModal({ open: true, entregavel: e })} />
         </TabsContent>
@@ -110,7 +112,7 @@ function ProjetoDetalhe() {
         <TabsContent value="marcos" className="mt-3">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Marcos importantes do projeto. Sempre aparecem na Agenda.</p>
-            <Button size="sm" onClick={() => setMarcoModal({ open: true })}><Plus className="size-4" /> Novo marco</Button>
+            <Button size="sm" onClick={() => setMarcoModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Novo marco</Button>
           </div>
           <ListaMarcos marcos={meusMarcos} onEditar={m => setMarcoModal({ open: true, marco: m })} />
         </TabsContent>
@@ -151,10 +153,10 @@ function ProjetoDetalhe() {
   );
 }
 
-function StatCard({ icon: Icon, label, valor, extra }: { icon: typeof Calendar; label: string; valor: string; extra?: React.ReactNode }) {
+function StatCard({ icon: Icon, label, valor, extra }: { icon: typeof IconsaxIcon; label: string; valor: string; extra?: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-border/40 bg-surface-2/30 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon className="size-3 text-primary" /> {label}</div>
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}</div>
       <p className="mt-1 font-display text-sm font-semibold tabular-nums">{valor}</p>
       {extra}
     </div>
@@ -215,7 +217,7 @@ function KanbanTarefas({ tarefas, projetoId, fases, onEditar }: {
           {!adicionando ? (
             <button onClick={() => setAdicionando(true)}
               className="flex h-full min-h-[80px] w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/40 text-xs text-muted-foreground/50 transition hover:border-primary/40 hover:text-primary">
-              <Plus className="size-3.5" /> Nova coluna
+              <Add size={14} color="currentColor" variant="Linear" /> Nova coluna
             </button>
           ) : (
             <div className="rounded-xl border border-primary/40 bg-surface-1/40 p-3 space-y-2">
@@ -265,7 +267,7 @@ function KanbanColuna({ faseId, label, isConcluida, podeEsquerda, podeDireita, o
       <div className="mb-2 flex items-center gap-1">
         <button onClick={() => onMover(-1)} disabled={!podeEsquerda}
           className="rounded p-0.5 text-muted-foreground/40 transition hover:text-muted-foreground disabled:invisible">
-          <ChevronLeft className="size-3" />
+          <ArrowLeft2 size={12} color="currentColor" variant="Linear" />
         </button>
         <h3 className={cn("flex-1 truncate text-[11px] font-semibold uppercase tracking-wider",
           isConcluida ? "text-muted-foreground/60" : "text-muted-foreground")}>
@@ -274,11 +276,11 @@ function KanbanColuna({ faseId, label, isConcluida, podeEsquerda, podeDireita, o
         {count > 0 && <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">{count}</span>}
         <button onClick={() => onMover(1)} disabled={!podeDireita}
           className="rounded p-0.5 text-muted-foreground/40 transition hover:text-muted-foreground disabled:invisible">
-          <ChevronRight className="size-3" />
+          <ArrowRight2 size={12} color="currentColor" variant="Linear" />
         </button>
         {onRemover && (
           <button onClick={onRemover} className="rounded p-0.5 text-muted-foreground/30 transition hover:text-destructive" title="Remover coluna">
-            <X className="size-3" />
+            <CloseCircle size={12} color="currentColor" variant="Linear" />
           </button>
         )}
       </div>
@@ -312,7 +314,7 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
           className="mt-0.5 shrink-0 transition hover:scale-110"
           title={tarefa.concluida ? "Marcar como pendente" : "Marcar como concluída"}>
           {tarefa.concluida
-            ? <CheckCircle2 className="size-4 text-success" />
+            ? <TickCircle size={16} color="currentColor" variant="Linear" className="text-success" />
             : <Circle className="size-4 text-muted-foreground hover:text-primary" />}
         </button>
 
@@ -326,7 +328,7 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
             <span className="text-muted-foreground">{tarefa.responsavel}</span>
             {tarefa.prazo && (
               <span className="ml-auto inline-flex items-center gap-0.5 tabular-nums text-muted-foreground">
-                <Calendar className="size-2.5" />{format(new Date(tarefa.prazo), "dd MMM", { locale: ptBR })}
+                <Calendar size={10} color="currentColor" variant="Linear" />{format(new Date(tarefa.prazo), "dd MMM", { locale: ptBR })}
               </span>
             )}
           </div>
@@ -356,7 +358,7 @@ function ListaMarcos({ marcos, onEditar }: { marcos: Marco[]; onEditar: (m: Marc
         return (
           <button key={m.id} onClick={() => onEditar(m)} className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface-1/40 p-3 text-left transition hover:border-primary/40">
             <button onClick={(e) => { e.stopPropagation(); projetosActions.atualizarMarco(m.id, { status: m.status === "concluido" ? "pendente" : "concluido" }); }}>
-              {m.status === "concluido" ? <CheckCircle2 className="size-5 text-success" /> : <Flag className={cn("size-5", passou ? "text-destructive" : "text-warning")} />}
+              {m.status === "concluido" ? <TickCircle size={20} color="currentColor" variant="Linear" className="text-success" /> : <Flag size={20} color="currentColor" variant="Linear" className={cn(passou ? "text-destructive" : "text-warning")} />}
             </button>
             <div className="flex-1">
               <p className={cn("text-sm font-medium", m.status === "concluido" && "text-muted-foreground line-through")}>{m.titulo}</p>
@@ -418,7 +420,7 @@ function EntregavelCard({ entregavel, onEditar }: { entregavel: Entregavel; onEd
           <a href={entregavel.link} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
             className="grid size-7 shrink-0 place-items-center rounded-md border border-border/40 bg-surface-2/30 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             title="Abrir link">
-            <ExternalLink className="size-3.5" />
+            <Export size={14} color="currentColor" variant="Linear" />
           </a>
         )}
       </div>
@@ -443,7 +445,7 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
       <section className="rounded-xl border border-border bg-surface-1/40 p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><Link2 className="size-3.5 text-primary" /> Links do projeto</h3>
+          <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><Link2 size={14} color="currentColor" variant="Linear" className="text-primary" /> Links do projeto</h3>
           <span className="text-[10px] text-muted-foreground">{projeto.links?.length ?? 0} link(s)</span>
         </div>
         <div className="space-y-1.5">
@@ -453,12 +455,12 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
           {(projeto.links ?? []).map(l => (
             <div key={l.id} className="group flex items-center gap-2 rounded-lg border border-border/40 bg-surface-2/30 p-2">
               <a href={l.url} target="_blank" rel="noreferrer" className="flex min-w-0 flex-1 items-center gap-2 text-xs hover:text-primary">
-                <ExternalLink className="size-3 shrink-0 text-primary" />
+                <Export size={12} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
                 <span className="truncate font-medium">{l.label}</span>
                 <span className="hidden truncate text-[10px] text-muted-foreground md:inline">{l.url}</span>
               </a>
               <button onClick={() => projetosActions.removerLink(projeto.id, l.id)} className="opacity-0 transition group-hover:opacity-100" title="Remover">
-                <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
+                <Trash size={14} color="currentColor" variant="Linear" className="text-muted-foreground hover:text-destructive" />
               </button>
             </div>
           ))}
@@ -466,14 +468,14 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
         <div className="mt-3 grid grid-cols-[1fr_2fr_auto] gap-1.5">
           <Input value={novoLabel} onChange={e => setNovoLabel(e.target.value)} placeholder="Rótulo" className="h-8 text-xs" />
           <Input value={novoUrl} onChange={e => setNovoUrl(e.target.value)} placeholder="https://…" className="h-8 text-xs" />
-          <Button size="sm" variant="outline" onClick={addLink} disabled={!novoLabel.trim() || !novoUrl.trim()}><Plus className="size-3.5" /></Button>
+          <Button size="sm" variant="outline" onClick={addLink} disabled={!novoLabel.trim() || !novoUrl.trim()}><Add size={14} color="currentColor" variant="Linear" /></Button>
         </div>
       </section>
 
       <section className="rounded-xl border border-border bg-surface-1/40 p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><FileText className="size-3.5 text-primary" /> Anotações</h3>
-          {dirty && <Button size="sm" variant="outline" onClick={salvarNotas}><Save className="size-3.5" /> Salvar</Button>}
+          <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><DocumentText1 size={14} color="currentColor" variant="Linear" className="text-primary" /> Anotações</h3>
+          {dirty && <Button size="sm" variant="outline" onClick={salvarNotas}><DocumentDownload size={14} color="currentColor" variant="Linear" /> Salvar</Button>}
         </div>
         <Textarea
           value={notas}

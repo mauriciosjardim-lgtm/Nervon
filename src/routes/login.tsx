@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Mail, ArrowLeft, CheckCircle2, Check, Eye, EyeOff } from "lucide-react";
+import { Sms, ArrowLeft2, TickCircle, Eye, EyeSlash } from "iconsax-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
 
@@ -103,7 +103,7 @@ function Login() {
         {/* Badge inferior */}
         <div className="relative flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/30 bg-primary/15">
-            <Check className="h-4 w-4 text-primary" />
+            <TickCircle size={16} color="currentColor" variant="Linear" className="text-primary" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">Feito para criativos.</p>
@@ -150,7 +150,7 @@ function Login() {
           {aguardandoEmail ? (
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
-                <Mail className="size-7" />
+                <Sms size={28} color="currentColor" variant="Linear" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Clique no link do e-mail para ativar sua conta.<br />
@@ -168,7 +168,7 @@ function Login() {
             <div>
               {resetEnviado ? (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <CheckCircle2 className="size-10 text-primary" />
+                  <TickCircle size={40} color="currentColor" variant="Linear" className="text-primary" />
                   <p className="text-sm text-muted-foreground">
                     Verifique seu e-mail <strong className="text-foreground">{email}</strong> e clique no link para redefinir a senha.
                   </p>
@@ -189,7 +189,7 @@ function Login() {
                   </Button>
                   <button type="button" onClick={() => trocarModo("entrar")}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-                    <ArrowLeft className="size-3.5" /> Voltar ao login
+                    <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Voltar ao login
                   </button>
                 </form>
               )}
@@ -248,7 +248,7 @@ function Login() {
                     />
                     <button type="button" onClick={() => setMostrarSenha(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground">
-                      {mostrarSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      {mostrarSenha ? <EyeSlash size={16} color="currentColor" variant="Linear" /> : <Eye size={16} color="currentColor" variant="Linear" />}
                     </button>
                   </div>
                 </div>

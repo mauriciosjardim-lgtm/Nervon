@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useComercial, getEmpresa, getContato, ETAPAS } from "@/lib/hooks/useComercial";
 import { LeadDrawer } from "@/components/comercial/lead-drawer";
 import { EtapaIcon } from "@/components/comercial/etapa-icon";
-import { Bell, AlertCircle, ChevronRight } from "lucide-react";
+import { Notification, Danger, ArrowRight2 } from "iconsax-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -60,8 +60,8 @@ function Secao({
   return (
     <section>
       <div className="mb-2 flex items-center gap-2">
-        <Bell className={cn(
-          "size-3.5 text-primary",
+        <Notification size={14} color="currentColor" variant="Linear" className={cn(
+          "text-primary",
           tone === "destructive" && "text-destructive",
           tone === "primary" && "text-primary",
           tone === "default" && "text-primary",
@@ -92,10 +92,10 @@ function Secao({
                       <p className="text-[10px] tabular-nums text-muted-foreground">{format(new Date(l.proximaAcao.data), "dd/MM HH:mm", { locale: ptBR })}</p>
                     </>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-destructive"><AlertCircle className="size-3" /> Sem próxima ação</span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-destructive"><Danger size={12} color="currentColor" variant="Linear" /> Sem próxima ação</span>
                   )}
                 </div>
-                <ChevronRight className="size-4 shrink-0 text-primary" />
+                <ArrowRight2 size={16} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
               </button>
             </li>
           );

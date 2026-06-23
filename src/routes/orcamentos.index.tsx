@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Calculator, Sparkles, Trash2, History, SlidersHorizontal } from "lucide-react";
+import { Calculator } from "lucide-react";
+import { MagicStar, Trash, Timer, SliderHorizontal } from "iconsax-react";
 import { TipoCard } from "@/components/orcamentos/tipo-card";
 import { PrecosModal } from "@/components/orcamentos/precos-modal";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ function OrcamentosIndex() {
     <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
       <div className="mb-4 flex justify-end">
         <Button variant="outline" size="sm" onClick={() => setPrecosOpen(true)} className="gap-1.5">
-          <SlidersHorizontal className="size-3.5" /> Configuração de preços
+          <SliderHorizontal size={14} color="currentColor" variant="Linear" /> Configuração de preços
         </Button>
       </div>
 
@@ -51,7 +52,7 @@ function OrcamentosIndex() {
       {templates.length > 0 && (
         <section className="mt-12">
           <div className="mb-4 flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+            <MagicStar size={16} color="currentColor" variant="Linear" className="text-primary" />
             <h2 className="font-display text-lg font-semibold tracking-tight">Templates</h2>
             <p className="text-xs text-muted-foreground">Comece de um modelo pronto.</p>
           </div>
@@ -79,7 +80,7 @@ function OrcamentosIndex() {
 
       <section className="mt-12">
         <div className="mb-4 flex items-center gap-2">
-          <History className="size-4 text-muted-foreground" />
+          <Timer size={16} color="currentColor" variant="Linear" className="text-muted-foreground" />
           <h2 className="font-display text-lg font-semibold tracking-tight">Orçamentos recentes</h2>
         </div>
         {orcamentos.length === 0 ? (
@@ -102,7 +103,7 @@ function OrcamentosIndex() {
                   <p className="text-[11px] text-muted-foreground">margem {o.calculo.margem}%</p>
                 </div>
                 <button onClick={() => orcamentosActions.remover(o.id)} className="rounded-md p-1.5 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100">
-                  <Trash2 className="size-4" />
+                  <Trash size={16} color="currentColor" variant="Linear" />
                 </button>
               </div>
               );

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  ArrowDownToLine, ArrowUpFromLine, CheckCircle2, AlertTriangle, Clock, TrendingUp, TrendingDown,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { TickCircle, Danger, Clock, TrendUp, TrendDown } from "iconsax-react";
+import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/financeiro/status-badge";
@@ -52,7 +52,7 @@ function ListaContas({ tipo, lancamentos }: { tipo: LancTipo; lancamentos: Lanca
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-1/60 p-4">
         <div className="grid size-9 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-          {tipo === "receita" ? <TrendingUp className="size-4 text-primary" /> : <TrendingDown className="size-4 text-primary" />}
+          {tipo === "receita" ? <TrendUp size={16} color="currentColor" variant="Linear" className="text-primary" /> : <TrendDown size={16} color="currentColor" variant="Linear" className="text-primary" />}
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -61,14 +61,14 @@ function ListaContas({ tipo, lancamentos }: { tipo: LancTipo; lancamentos: Lanca
           <p className="font-display text-2xl font-semibold tabular-nums">{fmtBRL(totalAbertos)}</p>
         </div>
         <div className="ml-auto flex flex-wrap gap-3 text-xs">
-          <Pill icon={AlertTriangle} tone="destructive" label="Atrasados" valor={grupos.atrasados.reduce((s, l) => s + l.valor, 0)} qtd={grupos.atrasados.length} />
+          <Pill icon={Danger} tone="destructive" label="Atrasados" valor={grupos.atrasados.reduce((s, l) => s + l.valor, 0)} qtd={grupos.atrasados.length} />
           <Pill icon={Clock} tone="warning" label="Hoje" valor={grupos.hoje.reduce((s, l) => s + l.valor, 0)} qtd={grupos.hoje.length} />
           <Pill icon={Clock} tone="info" label="7 dias" valor={grupos.semana.reduce((s, l) => s + l.valor, 0)} qtd={grupos.semana.length} />
         </div>
       </div>
 
       <Bucket
-        title="Atrasados" icon={AlertTriangle} tone="destructive"
+        title="Atrasados" icon={Danger} tone="destructive"
         items={grupos.atrasados} tipo={tipo}
       />
       <Bucket
@@ -84,7 +84,7 @@ function ListaContas({ tipo, lancamentos }: { tipo: LancTipo; lancamentos: Lanca
         items={grupos.depois} tipo={tipo}
       />
       <Bucket
-        title={tipo === "receita" ? "Já recebidos" : "Já pagos"} icon={CheckCircle2} tone="success"
+        title={tipo === "receita" ? "Já recebidos" : "Já pagos"} icon={TickCircle} tone="success"
         items={grupos.quitados} tipo={tipo} collapsedDefault
       />
     </div>
@@ -108,7 +108,7 @@ function agrupar(lancs: Lancamento[]) {
 }
 
 function Pill({ icon: Icon, tone, label, valor, qtd }: {
-  icon: typeof Clock; tone: "destructive" | "warning" | "info" | "success" | "muted"; label: string; valor: number; qtd: number;
+  icon: typeof IconsaxIcon; tone: "destructive" | "warning" | "info" | "success" | "muted"; label: string; valor: number; qtd: number;
 }) {
   const toneCls = {
     destructive: "text-destructive bg-destructive/10 border-destructive/30",
@@ -119,7 +119,7 @@ function Pill({ icon: Icon, tone, label, valor, qtd }: {
   }[tone];
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1", toneCls)}>
-      <Icon className="size-3" />
+      <Icon size={12} color="currentColor" variant="Linear" />
       <span className="font-medium">{label}</span>
       <span className="tabular-nums opacity-80">({qtd}) {fmtBRL(valor)}</span>
     </span>
@@ -129,7 +129,7 @@ function Pill({ icon: Icon, tone, label, valor, qtd }: {
 function Bucket({
   title, icon: Icon, tone, items, tipo, collapsedDefault = false,
 }: {
-  title: string; icon: typeof Clock;
+  title: string; icon: typeof IconsaxIcon;
   tone: "destructive" | "warning" | "info" | "success" | "muted";
   items: Lancamento[]; tipo: LancTipo; collapsedDefault?: boolean;
 }) {
@@ -153,7 +153,7 @@ function Bucket({
       >
         <div className="flex items-center gap-2">
           <span className={cn("grid size-7 place-items-center rounded-lg ring-1", toneCls)}>
-            <Icon className="size-3.5" />
+            <Icon size={14} color="currentColor" variant="Linear" />
           </span>
           <h3 className="text-sm font-semibold">{title}</h3>
           <span className="text-xs text-muted-foreground">({items.length})</span>
@@ -186,7 +186,7 @@ function Bucket({
                     size="sm" className="h-7 gap-1 text-xs"
                     onClick={() => { financeiroActions.marcarPago(l.id); toast.success(tipo === "receita" ? "Recebido!" : "Pago!"); }}
                   >
-                    <CheckCircle2 className="size-3 text-primary-foreground" />
+                    <TickCircle size={12} color="currentColor" variant="Linear" className="text-primary-foreground" />
                     {tipo === "receita" ? "Recebi" : "Paguei"}
                   </Button>
                 )}

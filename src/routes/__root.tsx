@@ -74,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..700&family=Inter+Tight:ital,wght@0,300..800;1,300..700&display=swap" },
     ],
   }),
   shellComponent: RootShell,
@@ -154,7 +154,7 @@ function AppShell() {
   return (
     <SidebarProvider style={{ "--sidebar-width": "15rem", "--sidebar-width-icon": "3.25rem" } as React.CSSProperties}>
       <AppSidebar />
-      <SidebarInset className="flex min-h-screen w-full flex-col bg-background">
+      <SidebarInset className="flex min-h-screen w-full flex-col">
         <Topbar />
         <main className="flex-1 overflow-x-hidden">
           <Outlet />

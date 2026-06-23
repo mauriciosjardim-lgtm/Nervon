@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Flame, Snowflake, Thermometer, Plus } from "lucide-react";
+import { Flame, Snowflake, Thermometer } from "lucide-react";
+import { MagicStar, Add } from "iconsax-react";
 import { toast } from "sonner";
 import { comercial, getOrigensUnicas, getResponsaveisUnicos, type Temperatura } from "@/lib/hooks/useComercial";
 import { isValidEmail } from "@/lib/format";
@@ -86,7 +87,7 @@ export function NovoLeadModal({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary">
-              <Sparkles className="size-4" />
+              <MagicStar size={16} color="currentColor" variant="Linear" />
             </span>
             <div>
               <DialogTitle>Novo lead</DialogTitle>
@@ -128,7 +129,7 @@ export function NovoLeadModal({
                     className="flex-1"
                   />
                   <Button size="icon" variant="ghost" className="shrink-0" onClick={() => { setOutroOrigem(false); setOrigem(origens[0] ?? "Indicação"); }}>
-                    <Plus className="size-3.5 rotate-45 text-primary" />
+                    <Add size={14} color="currentColor" variant="Linear" className="rotate-45 text-primary" />
                   </Button>
                 </div>
               ) : (
@@ -148,7 +149,7 @@ export function NovoLeadModal({
                     ))}
                     <SelectItem value="__outro__" className="text-primary">
                       <span className="inline-flex items-center gap-1">
-                        <Plus className="size-3 text-primary" /> Nova origem
+                        <Add size={12} color="currentColor" variant="Linear" className="text-primary" /> Nova origem
                       </span>
                     </SelectItem>
                   </SelectContent>
@@ -167,7 +168,7 @@ export function NovoLeadModal({
                     className="flex-1"
                   />
                   <Button size="icon" variant="ghost" className="shrink-0" onClick={() => { setOutroResp(false); setResponsavel(responsaveis[0] ?? "Você"); }}>
-                    <Plus className="size-3.5 rotate-45 text-primary" />
+                    <Add size={14} color="currentColor" variant="Linear" className="rotate-45 text-primary" />
                   </Button>
                 </div>
               ) : (
@@ -187,7 +188,7 @@ export function NovoLeadModal({
                     ))}
                     <SelectItem value="__outro__" className="text-primary">
                       <span className="inline-flex items-center gap-1">
-                        <Plus className="size-3 text-primary" /> Novo responsável
+                        <Add size={12} color="currentColor" variant="Linear" className="text-primary" /> Novo responsável
                       </span>
                     </SelectItem>
                   </SelectContent>

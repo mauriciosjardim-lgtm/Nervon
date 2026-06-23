@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, FileText, FolderPlus, Save, Copy } from "lucide-react";
+import { FolderPlus, FileText, Save, Copy } from "lucide-react";
+import { ArrowLeft2 } from "iconsax-react";
 import { TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL } from "@/lib/mock/orcamentos";
 import { useOrcamento, orcamentosActions } from "@/lib/hooks/useOrcamentos";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ function OrcamentoView() {
   return (
     <div className="mx-auto w-full max-w-[1100px] px-5 py-7 md:px-8 md:py-10">
       <Link to="/orcamentos" className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-        <ArrowLeft className="size-3.5" /> Voltar para orçamentos
+        <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Voltar para orçamentos
       </Link>
 
       <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-surface-1/60 to-surface-1/30 p-8 shadow-[var(--shadow-elevated)]">

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { SearchNormal, CloseCircle } from "iconsax-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export function FiltrosBar({ value, onChange }: { value: FiltroState; onChange: 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="relative min-w-[260px] flex-1">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-primary" />
+        <SearchNormal size={14} color="currentColor" variant="Linear" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary" />
         <Input
           placeholder="Buscar empresa, contato, e-mail, telefone…"
           className="h-9 pl-9"
@@ -73,7 +73,7 @@ export function FiltrosBar({ value, onChange }: { value: FiltroState; onChange: 
       <Sel label="Segmento" value={value.segmento} onChange={(v) => onChange({ ...value, segmento: v })} options={[["todas", "Todos"], ...segmentos.map(r => [r, r] as [string, string])]} />
       {sujo && (
         <Button size="sm" variant="ghost" className="h-9 gap-1 text-xs" onClick={() => onChange(filtroInicial)}>
-          <X className="size-3 text-primary" /> Limpar
+          <CloseCircle size={12} color="currentColor" variant="Linear" className="text-primary" /> Limpar
         </Button>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { ArrowLeft, Plus, Star, Users } from "lucide-react";
+import { Star, Users } from "lucide-react";
+import { ArrowLeft2, Add } from "iconsax-react";
 import { RecursoCard } from "@/components/biblioteca/recurso-card";
 import { RecursoModal } from "@/components/biblioteca/recurso-modal";
 import {
@@ -39,7 +40,7 @@ function BibliotecaCategoria() {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-5 py-7 md:px-8 md:py-10">
       <Link to="/biblioteca" className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-        <ArrowLeft className="size-3.5" /> Voltar para Central de Recursos
+        <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Voltar para Central de Recursos
       </Link>
 
       <header className="mb-8 flex items-end justify-between gap-4">
@@ -52,7 +53,7 @@ function BibliotecaCategoria() {
         </div>
         {cat && (
           <button onClick={novo} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-glow">
-            <Plus className="size-4" /> Novo
+            <Add size={16} color="currentColor" variant="Linear" /> Novo
           </button>
         )}
       </header>

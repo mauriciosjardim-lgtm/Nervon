@@ -2,9 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { z } from "zod";
 import {
-  ArrowLeft, ArrowRight, Sparkles, Trash2, Plus,
   Plane, Gamepad2, Lightbulb, Mic, Car, Captions, Image, Monitor, Smartphone, Palette, Zap,
 } from "lucide-react";
+import { ArrowLeft2, ArrowRight2, MagicStar, Trash, Add } from "iconsax-react";
 import { WizardStepper } from "@/components/orcamentos/wizard-stepper";
 import { ResumoLateral } from "@/components/orcamentos/resumo-lateral";
 import { CampoNumero } from "@/components/orcamentos/campo-numero";
@@ -88,7 +88,7 @@ function NovoOrcamento() {
     <div className="mx-auto w-full max-w-[1400px] px-5 py-7 md:px-8 md:py-10">
       <div className="mb-6 flex items-center justify-between">
         <Link to="/orcamentos" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-          <ArrowLeft className="size-3.5" /> Voltar
+          <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Voltar
         </Link>
         <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
           <TipoIcon className="size-3.5" /> {TIPOS_ORCAMENTO[payload.tipo].label}
@@ -113,13 +113,13 @@ function NovoOrcamento() {
                 onClick={prev} disabled={step === 0}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-surface-1/40 px-4 py-2 text-sm transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <ArrowLeft className="size-3.5" /> Anterior
+                <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Anterior
               </button>
               <button
                 onClick={handleNext}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-[0_0_24px_-8px_var(--primary)] transition hover:bg-primary-glow"
               >
-                {step === 3 ? "Ver resultado" : "Próximo"} <ArrowRight className="size-3.5" />
+                {step === 3 ? "Ver resultado" : "Próximo"} <ArrowRight2 size={14} color="currentColor" variant="Linear" />
               </button>
             </footer>
           )}
@@ -243,7 +243,7 @@ function StepExtras({ payload, setPart }: { payload: OrcamentoPayload; setPart: 
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium">Itens personalizados</p>
           <button onClick={addCustom} className="inline-flex items-center gap-1 text-xs text-primary transition hover:underline">
-            <Plus className="size-3.5" /> Adicionar item
+            <Add size={14} color="currentColor" variant="Linear" /> Adicionar item
           </button>
         </div>
         <div className="space-y-2">
@@ -259,7 +259,7 @@ function StepExtras({ payload, setPart }: { payload: OrcamentoPayload; setPart: 
                 placeholder="R$ unit"
                 className="h-9 rounded-md border border-border/40 bg-background/40 px-2 text-sm tabular-nums outline-none focus:border-primary/40" />
               <button onClick={() => rmCustom(c.id)} className="grid place-items-center rounded-md text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive">
-                <Trash2 className="size-3.5" />
+                <Trash size={14} color="currentColor" variant="Linear" />
               </button>
             </div>
           ))}
@@ -279,7 +279,7 @@ function StepResultado({ payload, onSalvar, salvando }: { payload: OrcamentoPayl
         <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: "var(--gradient-glow)" }} />
         <div className="relative">
           <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <Sparkles className="size-3.5" /> Orçamento finalizado
+            <MagicStar size={14} color="currentColor" variant="Linear" /> Orçamento finalizado
           </p>
           <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight md:text-3xl">{payload.geral.nomeProjeto || "Sem nome"}</h2>
           <p className="text-sm text-muted-foreground">{payload.geral.cliente || "—"}</p>

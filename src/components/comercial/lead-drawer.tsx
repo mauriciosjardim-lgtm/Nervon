@@ -6,11 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Mail, Phone, MapPin, Globe, Instagram, Calendar as CalendarIcon, Plus,
-  FileText, StickyNote, CheckCircle2, XCircle, Flame, Snowflake, Thermometer,
-  Building2, Users, ArrowUpRight, ListChecks, Sparkles, FileSignature,
-  FolderKanban, DollarSign, Star, Info, Activity, MessageCircle,
+  Phone, MapPin, Globe, Instagram, Calendar as CalendarIcon,
+  FileText, StickyNote, XCircle, Flame, Snowflake, Thermometer,
+  Building2, Users, ArrowUpRight, ListChecks, FileSignature,
+  FolderKanban, DollarSign, Info, Activity, Star, CheckCircle2,
 } from "lucide-react";
+import { Sms, Add, MagicStar, MessageCircle } from "iconsax-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -208,7 +209,7 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                     comercial.addContato(empresa.id, { nome: "Novo contato", cargo: "—", email: "—", telefone: "—" });
                     toast.success("Contato adicionado.");
                   }}>
-                    <Plus className="size-3.5 text-primary" /> Adicionar contato
+                    <Add size={14} color="currentColor" variant="Linear" className="text-primary" /> Adicionar contato
                   </Button>
                 </li>
               )}
@@ -257,7 +258,7 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                 comercial.addContato(empresa.id, { nome: "Novo contato", cargo: "—", email: "—", telefone: "—" });
                 toast.success("Contato adicionado.");
               }}>
-                <Plus className="size-3.5 text-primary" /> Adicionar
+                <Add size={14} color="currentColor" variant="Linear" className="text-primary" /> Adicionar
               </Button>
             )}
           </div>
@@ -287,13 +288,13 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a href={`mailto:${contato.email}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <Mail className="size-3 text-primary" /> Enviar e-mail
+                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" /> Enviar e-mail
                   </a>
                   <a href={`tel:${contato.telefone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
                     <Phone className="size-3 text-primary" /> Ligar
                   </a>
                   <a href={`https://wa.me/${contato.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <MessageCircle className="size-3 text-primary" /> WhatsApp
+                    <MessageCircle size={12} color="currentColor" variant="Linear" className="text-primary" /> WhatsApp
                   </a>
                 </div>
               </li>
@@ -320,13 +321,13 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <Mail className="size-3 text-primary" /> Enviar e-mail
+                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" /> Enviar e-mail
                   </a>
                   <a href={`tel:${c.telefone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
                     <Phone className="size-3 text-primary" /> Ligar
                   </a>
                   <a href={`https://wa.me/${c.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <MessageCircle className="size-3 text-primary" /> WhatsApp
+                    <MessageCircle size={12} color="currentColor" variant="Linear" className="text-primary" /> WhatsApp
                   </a>
                 </div>
               </li>
@@ -366,7 +367,7 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
               const prazo = new Date(); prazo.setDate(prazo.getDate() + 1);
               comercial.addTarefa(lead.id, novaTarefa, prazo.toISOString());
               setNovaTarefa("");
-            }}><Plus className="size-4 text-primary" /></Button>
+            }}><Add size={16} color="currentColor" variant="Linear" className="text-primary" /></Button>
           </div>
 
           <ul className="space-y-1.5">
@@ -448,7 +449,7 @@ function ScoreBox({ score, estrelas, rotulo }: { score: number; estrelas: number
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-primary/15 text-primary">
-            <Sparkles className="size-4" />
+            <MagicStar size={16} color="currentColor" variant="Linear" />
           </span>
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score do lead</p>
@@ -554,7 +555,7 @@ function TempPicker({ lead }: { lead: Lead }) {
   );
 }
 
-function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Plus; label: string; onClick: () => void; tone?: "success" | "destructive"; soon?: boolean }) {
+function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Add; label: string; onClick: () => void; tone?: "success" | "destructive"; soon?: boolean }) {
   return (
     <button
       onClick={soon ? undefined : onClick}
@@ -579,7 +580,7 @@ function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Plu
   );
 }
 
-function TabTrigger({ value, icon: Icon, children, badge }: { value: string; icon: typeof Plus; children: React.ReactNode; badge?: number }) {
+function TabTrigger({ value, icon: Icon, children, badge }: { value: string; icon: typeof Add; children: React.ReactNode; badge?: number }) {
   return (
     <TabsTrigger
       value={value}
@@ -596,7 +597,7 @@ function TabTrigger({ value, icon: Icon, children, badge }: { value: string; ico
   );
 }
 
-function Bloco({ titulo, icon: Icon, children }: { titulo: string; icon: typeof Plus; children: React.ReactNode }) {
+function Bloco({ titulo, icon: Icon, children }: { titulo: string; icon: typeof Add; children: React.ReactNode }) {
   return (
     <section>
       <h3 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -607,7 +608,7 @@ function Bloco({ titulo, icon: Icon, children }: { titulo: string; icon: typeof 
   );
 }
 
-function Linha({ icon: Icon, value }: { icon: typeof Plus; value: string }) {
+function Linha({ icon: Icon, value }: { icon: typeof Add; value: string }) {
   return (
     <div className="flex items-center gap-2 rounded-md bg-surface-1/40 px-2.5 py-1.5">
       <Icon className="size-3.5 shrink-0 text-primary" />
@@ -627,7 +628,7 @@ function ContatoLinha({ contato, principal }: { contato: { nome: string; cargo: 
         {principal && <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">Principal</span>}
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        <a href={`mailto:${contato.email}`} className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"><Mail className="size-3 text-primary" />{contato.email}</a>
+        <a href={`mailto:${contato.email}`} className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"><Sms size={12} color="currentColor" variant="Linear" className="text-primary" />{contato.email}</a>
         <a href={`tel:${contato.telefone}`} className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"><Phone className="size-3 text-primary" />{contato.telefone}</a>
       </div>
     </li>
@@ -714,7 +715,7 @@ function ContatoEditavel({ contato, principal }: { contato: { id: string; nome: 
 
 function Modulo({
   titulo, descricao, icone: Icon, qtd, acao, onAcao,
-}: { titulo: string; descricao: string; icone: typeof Plus; qtd: number; acao: string; onAcao: () => void }) {
+}: { titulo: string; descricao: string; icone: typeof Add; qtd: number; acao: string; onAcao: () => void }) {
   return (
     <div className="rounded-2xl border border-border bg-surface-1/40 p-5">
       <div className="flex items-start gap-3">
@@ -730,7 +731,7 @@ function Modulo({
           </div>
           <p className="mt-1 text-xs text-muted-foreground">{descricao}</p>
           <Button size="sm" variant="outline" className="mt-3 gap-1.5" onClick={onAcao}>
-            <Plus className="size-3.5 text-primary" /> {acao}
+            <Add size={14} color="currentColor" variant="Linear" className="text-primary" /> {acao}
           </Button>
         </div>
       </div>

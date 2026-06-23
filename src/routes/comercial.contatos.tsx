@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { comercial, useComercial, getEmpresa } from "@/lib/hooks/useComercial";
 import { Input } from "@/components/ui/input";
-import { Edit3, Mail, Phone, Star } from "lucide-react";
+import { Phone, Star } from "lucide-react";
+import { Edit2, Sms } from "iconsax-react";
 
 export const Route = createFileRoute("/comercial/contatos")({
   component: ContatosPage,
@@ -38,7 +39,7 @@ function ContatosPage() {
                 </td>
                 <td className="px-4 py-3 align-top">
                   <div className="flex items-center gap-1.5">
-                    <Mail className="size-3 shrink-0 text-primary" />
+                    <Sms size={12} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
                     <ContactField value={c.email} type="email" onSave={(email) => comercial.updateContato(c.id, { email })} />
                   </div>
                 </td>
@@ -87,7 +88,7 @@ function ContactField({
         }}
         className={`h-8 min-w-[140px] border-border/60 bg-surface-2/30 px-2 pr-7 text-xs shadow-none hover:border-primary/50 focus-visible:border-primary focus-visible:ring-primary/30 ${className ?? ""}`}
       />
-      <Edit3 className="pointer-events-none absolute right-2 size-3 text-primary opacity-70 transition group-focus-within:opacity-100" />
+      <Edit2 size={12} color="currentColor" variant="Linear" className="pointer-events-none absolute right-2 text-primary opacity-70 transition group-focus-within:opacity-100" />
     </div>
   );
 }

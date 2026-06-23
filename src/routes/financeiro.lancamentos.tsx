@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  Plus, Search, TrendingUp, TrendingDown, Pencil, Trash2, CheckCircle2, RotateCcw, Filter,
-} from "lucide-react";
+import { Pencil } from "lucide-react";
+import { Add, SearchNormal, TrendUp, TrendDown, Trash, TickCircle, Refresh, Filter } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,12 +47,12 @@ function LancamentosPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={() => { setEditar(undefined); setNovoOpen(true); }} className="gap-2">
-          <Plus className="size-4 text-primary-foreground" />
+          <Add size={16} color="currentColor" variant="Linear" className="text-primary-foreground" />
           Novo lançamento
         </Button>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-primary" />
+            <SearchNormal size={14} color="currentColor" variant="Linear" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-primary" />
             <Input
               value={q} onChange={e => setQ(e.target.value)}
               placeholder="Buscar descrição, cliente, projeto…"
@@ -61,7 +60,7 @@ function LancamentosPage() {
             />
           </div>
           <Select value={tipo} onValueChange={(v: typeof tipo) => setTipo(v)}>
-            <SelectTrigger className="h-9 w-36"><Filter className="size-3.5 text-primary" /><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-36"><Filter size={14} color="currentColor" variant="Linear" className="text-primary" /><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os tipos</SelectItem>
               <SelectItem value="receita">Receitas</SelectItem>
@@ -69,7 +68,7 @@ function LancamentosPage() {
             </SelectContent>
           </Select>
           <Select value={status} onValueChange={(v: typeof status) => setStatus(v)}>
-            <SelectTrigger className="h-9 w-40"><Filter className="size-3.5 text-primary" /><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-40"><Filter size={14} color="currentColor" variant="Linear" className="text-primary" /><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos status</SelectItem>
               <SelectItem value="previsto">Previsto</SelectItem>
@@ -85,9 +84,9 @@ function LancamentosPage() {
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
         <span>{filtrados.length} lançamentos</span>
         <span>·</span>
-        <span className="flex items-center gap-1"><TrendingUp className="size-3 text-primary" /> Receita: <strong className="tabular-nums text-foreground">{fmtBRL(totalReceita)}</strong></span>
+        <span className="flex items-center gap-1"><TrendUp size={12} color="currentColor" variant="Linear" className="text-primary" /> Receita: <strong className="tabular-nums text-foreground">{fmtBRL(totalReceita)}</strong></span>
         <span>·</span>
-        <span className="flex items-center gap-1"><TrendingDown className="size-3 text-primary" /> Despesa: <strong className="tabular-nums text-foreground">{fmtBRL(totalDespesa)}</strong></span>
+        <span className="flex items-center gap-1"><TrendDown size={12} color="currentColor" variant="Linear" className="text-primary" /> Despesa: <strong className="tabular-nums text-foreground">{fmtBRL(totalDespesa)}</strong></span>
         <span>·</span>
         <span>Saldo: <strong className={`tabular-nums ${totalReceita - totalDespesa >= 0 ? "text-success" : "text-destructive"}`}>{fmtBRL(totalReceita - totalDespesa)}</strong></span>
       </div>
@@ -123,8 +122,8 @@ function LancamentosPage() {
                 <TableCell>
                   <span className={`grid size-7 place-items-center rounded-lg ring-1 ${l.tipo === "receita" ? "bg-success/10 ring-success/30" : "bg-destructive/10 ring-destructive/30"}`}>
                     {l.tipo === "receita"
-                      ? <TrendingUp className="size-3 text-success" />
-                      : <TrendingDown className="size-3 text-destructive" />}
+                      ? <TrendUp size={12} color="currentColor" variant="Linear" className="text-success" />
+                      : <TrendDown size={12} color="currentColor" variant="Linear" className="text-destructive" />}
                   </span>
                 </TableCell>
                 <TableCell className="font-medium">{l.descricao}</TableCell>
@@ -149,7 +148,7 @@ function LancamentosPage() {
                         title="Desfazer pagamento"
                         onClick={() => { financeiroActions.desfazerPago(l.id); toast.success("Pagamento desfeito."); }}
                       >
-                        <RotateCcw className="size-3.5 text-primary" />
+                        <Refresh size={14} color="currentColor" variant="Linear" className="text-primary" />
                       </Button>
                     ) : (
                       <Button
@@ -157,7 +156,7 @@ function LancamentosPage() {
                         title={l.tipo === "receita" ? "Marcar como recebido" : "Marcar como pago"}
                         onClick={() => { financeiroActions.marcarPago(l.id); toast.success(l.tipo === "receita" ? "Recebido!" : "Pago!"); }}
                       >
-                        <CheckCircle2 className="size-3.5 text-primary" />
+                        <TickCircle size={14} color="currentColor" variant="Linear" className="text-primary" />
                       </Button>
                     )}
                     <Button size="icon" variant="ghost" className="size-7" title="Editar"
@@ -166,7 +165,7 @@ function LancamentosPage() {
                     </Button>
                     <Button size="icon" variant="ghost" className="size-7" title="Excluir"
                       onClick={() => { if (confirm(`Excluir o lançamento "${l.descricao}"?`)) { financeiroActions.remove(l.id); toast.success("Lançamento removido."); } }}>
-                      <Trash2 className="size-3.5 text-primary" />
+                      <Trash size={14} color="currentColor" variant="Linear" className="text-primary" />
                     </Button>
                   </div>
                 </TableCell>

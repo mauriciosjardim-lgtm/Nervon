@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { agendaActions } from "@/lib/hooks/useAgenda";
 import { TIPOS, type Evento, type TipoEvento } from "@/lib/mock/agenda";
 import { format } from "date-fns";
-import { Trash2 } from "lucide-react";
+import { Trash } from "iconsax-react";
 
 interface Props {
   open: boolean;
@@ -132,7 +132,7 @@ export function EventoModal({ open, onClose, evento, dataInicial }: Props) {
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
           {editando ? (
             <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive">
-              <Trash2 className="size-4" /> Remover
+              <Trash size={16} color="currentColor" variant="Linear" /> Remover
             </Button>
           ) : <span />}
           <div className="flex gap-2">

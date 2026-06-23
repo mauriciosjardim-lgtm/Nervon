@@ -1,4 +1,5 @@
-import { Check, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { TickCircle } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 export function CampoToggle({
@@ -31,7 +32,7 @@ export function CampoToggle({
         "grid size-6 shrink-0 place-items-center rounded-md border transition",
         value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background/40",
       )}>
-        {value && <Check className="size-3.5" />}
+        {value && <TickCircle size={14} color="currentColor" variant="Linear" />}
       </div>
     </button>
   );

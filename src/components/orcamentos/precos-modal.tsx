@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
-import { SlidersHorizontal, RotateCcw } from "lucide-react";
+import { SliderHorizontal, Refresh } from "iconsax-react";
 import { toast } from "sonner";
 import { useCustos, custosActions, CUSTOS_LABELS, type TabelaCustos } from "@/lib/mock/custos";
 
@@ -38,7 +38,7 @@ export function PrecosModal({ open, onOpenChange }: { open: boolean; onOpenChang
         <DialogHeader className="border-b border-border/60 p-5">
           <div className="flex items-center gap-3">
             <span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary">
-              <SlidersHorizontal className="size-4" />
+              <SliderHorizontal size={16} color="currentColor" variant="Linear" />
             </span>
             <div>
               <DialogTitle className="font-display">Configuração de preços</DialogTitle>
@@ -90,7 +90,7 @@ export function PrecosModal({ open, onOpenChange }: { open: boolean; onOpenChang
 
         <DialogFooter className="border-t border-border/60 p-4 sm:justify-between">
           <Button variant="ghost" onClick={restaurar} className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <RotateCcw className="size-3.5" /> Restaurar padrão
+            <Refresh size={14} color="currentColor" variant="Linear" /> Restaurar padrão
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

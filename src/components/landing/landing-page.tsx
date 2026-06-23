@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowRight, Sparkles, MessageSquareText, Mic, Bot, Check,
   Users, FileText, Clapperboard, Calendar, Wallet, LayoutDashboard,
-  Quote, Instagram, Linkedin, Youtube,
+  MessageSquareText, Quote, Instagram, Linkedin, Youtube,
 } from "lucide-react";
+import { ArrowRight2, MagicStar, Microphone, Cpu, TickCircle } from "iconsax-react";
 import { LogoMakersHub } from "@/components/logo-makershub";
 const openAuth = () => window.dispatchEvent(new Event("makershub:open-auth"));
 
@@ -98,7 +98,7 @@ function Header() {
             onClick={openAuth}
             className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#90F826] px-4 text-sm font-semibold text-[#0a0a0a] shadow-[0_0_28px_-6px_rgba(144,248,38,0.55)] transition hover:bg-[#a3ff45]"
           >
-            Começar grátis <ArrowRight className="size-4" />
+            Começar grátis <ArrowRight2 size={16} color="currentColor" variant="Linear" />
           </button>
         </div>
       </div>
@@ -112,7 +112,7 @@ function Hero() {
     <section id="top" className="relative px-5 pt-16 md:px-8 md:pt-24">
       <div className="mx-auto max-w-6xl text-center">
         <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-[#90F826]/25 bg-[#90F826]/[0.06] px-3 py-1 text-xs font-medium text-[#c8ff8a]">
-          <Sparkles className="size-3.5" /> Novo · Integração com ChatGPT
+          <MagicStar size={14} color="currentColor" variant="Linear" /> Novo · Integração com ChatGPT
         </div>
 
         <h1 className="mt-6 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
@@ -132,7 +132,7 @@ function Hero() {
             className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[#90F826] px-6 text-sm font-semibold text-[#0a0a0a] shadow-[0_0_40px_-8px_rgba(144,248,38,0.7)] transition hover:bg-[#a3ff45]"
           >
             Começar teste grátis de 7 dias
-            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+            <ArrowRight2 size={16} color="currentColor" variant="Linear" className="transition group-hover:translate-x-0.5" />
           </button>
           <a
             href="#como"
@@ -332,7 +332,7 @@ function AISection() {
           <div className="relative grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[#90F826]/30 bg-[#90F826]/10 px-3 py-1 text-xs font-semibold text-[#c8ff8a]">
-                <Bot className="size-3.5" /> Exclusivo MakersHub
+                <Cpu size={14} color="currentColor" variant="Linear" /> Exclusivo MakersHub
               </div>
               <h2 className="mt-5 font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">
                 Conecte seu <span className="text-[#90F826]">ChatGPT</span> e <span className="text-[#90F826]">Claude</span> ao MakersHub.
@@ -352,7 +352,7 @@ function AISection() {
                 ].map(t => (
                   <li key={t} className="flex items-start gap-3">
                     <div className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md bg-[#90F826]/20 text-[#90F826]">
-                      <Check className="size-3" />
+                      <TickCircle size={12} color="currentColor" variant="Linear" />
                     </div>
                     {t}
                   </li>
@@ -361,13 +361,13 @@ function AISection() {
 
               <div className="mt-8 flex flex-wrap gap-2 text-xs text-white/55">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                  <Mic className="size-3" /> Comando por voz
+                  <Microphone size={12} color="currentColor" variant="Linear" /> Comando por voz
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
                   <MessageSquareText className="size-3" /> Texto natural
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                  <Sparkles className="size-3" /> ChatGPT nativo
+                  <MagicStar size={12} color="currentColor" variant="Linear" /> ChatGPT nativo
                 </span>
               </div>
             </div>
@@ -486,7 +486,7 @@ function PhoneMock({
               <ChatBubble key={i} role={m.role}>{m.text}</ChatBubble>
             ))}
             <div className="mt-3 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2">
-              <Mic className="size-3.5 text-[#90F826]" />
+              <Microphone size={14} color="currentColor" variant="Linear" className="text-[#90F826]" />
               <span className="text-[10px] text-white/40">Mensagem</span>
             </div>
           </div>
@@ -609,7 +609,7 @@ function FinalCTA() {
                 onClick={openAuth}
                 className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[#90F826] px-7 text-sm font-semibold text-[#0a0a0a] shadow-[0_0_40px_-8px_rgba(144,248,38,0.7)] transition hover:bg-[#a3ff45]"
               >
-                Criar conta grátis <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                Criar conta grátis <ArrowRight2 size={16} color="currentColor" variant="Linear" className="transition group-hover:translate-x-0.5" />
               </button>
               <a
                 href="#features"

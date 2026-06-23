@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendUp, TrendDown } from "iconsax-react";
 import { StatusBadge } from "./status-badge";
 import { NovoLancamentoModal } from "./novo-lancamento-modal";
 import { fmtBRL, fmtData, type Lancamento } from "@/lib/mock/financeiro";
@@ -49,8 +49,8 @@ export function KpiDetalheSheet({ open, onOpenChange, titulo, descricao, lancame
                       l.tipo === "receita" ? "bg-success/10 ring-success/30" : "bg-destructive/10 ring-destructive/30"
                     }`}>
                       {l.tipo === "receita"
-                        ? <TrendingUp className="size-3.5 text-success" />
-                        : <TrendingDown className="size-3.5 text-destructive" />}
+                        ? <TrendUp size={14} color="currentColor" variant="Linear" className="text-success" />
+                        : <TrendDown size={14} color="currentColor" variant="Linear" className="text-destructive" />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{l.descricao}</p>

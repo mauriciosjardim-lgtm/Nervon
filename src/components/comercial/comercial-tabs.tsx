@@ -1,14 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutGrid, Sparkles, Building2, Users, Bell, CalendarDays } from "lucide-react";
+import { Element3, MagicStar, Buildings2, Profile2User, Notification, Calendar } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/comercial", label: "Jornada", icon: LayoutGrid, exact: true },
-  { to: "/comercial/leads", label: "Leads", icon: Sparkles },
-  { to: "/comercial/empresas", label: "Empresas", icon: Building2 },
-  { to: "/comercial/contatos", label: "Contatos", icon: Users },
-  { to: "/comercial/followups", label: "Follow-ups", icon: Bell },
-  { to: "/comercial/agenda", label: "Agenda Comercial", icon: CalendarDays },
+  { to: "/comercial", label: "Jornada", icon: Element3, exact: true },
+  { to: "/comercial/leads", label: "Leads", icon: MagicStar },
+  { to: "/comercial/empresas", label: "Empresas", icon: Buildings2 },
+  { to: "/comercial/contatos", label: "Contatos", icon: Profile2User },
+  { to: "/comercial/followups", label: "Follow-ups", icon: Notification },
+  { to: "/comercial/agenda", label: "Agenda Comercial", icon: Calendar },
 ];
 
 export function ComercialTabs() {
@@ -29,7 +29,7 @@ export function ComercialTabs() {
                 : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
             )}
           >
-            <Icon className="size-3.5 text-primary" />
+            <Icon size={14} color="currentColor" variant="Linear" className="text-primary" />
             {t.label}
           </Link>
         );

@@ -1,4 +1,5 @@
-import { Minus, Plus } from "lucide-react";
+import { Minus } from "lucide-react";
+import { Add } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 export function CampoNumero({
@@ -37,7 +38,7 @@ export function CampoNumero({
           type="button" onClick={() => set(value + step)}
           className="grid size-7 place-items-center rounded-md text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
         >
-          <Plus className="size-3.5" />
+          <Add size={14} color="currentColor" variant="Linear" />
         </button>
       </div>
     </div>

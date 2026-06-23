@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { TickCircle } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 export function WizardStepper({
@@ -29,7 +29,7 @@ export function WizardStepper({
                 done && "bg-success text-background",
                 !active && !done && "bg-surface-2",
               )}>
-                {done ? <Check className="size-3" /> : s.id + 1}
+                {done ? <TickCircle size={12} color="currentColor" variant="Linear" /> : s.id + 1}
               </span>
               <span className="hidden sm:inline">{s.label}</span>
             </button>

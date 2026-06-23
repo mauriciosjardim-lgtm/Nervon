@@ -6,7 +6,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, Plus } from "lucide-react";
+import { TrendUp, TrendDown, Add } from "iconsax-react";
 import { toast } from "sonner";
 import {
   CATEGORIAS_RECEITA, CATEGORIAS_DESPESA,
@@ -99,7 +99,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Plus className="size-4 text-primary" />
+            <Add size={16} color="currentColor" variant="Linear" className="text-primary" />
             {editar ? "Editar lançamento" : "Novo lançamento"}
           </DialogTitle>
           <DialogDescription>
@@ -118,7 +118,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
                 tipo === "receita" ? "bg-surface-3 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <TrendingUp className={cn("size-3.5", tipo === "receita" ? "text-success" : "text-primary")} />
+              <TrendUp size={14} color="currentColor" variant="Linear" className={cn(tipo === "receita" ? "text-success" : "text-primary")} />
               Receita
             </button>
             <button
@@ -129,7 +129,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
                 tipo === "despesa" ? "bg-surface-3 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <TrendingDown className={cn("size-3.5", tipo === "despesa" ? "text-destructive" : "text-primary")} />
+              <TrendDown size={14} color="currentColor" variant="Linear" className={cn(tipo === "despesa" ? "text-destructive" : "text-primary")} />
               Despesa
             </button>
           </div>

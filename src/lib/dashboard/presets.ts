@@ -70,17 +70,15 @@ export const roleLayouts: Record<Role, DashboardLayout> = {
   },
 };
 
-// Layout padrão rico — entregue no primeiro acesso, sem onboarding.
+// Layout padrão — KPI strip já mostra receita e projetos; widgets são complementares
 export const defaultLayout: DashboardLayout = {
   id: "cockpit",
   name: "Cockpit",
   widgets: [
-    w("receita-mes", "sm"), w("lucro-mes", "sm"), w("pipeline", "sm"), w("projetos-ativos", "sm"),
-    w("faturamento-grafico", "lg"),
-    w("meu-dia", "md"), w("tarefas-pendentes", "md"),
-    w("agenda", "md"), w("propostas-aguardando", "md"),
+    w("lucro-mes", "sm"), w("pipeline", "sm"), w("propostas-aguardando", "sm"), w("followups", "sm"),
     w("leads-quentes", "lg"),
-    w("followups", "md"), w("assistant", "md"),
+    w("tarefas-pendentes", "md"), w("meu-dia", "md"),
+    w("assistant", "md"),
   ],
 };
 

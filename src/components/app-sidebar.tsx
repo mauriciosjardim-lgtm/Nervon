@@ -1,32 +1,40 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Briefcase, FileText, FileSignature, FolderKanban,
-  Calendar, Wallet, Calculator, Library, TrendingUp, Sparkles, Settings, LogOut,
-} from "lucide-react";
+  Element3, Briefcase, Kanban, Calendar, EmptyWallet,
+  ClipboardText, DocumentText1, Calculator, Archive, StatusUp,
+  Flash, Setting2, Logout,
+} from "iconsax-react";
 import { useAuth } from "@/lib/auth";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import type { Icon } from "iconsax-react";
 
-const primary = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Comercial", url: "/comercial", icon: Briefcase },
-  { title: "Projetos", url: "/projetos", icon: FolderKanban },
-  { title: "Agenda", url: "/agenda", icon: Calendar },
-  { title: "Financeiro", url: "/financeiro", icon: Wallet },
+type NavItem = { title: string; url: string; icon: Icon };
+type SoonItem = { title: string; icon: Icon };
+
+const primary: NavItem[] = [
+  { title: "Dashboard",  url: "/",          icon: Element3    },
+  { title: "Comercial",  url: "/comercial",  icon: Briefcase   },
+  { title: "Projetos",   url: "/projetos",   icon: Kanban      },
+  { title: "Agenda",     url: "/agenda",     icon: Calendar    },
+  { title: "Financeiro", url: "/financeiro", icon: EmptyWallet },
 ];
 
-const comingSoon = [
-  { title: "Propostas", icon: FileText },
-  { title: "Contratos", icon: FileSignature },
+const comingSoon: SoonItem[] = [
+  { title: "Propostas",  icon: ClipboardText  },
+  { title: "Contratos",  icon: DocumentText1  },
 ];
 
-const tools = [
-  { title: "Orçamentos", url: "/orcamentos", icon: Calculator },
-  { title: "Recursos", url: "/biblioteca", icon: Library, emBreve: true },
-  { title: "Performance", url: "/performance", icon: TrendingUp },
+const tools: NavItem[] = [
+  { title: "Orçamentos",   url: "/orcamentos",   icon: Calculator },
+  { title: "Performance",  url: "/performance",  icon: StatusUp   },
+];
+
+const toolsSoon: SoonItem[] = [
+  { title: "Recursos", icon: Archive },
 ];
 
 export function AppSidebar() {
@@ -35,6 +43,8 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: s => s.location.pathname });
   const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
   const { empresa, usuario, signOut } = useAuth();
+
+  const iconProps = { size: 16, color: "currentColor", variant: "Linear" as const };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -63,7 +73,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} className="group/item h-9 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-medium">
                     <Link to={item.url}>
-                      <item.icon className="size-4" />
+                      <item.icon {...iconProps} />
                       <span>{item.title}</span>
                       {isActive(item.url) && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />}
                     </Link>
@@ -73,7 +83,7 @@ export function AppSidebar() {
               {comingSoon.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={`${item.title} — Em breve`} className="h-9 cursor-not-allowed opacity-40 hover:bg-transparent">
-                    <item.icon className="size-4" />
+                    <item.icon {...iconProps} />
                     <span>{item.title}</span>
                     {!collapsed && <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">Em breve</span>}
                   </SidebarMenuButton>
@@ -89,20 +99,21 @@ export function AppSidebar() {
             <SidebarMenu>
               {tools.map(item => (
                 <SidebarMenuItem key={item.title}>
-                  {item.emBreve ? (
-                    <SidebarMenuButton tooltip={`${item.title} — Em breve`} className="h-9 cursor-not-allowed opacity-40 hover:bg-transparent">
-                      <item.icon className="size-4" />
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} className="h-9 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary">
+                    <Link to={item.url}>
+                      <item.icon {...iconProps} />
                       <span>{item.title}</span>
-                      {!collapsed && <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">Em breve</span>}
-                    </SidebarMenuButton>
-                  ) : (
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} className="h-9 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary">
-                      <Link to={item.url}>
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              {toolsSoon.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton tooltip={`${item.title} — Em breve`} className="h-9 cursor-not-allowed opacity-40 hover:bg-transparent">
+                    <item.icon {...iconProps} />
+                    <span>{item.title}</span>
+                    {!collapsed && <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">Em breve</span>}
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -115,7 +126,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton tooltip="MakersHub Intelligence — Em breve" className="h-9 cursor-not-allowed opacity-50 hover:bg-transparent">
-                  <Sparkles className="size-4" />
+                  <Flash {...iconProps} />
                   <span>Intelligence</span>
                   {!collapsed && <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">Em breve</span>}
                 </SidebarMenuButton>
@@ -130,7 +141,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/configuracoes")} tooltip="Configurações" className="h-9 data-[active=true]:bg-sidebar-accent">
               <Link to="/configuracoes">
-                <Settings className="size-4" />
+                <Setting2 {...iconProps} />
                 <span>Configurações</span>
               </Link>
             </SidebarMenuButton>
@@ -148,7 +159,7 @@ export function AppSidebar() {
               </div>
             </Link>
             <button onClick={signOut} title="Sair" className="shrink-0 rounded-md p-1 text-muted-foreground/50 transition hover:text-destructive">
-              <LogOut className="size-3.5" />
+              <Logout size={14} color="currentColor" variant="Linear" />
             </button>
           </div>
         )}

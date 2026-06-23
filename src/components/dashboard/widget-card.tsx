@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Maximize2 } from "lucide-react";
+import { GripVertical } from "lucide-react";
+import { CloseCircle, Maximize } from "iconsax-react";
 import { widgetRegistry } from "@/lib/dashboard/widgets";
 import type { WidgetInstance, WidgetSize } from "@/lib/dashboard/types";
 import {
@@ -52,7 +53,7 @@ export function WidgetCard({
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-surface-3 hover:text-foreground">
-                <Maximize2 className="size-3" />
+                <Maximize size={12} color="currentColor" variant="Linear" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {(["sm", "md", "lg"] as WidgetSize[]).map(s => (
@@ -63,7 +64,7 @@ export function WidgetCard({
               </DropdownMenuContent>
             </DropdownMenu>
             <button onClick={onRemove} className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-destructive/20 hover:text-destructive">
-              <X className="size-3.5" />
+              <CloseCircle size={14} color="currentColor" variant="Linear" />
             </button>
           </div>
         )}
