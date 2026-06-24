@@ -54,11 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 5000);
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      clearTimeout(fallback);
       if (session?.user) {
         const perfil = await loadPerfil(session.user.id);
+        clearTimeout(fallback);
         setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
       } else {
+        clearTimeout(fallback);
         setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
       }
     });
@@ -66,8 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
       if (session?.user) {
         const perfil = await loadPerfil(session.user.id);
+        clearTimeout(fallback);
         setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
       } else {
+        clearTimeout(fallback);
         setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
       }
     });
