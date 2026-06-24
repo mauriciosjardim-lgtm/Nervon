@@ -617,8 +617,8 @@ function Pricing() {
       } else {
         setErro("Não foi possível iniciar o pagamento. Tente novamente.");
       }
-    } catch {
-      setErro("Erro ao conectar com o servidor. Tente novamente.");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

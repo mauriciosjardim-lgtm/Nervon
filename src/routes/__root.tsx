@@ -147,8 +147,8 @@ function AppShell() {
     );
   }
 
-  // Visitante deslogado na raiz → landing page de marketing
-  if (!session && pathname === "/") return <LandingPage />;
+  // Raiz → landing page enquanto não há sessão confirmada com perfil completo
+  if (pathname === "/" && (!session || !usuario)) return <LandingPage />;
 
   if (isAlwaysPublic) return <Outlet />;
 
