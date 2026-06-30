@@ -46,12 +46,12 @@ export function EntregavelModal({
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg gap-5 p-7">
         <DialogHeader><DialogTitle className="font-display">{editando ? "Editar entregável" : "Novo entregável"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5"><Label className="text-xs">Título</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Reel #03 — Skincare" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Tipo</Label>
+        <div className="space-y-4">
+          <div className="space-y-2"><Label className="text-xs">Título</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Reel #03 — Skincare" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Tipo</Label>
               <Select value={tipo} onValueChange={v => setTipo(v as TipoEntregavel)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(TIPOS_ENTREGAVEL).map(([id, t]) => {
@@ -60,17 +60,17 @@ export function EntregavelModal({
                 })}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5"><Label className="text-xs">Status</Label>
+            <div className="space-y-2"><Label className="text-xs">Status</Label>
               <Select value={status} onValueChange={v => setStatus(v as StatusEntregavel)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(STATUS_ENTREGAVEL).map(([id, s]) => <SelectItem key={id} value={id}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5"><Label className="text-xs">Link (Drive, Vimeo, Dropbox…)</Label><Input value={link} onChange={e => setLink(e.target.value)} placeholder="https://drive.google.com/…" /></div>
-          <div className="space-y-1.5"><Label className="text-xs">Notas</Label><Textarea rows={3} value={notas} onChange={e => setNotas(e.target.value)} placeholder="Observações, feedback do cliente, versão…" /></div>
+          <div className="space-y-2"><Label className="text-xs">Link (Drive, Vimeo, Dropbox…)</Label><Input value={link} onChange={e => setLink(e.target.value)} placeholder="https://drive.google.com/…" /></div>
+          <div className="space-y-2"><Label className="text-xs">Notas</Label><Textarea rows={3} value={notas} onChange={e => setNotas(e.target.value)} placeholder="Observações, feedback do cliente, versão…" /></div>
         </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t border-border/40 pt-4 sm:justify-between">
           {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button></div>
         </DialogFooter>

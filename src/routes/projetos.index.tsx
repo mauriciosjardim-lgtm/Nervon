@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { Add, SearchNormal, Profile2User, Calendar, DollarCircle, TickSquare, Flag, CloseCircle } from "iconsax-react";
+import { Add, SearchNormal, Profile2User, Calendar, DollarCircle, TickSquare, Flag, CloseCircle, FolderOpen } from "iconsax-react";
 import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,20 +41,20 @@ function ProjetosPage() {
   const valorTotal = projetos.filter(p => !["concluido"].includes(p.fase)).reduce((s, p) => s + p.valor, 0);
 
   return (
-    <div className="space-y-4 px-4 py-5 md:px-8 md:py-7">
-      <header>
-        <h1 className="font-display text-2xl font-semibold">Projetos</h1>
-        <p className="text-xs text-muted-foreground">{ativos} ativos · {projetos.length} no total · R$ {valorTotal.toLocaleString("pt-BR")} em pipeline</p>
+    <div className="space-y-6 px-4 py-6 md:px-8 md:py-10">
+      <header className="space-y-1.5">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">Projetos</h1>
+        <p className="text-sm text-muted-foreground">{ativos} ativos · {projetos.length} no total · R$ {valorTotal.toLocaleString("pt-BR")} em pipeline</p>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface-1/40 p-2">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-1/40 p-3">
         <Button size="sm" onClick={() => setModal(true)} className="shrink-0"><Add size={16} color="currentColor" variant="Linear" /> Novo projeto</Button>
-        <div className="relative flex-1 min-w-[180px]">
-          <SearchNormal size={14} color="currentColor" variant="Linear" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-8 pl-8 text-xs" />
+        <div className="relative flex-1 min-w-[200px]">
+          <SearchNormal size={14} color="currentColor" variant="Linear" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-9 pl-9 text-sm" />
         </div>
         <Select value={filtroFase} onValueChange={v => setFiltroFase(v as FaseProjeto | "todos")}>
-          <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[190px] text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todas as fases</SelectItem>
             {Object.entries(FASES).map(([id, f]) => <SelectItem key={id} value={id}>{f.label}</SelectItem>)}
@@ -63,11 +63,18 @@ function ProjetosPage() {
       </div>
 
       {filtrados.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-surface-1/30 p-12 text-center">
-          <p className="text-sm text-muted-foreground">Nenhum projeto encontrado.</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface-1/30 px-6 py-16 text-center">
+          <div className="grid size-12 place-items-center rounded-full bg-surface-2/60 text-muted-foreground/60">
+            <FolderOpen size={22} color="currentColor" variant="Linear" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">Nenhum projeto encontrado</p>
+            <p className="text-xs text-muted-foreground">Ajuste a busca ou o filtro de fase, ou crie um novo projeto.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setModal(true)} className="mt-1"><Add size={16} color="currentColor" variant="Linear" /> Novo projeto</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:gap-5">
           {filtrados.map(p => {
             const ts = tarefas.filter(t => t.projetoId === p.id);
             const ms = marcos.filter(m => m.projetoId === p.id);
@@ -77,38 +84,38 @@ function ProjetosPage() {
                 role="link" tabIndex={0}
                 onClick={() => navigate({ to: "/projetos/$id", params: { id: p.id } })}
                 onKeyDown={e => { if (e.key === "Enter") navigate({ to: "/projetos/$id", params: { id: p.id } }); }}
-                className="group relative cursor-pointer rounded-xl border border-border bg-surface-1/40 p-4 transition hover:border-primary/40 hover:bg-surface-1/60">
+                className="group relative cursor-pointer rounded-xl border border-border bg-surface-1/40 p-5 transition hover:border-primary/40 hover:bg-surface-1/60">
                 <button
                   onClick={e => { e.stopPropagation(); if (confirm(`Remover projeto "${p.nome}"?`)) projetosActions.removerProjeto(p.id); }}
-                  className="absolute right-2 top-2 z-10 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/80 hover:text-white"
+                  className="absolute right-3 top-3 z-10 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/80 hover:text-white"
                   title="Remover projeto"
                 >
                   <CloseCircle size={12} color="currentColor" variant="Linear" />
                 </button>
 
                 <div className="flex items-start justify-between gap-2 pr-6">
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 space-y-0.5">
                     <h3 className="truncate font-display text-base font-semibold group-hover:text-primary">{p.nome}</h3>
                     <p className="truncate text-xs text-muted-foreground">{p.cliente}</p>
                   </div>
                   <span className={cn("shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium", fase.classe)}>{fase.label}</span>
                 </div>
 
-                <div className="mt-3 space-y-1">
+                <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                     <span>Progresso</span><span className="tabular-nums">{p.progresso}%</span>
                   </div>
-                  <Progress value={p.progresso} className="h-1.5" />
+                  <Progress value={p.progresso} className="h-1" />
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                <div className="mt-4 grid grid-cols-2 gap-2.5 text-[11px]">
                   <Stat icon={TickSquare} label={`${ts.filter(t => t.concluida).length}/${ts.length} tarefas`} />
                   <Stat icon={Flag} label={`${ms.length} marcos`} />
                   <Stat icon={Profile2User} label={`${p.equipe.length} pessoas`} />
                   <Stat icon={Calendar} label={format(new Date(p.dataEntrega), "dd MMM", { locale: ptBR })} />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-3">
+                <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-4">
                   <div className="flex -space-x-1.5">
                     {p.equipe.slice(0, 4).map((m, i) => (
                       <div key={i} className="grid size-6 place-items-center rounded-full border-2 border-card bg-gradient-to-br from-primary to-primary-glow text-[9px] font-bold text-primary-foreground">
