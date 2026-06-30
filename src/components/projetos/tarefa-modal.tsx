@@ -48,21 +48,21 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg gap-5 p-7">
         <DialogHeader><DialogTitle className="font-display">{editando ? "Editar tarefa" : "Nova tarefa"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5"><Label className="text-xs">Título</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Responsável</Label><Input value={responsavel} onChange={e => setResponsavel(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Prazo (opcional)</Label><Input type="datetime-local" value={prazo} onChange={e => setPrazo(e.target.value)} /></div>
+        <div className="space-y-4">
+          <div className="space-y-2"><Label className="text-xs">Título</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Responsável</Label><Input value={responsavel} onChange={e => setResponsavel(e.target.value)} /></div>
+            <div className="space-y-2"><Label className="text-xs">Prazo (opcional)</Label><Input type="datetime-local" value={prazo} onChange={e => setPrazo(e.target.value)} /></div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Prioridade</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Prioridade</Label>
               <Select value={prioridade} onValueChange={v => setPrioridade(v as Prioridade)}><SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(PRIORIDADES).map(([id, p]) => <SelectItem key={id} value={id}>{p.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5"><Label className="text-xs">Fase</Label>
+            <div className="space-y-2"><Label className="text-xs">Fase</Label>
               <Select value={status} onValueChange={v => setStatus(v as StatusTarefa)}><SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(fases ?? []).map(f => <SelectItem key={f} value={f}>{getFaseInfo(f).label}</SelectItem>)}
@@ -70,10 +70,10 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5"><Label className="text-xs">Descrição</Label><Textarea rows={2} value={descricao} onChange={e => setDescricao(e.target.value)} /></div>
-          {prazo && <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-[11px] text-primary">📅 Esta tarefa aparecerá na Agenda automaticamente</p>}
+          <div className="space-y-2"><Label className="text-xs">Descrição</Label><Textarea rows={2} value={descricao} onChange={e => setDescricao(e.target.value)} /></div>
+          {prazo && <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-primary">📅 Esta tarefa aparecerá na Agenda automaticamente</p>}
         </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t border-border/40 pt-4 sm:justify-between">
           {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button></div>
         </DialogFooter>

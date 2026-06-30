@@ -51,48 +51,50 @@ function ProjetoDetalhe() {
   const fase = FASES[projeto.fase];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 px-4 py-6 md:px-8 md:py-10">
       <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Todos os projetos</Link>
 
-      <header className="rounded-xl border border-border bg-surface-1/40 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <header className="rounded-xl border border-border bg-surface-1/40 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className={cn("rounded-md border px-2 py-0.5 text-[10px] font-medium", fase.classe)}>{fase.label}</span>
               <span className="text-[10px] text-muted-foreground">Iniciado {formatDistanceToNow(new Date(projeto.dataInicio), { locale: ptBR, addSuffix: true })}</span>
             </div>
-            <h1 className="mt-2 font-display text-2xl font-semibold">{projeto.nome}</h1>
-            <p className="text-sm text-muted-foreground">{projeto.cliente}</p>
-            {projeto.descricao && <p className="mt-2 text-xs text-muted-foreground">{projeto.descricao}</p>}
+            <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">{projeto.nome}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{projeto.cliente}</p>
+            {projeto.descricao && <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">{projeto.descricao}</p>}
           </div>
           <div className="flex items-center gap-2">
             <Select value={projeto.fase} onValueChange={v => projetosActions.atualizarProjeto(projeto.id, { fase: v as FaseProjeto })}>
-              <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>{Object.entries(FASES).map(([id, f]) => <SelectItem key={id} value={id}>{f.label}</SelectItem>)}</SelectContent>
             </Select>
             <Button variant="outline" size="sm" onClick={() => setEditandoProjeto(true)}><Edit2 size={14} color="currentColor" variant="Linear" /> Editar</Button>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/40 pt-6 md:grid-cols-4 md:gap-4">
           <StatCard icon={Calendar} label="Entrega" valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })} />
           <StatCard icon={DollarCircle} label="Valor" valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`} />
           <StatCard icon={Profile2User} label="Equipe" valor={`${projeto.equipe.length} pessoas`} />
-          <StatCard icon={Flag} label="Progresso" valor={`${projeto.progresso}%`} extra={<Progress value={projeto.progresso} className="mt-1 h-1" />} />
+          <StatCard icon={Flag} label="Progresso" valor={`${projeto.progresso}%`} extra={<Progress value={projeto.progresso} className="mt-2 h-1" />} />
         </div>
       </header>
 
       <Tabs defaultValue="tarefas">
-        <TabsList>
-          <TabsTrigger value="tarefas">Tarefas ({minhasTarefas.length})</TabsTrigger>
-          <TabsTrigger value="entregaveis">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
-          <TabsTrigger value="marcos">Marcos ({meusMarcos.length})</TabsTrigger>
-          <TabsTrigger value="info">Informações</TabsTrigger>
-          <TabsTrigger value="equipe">Equipe</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="h-11 gap-1 p-1.5">
+            <TabsTrigger value="tarefas" className="px-4 py-2">Tarefas ({minhasTarefas.length})</TabsTrigger>
+            <TabsTrigger value="entregaveis" className="px-4 py-2">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
+            <TabsTrigger value="marcos" className="px-4 py-2">Marcos ({meusMarcos.length})</TabsTrigger>
+            <TabsTrigger value="info" className="px-4 py-2">Informações</TabsTrigger>
+            <TabsTrigger value="equipe" className="px-4 py-2">Equipe</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="tarefas" className="mt-3">
-          <div className="mb-3 flex items-center gap-3">
+        <TabsContent value="tarefas" className="mt-5">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <Button size="sm" onClick={() => setTarefaModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Nova tarefa</Button>
             <p className="text-xs text-muted-foreground">Arraste entre colunas para mudar fase · clique no card para editar</p>
           </div>
@@ -101,32 +103,32 @@ function ProjetoDetalhe() {
           </div>
         </TabsContent>
 
-        <TabsContent value="entregaveis" className="mt-3">
-          <div className="mb-3 flex items-center justify-between">
+        <TabsContent value="entregaveis" className="mt-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">Cada item representa um vídeo, foto, doc ou peça que você precisa entregar — com link pro Drive e status.</p>
             <Button size="sm" onClick={() => setEntregavelModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Novo entregável</Button>
           </div>
           <ListaEntregaveis entregaveis={meusEntregaveis} onEditar={e => setEntregavelModal({ open: true, entregavel: e })} />
         </TabsContent>
 
-        <TabsContent value="marcos" className="mt-3">
-          <div className="mb-3 flex items-center justify-between">
+        <TabsContent value="marcos" className="mt-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">Marcos importantes do projeto. Sempre aparecem na Agenda.</p>
             <Button size="sm" onClick={() => setMarcoModal({ open: true })}><Add size={16} color="currentColor" variant="Linear" /> Novo marco</Button>
           </div>
           <ListaMarcos marcos={meusMarcos} onEditar={m => setMarcoModal({ open: true, marco: m })} />
         </TabsContent>
 
-        <TabsContent value="info" className="mt-3">
+        <TabsContent value="info" className="mt-5">
           <InfoProjeto projeto={projeto} />
         </TabsContent>
 
-        <TabsContent value="equipe" className="mt-3">
-          <div className="rounded-xl border border-border bg-surface-1/40 p-4">
-            <h3 className="mb-3 font-display text-sm font-semibold">Equipe do projeto</h3>
-            <div className="space-y-2">
+        <TabsContent value="equipe" className="mt-5">
+          <div className="rounded-xl border border-border bg-surface-1/40 p-5">
+            <h3 className="mb-4 font-display text-sm font-semibold">Equipe do projeto</h3>
+            <div className="space-y-2.5">
               {projeto.equipe.map((m, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg border border-border/40 bg-surface-2/30 p-3">
+                <div key={i} className="flex items-center gap-3 rounded-lg border border-border/40 bg-surface-2/30 p-3.5">
                   <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary-glow text-xs font-bold text-primary-foreground">
                     {m.split(" ").map(w => w[0]).slice(0, 2).join("")}
                   </div>
@@ -155,9 +157,9 @@ function ProjetoDetalhe() {
 
 function StatCard({ icon: Icon, label, valor, extra }: { icon: typeof IconsaxIcon; label: string; valor: string; extra?: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border/40 bg-surface-2/30 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}</div>
-      <p className="mt-1 font-display text-sm font-semibold tabular-nums">{valor}</p>
+    <div className="rounded-lg border border-border/40 bg-surface-2/30 p-4">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"><Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}</div>
+      <p className="mt-1.5 font-display text-base font-semibold tabular-nums">{valor}</p>
       {extra}
     </div>
   );
@@ -194,7 +196,7 @@ function KanbanTarefas({ tarefas, projetoId, fases, onEditar }: {
 
   return (
     <DndContext sensors={sensors} onDragStart={e => setDraggingId(String(e.active.id))} onDragEnd={handleDragEnd}>
-      <div className="flex gap-3 overflow-x-auto pb-3">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {fases.map((faseId, idx) => {
           const info = getFaseInfo(faseId);
           const items = tarefas.filter(t => t.status === faseId);
@@ -213,19 +215,19 @@ function KanbanTarefas({ tarefas, projetoId, fases, onEditar }: {
         })}
 
         {/* botão nova coluna */}
-        <div className="min-w-[220px] flex-shrink-0">
+        <div className="min-w-[260px] w-[260px] flex-shrink-0">
           {!adicionando ? (
             <button onClick={() => setAdicionando(true)}
-              className="flex h-full min-h-[80px] w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/40 text-xs text-muted-foreground/50 transition hover:border-primary/40 hover:text-primary">
+              className="flex h-full min-h-[88px] w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/40 text-xs text-muted-foreground/50 transition hover:border-primary/40 hover:text-primary">
               <Add size={14} color="currentColor" variant="Linear" /> Nova coluna
             </button>
           ) : (
-            <div className="rounded-xl border border-primary/40 bg-surface-1/40 p-3 space-y-2">
+            <div className="space-y-2.5 rounded-xl border border-primary/40 bg-surface-1/40 p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Nova fase</p>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {SUGESTOES_FASE.filter(s => !fases.includes(s.toLowerCase().replace(/\s+/g, "_"))).slice(0, 6).map(s => (
                   <button key={s} onClick={() => confirmarNovaFase(s)}
-                    className="rounded-md border border-border/60 bg-surface-2/60 px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary">
+                    className="rounded-md border border-border/60 bg-surface-2/60 px-2 py-1 text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary">
                     {s}
                   </button>
                 ))}
@@ -233,12 +235,12 @@ function KanbanTarefas({ tarefas, projetoId, fases, onEditar }: {
               <input autoFocus value={novaFase} onChange={e => setNovaFase(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") confirmarNovaFase(novaFase); if (e.key === "Escape") setAdicionando(false); }}
                 placeholder="Nome personalizado…"
-                className="h-8 w-full rounded-lg border border-border/60 bg-background/40 px-2.5 text-xs outline-none focus:border-primary/50" />
+                className="h-9 w-full rounded-lg border border-border/60 bg-background/40 px-3 text-xs outline-none focus:border-primary/50" />
               <div className="flex gap-1.5">
                 <button onClick={() => confirmarNovaFase(novaFase)} disabled={!novaFase.trim()}
-                  className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-40">Adicionar</button>
+                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground disabled:opacity-40">Adicionar</button>
                 <button onClick={() => { setAdicionando(false); setNovaFase(""); }}
-                  className="rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground">Cancelar</button>
+                  className="rounded-lg border border-border/60 px-3 py-2 text-xs text-muted-foreground">Cancelar</button>
               </div>
             </div>
           )}
@@ -261,10 +263,10 @@ function KanbanColuna({ faseId, label, isConcluida, podeEsquerda, podeDireita, o
   const { setNodeRef, isOver } = useDroppable({ id: faseId });
   return (
     <div ref={setNodeRef}
-      className={cn("min-w-[240px] w-[240px] flex-shrink-0 rounded-xl border bg-surface-1/40 p-3 transition",
+      className={cn("min-w-[260px] w-[260px] flex-shrink-0 rounded-xl border bg-surface-1/40 p-4 transition",
         isConcluida ? "border-muted-foreground/20" : "border-border",
         isOver && "border-primary/50 bg-primary/5")}>
-      <div className="mb-2 flex items-center gap-1">
+      <div className="mb-3 flex items-center gap-1.5">
         <button onClick={() => onMover(-1)} disabled={!podeEsquerda}
           className="rounded p-0.5 text-muted-foreground/40 transition hover:text-muted-foreground disabled:invisible">
           <ArrowLeft2 size={12} color="currentColor" variant="Linear" />
@@ -284,7 +286,7 @@ function KanbanColuna({ faseId, label, isConcluida, podeEsquerda, podeDireita, o
           </button>
         )}
       </div>
-      <div className="space-y-2 min-h-[40px]">
+      <div className="space-y-2.5 min-h-[48px]">
         {count === 0 && <p className="rounded-md border border-dashed border-border/30 p-3 text-center text-[10px] text-muted-foreground/40">Arraste tarefas aqui</p>}
         {children}
       </div>
@@ -303,11 +305,11 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
 
   return (
     <div ref={setNodeRef} style={style}
-      className={cn("group rounded-lg border border-border/60 bg-card p-2.5 transition",
+      className={cn("group rounded-lg border border-border/60 bg-card p-3.5 transition",
         isDragging && !overlay && "opacity-40",
         overlay && "shadow-xl rotate-1 scale-105",
         !isDragging && "hover:border-primary/40")}>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
         {/* toggle concluída */}
         <button
           onClick={e => { e.stopPropagation(); projetosActions.atualizarTarefa(tarefa.id, { concluida: !tarefa.concluida }); }}
@@ -320,18 +322,18 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
 
         {/* clique no conteúdo abre o modal */}
         <button onClick={onEditar} className="min-w-0 flex-1 text-left">
-          <p className={cn("text-xs font-medium leading-snug", tarefa.concluida && "text-muted-foreground line-through")}>
+          <p className={cn("text-[13px] font-medium leading-snug", tarefa.concluida && "text-muted-foreground line-through")}>
             {tarefa.titulo}
           </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
-            <span className={cn("font-medium", prio.classe)}>● {prio.label}</span>
-            <span className="text-muted-foreground">{tarefa.responsavel}</span>
-            {tarefa.prazo && (
-              <span className="ml-auto inline-flex items-center gap-0.5 tabular-nums text-muted-foreground">
-                <Calendar size={10} color="currentColor" variant="Linear" />{format(new Date(tarefa.prazo), "dd MMM", { locale: ptBR })}
-              </span>
-            )}
+          <div className="mt-2 flex items-center gap-2 text-[10px]">
+            <span className={cn("inline-flex items-center gap-1 font-medium", prio.classe)}>● {prio.label}</span>
+            <span className="truncate text-muted-foreground">{tarefa.responsavel}</span>
           </div>
+          {tarefa.prazo && (
+            <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] tabular-nums text-muted-foreground">
+              <Calendar size={10} color="currentColor" variant="Linear" />{format(new Date(tarefa.prazo), "dd MMM", { locale: ptBR })}
+            </div>
+          )}
         </button>
 
         {/* handle de drag */}
@@ -350,19 +352,31 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
 
 function ListaMarcos({ marcos, onEditar }: { marcos: Marco[]; onEditar: (m: Marco) => void }) {
   const ordenados = [...marcos].sort((a, b) => +new Date(a.data) - +new Date(b.data));
-  if (ordenados.length === 0) return <div className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">Nenhum marco ainda. Crie marcos para acompanhar entregas importantes.</div>;
+  if (ordenados.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface-1/30 px-6 py-16 text-center">
+        <div className="grid size-12 place-items-center rounded-full bg-surface-2/60 text-muted-foreground/60">
+          <Flag size={22} color="currentColor" variant="Linear" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Nenhum marco ainda</p>
+          <p className="text-xs text-muted-foreground">Crie marcos para acompanhar entregas importantes — eles aparecem na Agenda.</p>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {ordenados.map(m => {
         const passou = new Date(m.data) < new Date();
         return (
-          <button key={m.id} onClick={() => onEditar(m)} className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface-1/40 p-3 text-left transition hover:border-primary/40">
+          <button key={m.id} onClick={() => onEditar(m)} className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface-1/40 p-4 text-left transition hover:border-primary/40">
             <button onClick={(e) => { e.stopPropagation(); projetosActions.atualizarMarco(m.id, { status: m.status === "concluido" ? "pendente" : "concluido" }); }}>
               {m.status === "concluido" ? <TickCircle size={20} color="currentColor" variant="Linear" className="text-success" /> : <Flag size={20} color="currentColor" variant="Linear" className={cn(passou ? "text-destructive" : "text-warning")} />}
             </button>
             <div className="flex-1">
               <p className={cn("text-sm font-medium", m.status === "concluido" && "text-muted-foreground line-through")}>{m.titulo}</p>
-              <p className="text-[11px] text-muted-foreground">{format(new Date(m.data), "EEEE, dd MMM yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{format(new Date(m.data), "EEEE, dd MMM yyyy 'às' HH:mm", { locale: ptBR })}</p>
             </div>
             {m.status !== "concluido" && passou && <span className="rounded-md border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[10px] text-destructive">Atrasado</span>}
           </button>
@@ -374,7 +388,17 @@ function ListaMarcos({ marcos, onEditar }: { marcos: Marco[]; onEditar: (m: Marc
 
 function ListaEntregaveis({ entregaveis, onEditar }: { entregaveis: Entregavel[]; onEditar: (e: Entregavel) => void }) {
   if (entregaveis.length === 0) {
-    return <div className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">Nenhum entregável ainda. Crie um pra cada peça que precisa ser entregue (vídeo, foto, doc…) e cole o link do Drive.</div>;
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface-1/30 px-6 py-16 text-center">
+        <div className="grid size-12 place-items-center rounded-full bg-surface-2/60 text-muted-foreground/60">
+          <DocumentDownload size={22} color="currentColor" variant="Linear" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Nenhum entregável ainda</p>
+          <p className="text-xs text-muted-foreground">Crie um pra cada peça que precisa ser entregue (vídeo, foto, doc…) e cole o link do Drive.</p>
+        </div>
+      </div>
+    );
   }
   const grupos: { id: StatusEntregavel; label: string }[] = [
     { id: "pendente", label: "Pendentes" },
@@ -383,14 +407,14 @@ function ListaEntregaveis({ entregaveis, onEditar }: { entregaveis: Entregavel[]
     { id: "entregue", label: "Entregues" },
   ];
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {grupos.map(g => {
         const items = entregaveis.filter(e => e.status === g.id);
         if (items.length === 0) return null;
         return (
           <div key={g.id}>
-            <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{g.label} · {items.length}</h4>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <h4 className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{g.label} · {items.length}</h4>
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
               {items.map(e => <EntregavelCard key={e.id} entregavel={e} onEditar={() => onEditar(e)} />)}
             </div>
           </div>
@@ -405,12 +429,12 @@ function EntregavelCard({ entregavel, onEditar }: { entregavel: Entregavel; onEd
   const TipoIcon = TIPO_ENTREGAVEL_ICONS[entregavel.tipo];
   const status = STATUS_ENTREGAVEL[entregavel.status];
   return (
-    <div className="group rounded-lg border border-border/60 bg-card p-3 transition hover:border-primary/40">
-      <div className="flex items-start gap-2.5">
+    <div className="group rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/40">
+      <div className="flex items-start gap-3">
         <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-border/40 bg-surface-2/40 text-primary"><TipoIcon className="size-4" /></div>
         <button onClick={onEditar} className="min-w-0 flex-1 text-left">
           <p className="truncate text-sm font-medium">{entregavel.titulo}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
             <span className="text-muted-foreground">{tipo.label}</span>
             <span className={cn("rounded-md border px-1.5 py-0.5 font-medium", status.classe)}>{status.label}</span>
           </div>
@@ -442,18 +466,18 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-      <section className="rounded-xl border border-border bg-surface-1/40 p-4">
-        <div className="mb-3 flex items-center justify-between">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+      <section className="rounded-xl border border-border bg-surface-1/40 p-5">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><Link2 size={14} color="currentColor" variant="Linear" className="text-primary" /> Links do projeto</h3>
           <span className="text-[10px] text-muted-foreground">{projeto.links?.length ?? 0} link(s)</span>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {(projeto.links ?? []).length === 0 && (
-            <p className="rounded-md border border-dashed border-border/40 p-3 text-center text-[11px] text-muted-foreground">Nenhum link ainda. Adicione a pasta raiz no Drive, o brief, o moodboard…</p>
+            <p className="rounded-md border border-dashed border-border/40 p-4 text-center text-[11px] text-muted-foreground">Nenhum link ainda. Adicione a pasta raiz no Drive, o brief, o moodboard…</p>
           )}
           {(projeto.links ?? []).map(l => (
-            <div key={l.id} className="group flex items-center gap-2 rounded-lg border border-border/40 bg-surface-2/30 p-2">
+            <div key={l.id} className="group flex items-center gap-2 rounded-lg border border-border/40 bg-surface-2/30 p-2.5">
               <a href={l.url} target="_blank" rel="noreferrer" className="flex min-w-0 flex-1 items-center gap-2 text-xs hover:text-primary">
                 <Export size={12} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
                 <span className="truncate font-medium">{l.label}</span>
@@ -465,15 +489,15 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
             </div>
           ))}
         </div>
-        <div className="mt-3 grid grid-cols-[1fr_2fr_auto] gap-1.5">
-          <Input value={novoLabel} onChange={e => setNovoLabel(e.target.value)} placeholder="Rótulo" className="h-8 text-xs" />
-          <Input value={novoUrl} onChange={e => setNovoUrl(e.target.value)} placeholder="https://…" className="h-8 text-xs" />
+        <div className="mt-4 grid grid-cols-[1fr_2fr_auto] gap-2 border-t border-border/40 pt-4">
+          <Input value={novoLabel} onChange={e => setNovoLabel(e.target.value)} placeholder="Rótulo" className="h-9 text-xs" />
+          <Input value={novoUrl} onChange={e => setNovoUrl(e.target.value)} placeholder="https://…" className="h-9 text-xs" />
           <Button size="sm" variant="outline" onClick={addLink} disabled={!novoLabel.trim() || !novoUrl.trim()}><Add size={14} color="currentColor" variant="Linear" /></Button>
         </div>
       </section>
 
-      <section className="rounded-xl border border-border bg-surface-1/40 p-4">
-        <div className="mb-3 flex items-center justify-between">
+      <section className="rounded-xl border border-border bg-surface-1/40 p-5">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-1.5 font-display text-sm font-semibold"><DocumentText1 size={14} color="currentColor" variant="Linear" className="text-primary" /> Anotações</h3>
           {dirty && <Button size="sm" variant="outline" onClick={salvarNotas}><DocumentDownload size={14} color="currentColor" variant="Linear" /> Salvar</Button>}
         </div>
@@ -485,7 +509,7 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
           placeholder="Briefing detalhado, preferências do cliente, decisões importantes, contatos, observações de produção…"
           className="text-xs"
         />
-        <p className="mt-1.5 text-[10px] text-muted-foreground">Salva automaticamente ao sair do campo.</p>
+        <p className="mt-2 text-[10px] text-muted-foreground">Salva automaticamente ao sair do campo.</p>
       </section>
     </div>
   );

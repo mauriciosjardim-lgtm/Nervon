@@ -55,30 +55,30 @@ export function ProjetoModal({ open, onClose, projeto }: { open: boolean; onClos
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl gap-5 p-7">
         <DialogHeader><DialogTitle className="font-display">{editando ? "Editar projeto" : "Novo projeto"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5"><Label className="text-xs">Nome do projeto</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Campanha verão" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Cliente</Label><Input value={cliente} onChange={e => setCliente(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Fase</Label>
+        <div className="space-y-4">
+          <div className="space-y-2"><Label className="text-xs">Nome do projeto</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Campanha verão" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Cliente</Label><Input value={cliente} onChange={e => setCliente(e.target.value)} /></div>
+            <div className="space-y-2"><Label className="text-xs">Fase</Label>
               <Select value={fase} onValueChange={v => setFase(v as FaseProjeto)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(FASES).map(([id, f]) => <SelectItem key={id} value={id}>{f.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Início</Label><Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Entrega prevista</Label><Input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Início</Label><Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} /></div>
+            <div className="space-y-2"><Label className="text-xs">Entrega prevista</Label><Input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} /></div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Valor (R$)</Label><CurrencyInput value={valor} onValueChange={setValor} /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Equipe (separar por vírgula)</Label><Input value={equipe} onChange={e => setEquipe(e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label className="text-xs">Valor (R$)</Label><CurrencyInput value={valor} onValueChange={setValor} /></div>
+            <div className="space-y-2"><Label className="text-xs">Equipe (separar por vírgula)</Label><Input value={equipe} onChange={e => setEquipe(e.target.value)} /></div>
           </div>
-          <div className="space-y-1.5"><Label className="text-xs">Descrição</Label><Textarea rows={3} value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Briefing, escopo, observações…" /></div>
+          <div className="space-y-2"><Label className="text-xs">Descrição</Label><Textarea rows={3} value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Briefing, escopo, observações…" /></div>
         </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t border-border/40 pt-4 sm:justify-between">
           {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar projeto"}</Button></div>
         </DialogFooter>
