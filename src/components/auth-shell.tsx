@@ -14,7 +14,7 @@ export function AuthShell({ trialExpirado, sidebarStyle }: AuthShellProps) {
   if (trialExpirado) return <TrialExpirado />;
 
   return (
-    <SidebarProvider style={sidebarStyle}>
+    <SidebarProvider style={sidebarStyle} className="pt-2">
       <AppSidebar />
       <SidebarInset className="flex min-h-screen w-full flex-col">
         <Topbar />

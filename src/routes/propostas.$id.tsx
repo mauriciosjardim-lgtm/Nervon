@@ -1306,7 +1306,7 @@ function Editor() {
                   ))}
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-[1fr_120px_auto]">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(200px,auto)_auto]">
                 <input
                   className={input}
                   placeholder="Ex.: Vídeos editados para feed"
