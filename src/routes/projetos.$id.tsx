@@ -14,6 +14,7 @@ import {
   type Tarefa, type Marco, type Entregavel, type StatusTarefa, type StatusEntregavel, type FaseProjeto, type Projeto,
 } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
+import { calcularResumoProgresso, SAUDE_ESTILO, linkSeguro } from "@/lib/projetos/progresso";
 import { ProjetoModal } from "@/components/projetos/projeto-modal";
 import { TarefaModal } from "@/components/projetos/tarefa-modal";
 import { MarcoModal } from "@/components/projetos/marco-modal";
@@ -74,12 +75,13 @@ function ProjetoDetalhe() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard icon={Calendar} label="Entrega" valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })} />
           <StatCard icon={DollarCircle} label="Valor" valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`} />
           <StatCard icon={Profile2User} label="Equipe" valor={`${projeto.equipe.length} pessoas`} />
-          <StatCard icon={Flag} label="Progresso" valor={`${projeto.progresso}%`} extra={<Progress value={projeto.progresso} className="mt-1 h-1" />} />
         </div>
+
+        <ResumoProgresso projeto={projeto} tarefas={minhasTarefas} />
       </header>
 
       <Tabs defaultValue="tarefas">
@@ -159,6 +161,37 @@ function StatCard({ icon: Icon, label, valor, extra }: { icon: typeof IconsaxIco
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground"><Icon size={12} color="currentColor" variant="Linear" className="text-primary" /> {label}</div>
       <p className="mt-1 font-display text-sm font-semibold tabular-nums">{valor}</p>
       {extra}
+    </div>
+  );
+}
+
+function ResumoProgresso({ projeto, tarefas }: { projeto: Projeto; tarefas: Tarefa[] }) {
+  const r = calcularResumoProgresso(projeto, tarefas);
+  const saude = SAUDE_ESTILO[r.saude];
+  const proxima = tarefas
+    .filter(t => !t.concluida && t.prazo)
+    .sort((a, b) => +new Date(a.prazo!) - +new Date(b.prazo!))[0];
+
+  return (
+    <div className="mt-3 rounded-lg border border-border/40 bg-surface-2/30 p-4">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Progresso</span>
+        <div className="flex items-center gap-2">
+          <span className={cn("rounded-md border px-1.5 py-0.5 text-[10px] font-medium", saude.badge)}>{r.label}</span>
+          <span className="font-display text-sm font-semibold tabular-nums">{r.percentual}%</span>
+        </div>
+      </div>
+      <Progress value={r.percentual} indicatorClassName={saude.barra} className="mt-2 h-1.5" />
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        <span>{r.concluidas} de {r.total} tarefas concluídas</span>
+        {r.atrasadas > 0 && <span className="font-medium text-destructive">{r.atrasadas} atrasada{r.atrasadas > 1 ? "s" : ""}</span>}
+        {proxima && (
+          <span className="inline-flex items-center gap-1">
+            <Calendar size={11} color="currentColor" variant="Linear" className="text-primary" />
+            Próxima: {proxima.titulo} · {format(new Date(proxima.prazo!), "dd MMM", { locale: ptBR })}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -297,6 +330,7 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
 }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: tarefa.id });
   const prio = PRIORIDADES[tarefa.prioridade];
+  const lk = linkSeguro(tarefa.link);
   const style = transform && !overlay
     ? { transform: `translate3d(${transform.x}px,${transform.y}px,0)` }
     : undefined;
@@ -344,6 +378,19 @@ function TarefaCard({ tarefa, onEditar, isDragging, overlay }: {
           </svg>
         </button>
       </div>
+
+      {lk && (
+        <a
+          href={lk.href} target="_blank" rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
+          className="mt-2 inline-flex max-w-full items-center gap-1 rounded-md border border-border/40 bg-surface-2/40 px-1.5 py-0.5 text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+          title={lk.href}
+        >
+          <Link2 size={10} color="currentColor" variant="Linear" className="shrink-0" />
+          <span className="truncate">{lk.dominio}</span>
+        </a>
+      )}
     </div>
   );
 }

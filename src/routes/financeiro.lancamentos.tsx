@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Pencil } from "lucide-react";
-import { Add, SearchNormal, TrendUp, TrendDown, Trash, TickCircle, Refresh, Filter } from "iconsax-react";
+import { Add, SearchNormal, TrendUp, TrendDown, Trash, TickCircle, Refresh, Filter, Paperclip } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -126,7 +126,22 @@ function LancamentosPage() {
                       : <TrendDown size={12} color="currentColor" variant="Linear" className="text-destructive" />}
                   </span>
                 </TableCell>
-                <TableCell className="font-medium">{l.descricao}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-1.5">
+                    {l.descricao}
+                    {l.comprovanteUrl && (
+                      <a
+                        href={l.comprovanteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Ver comprovante"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <Paperclip size={12} color="currentColor" variant="Linear" className="text-primary/60 hover:text-primary" />
+                      </a>
+                    )}
+                  </span>
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{l.categoria}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   <div className="leading-tight">

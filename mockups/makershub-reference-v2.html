@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MakersHub — Dashboard Concept V2</title>
+  <style>
+    :root {
+      --canvas: #292a26;
+      --shell: #151613;
+      --surface: #1e201c;
+      --surface-2: #252821;
+      --surface-3: #2b2f27;
+      --line: rgba(244, 242, 232, .072);
+      --line-strong: rgba(244, 242, 232, .135);
+      --ink: #f4f2e9;
+      --muted: #9e9d94;
+      --muted-2: #6d7067;
+      --green: #baff3d;
+      --green-2: #9de72b;
+      --green-soft: rgba(186, 255, 61, .13);
+      --violet: #8e79ed;
+      --violet-soft: rgba(142, 121, 237, .15);
+      --danger: #f17c68;
+      --font-display: "Avenir Next", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      --font-ui: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      --font-data: "Avenir Next", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      --radius-shell: 38px;
+      --radius-panel: 26px;
+      --radius-control: 999px;
+      --shadow: 0 38px 110px rgba(0, 0, 0, .38);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      color-scheme: dark;
+      background: var(--canvas);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, .035), transparent 30%),
+        radial-gradient(circle at 82% 80%, rgba(186, 255, 61, .028), transparent 28%),
+        var(--canvas);
+      display: grid;
+      place-items: center;
+      padding: 54px;
+    }
+
+    button, input { font: inherit; letter-spacing: -.01em; }
+    button { color: inherit; }
+
+    .app {
+      width: min(1480px, 100%);
+      min-height: 900px;
+      background: var(--shell);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius-shell);
+      box-shadow: var(--shadow);
+      padding: 30px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(140deg, rgba(255,255,255,.015), transparent 35%);
+    }
+
+    .topbar {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: var(--surface);
+      margin-right: 10px;
+    }
+
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      position: relative;
+      transform: rotate(-8deg);
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--green);
+      border-radius: 4px;
+    }
+
+    .brand-mark::before {
+      width: 8px;
+      height: 22px;
+      left: 1px;
+      top: 0;
+      box-shadow: 12px 0 0 rgba(155,124,255,.95);
+    }
+
+    .brand-mark::after {
+      width: 18px;
+      height: 7px;
+      left: 2px;
+      top: 8px;
+      background: var(--ink);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .pill {
+      height: 48px;
+      padding: 0 23px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #d4d4cf;
+      font-size: 13px;
+      font-weight: 520;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+      white-space: nowrap;
+    }
+
+    .pill:hover { transform: translateY(-2px); background: var(--surface-2); }
+    .pill.active { background: var(--green); color: #12150d; font-weight: 720; }
+    .pill .count {
+      display: grid;
+      place-items: center;
+      min-width: 21px;
+      height: 21px;
+      padding: 0 6px;
+      border-radius: 20px;
+      color: #171717;
+      background: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .pill.active .count { background: #161616; color: var(--green); }
+    .spacer { flex: 1; }
+
+    .round-button {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .round-button:hover { background: var(--surface-2); }
+
+    .round-button .dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      right: 5px;
+      top: 5px;
+      border: 2px solid var(--shell);
+      background: var(--green);
+    }
+
+    .profile {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(145deg, var(--violet), var(--green));
+      box-shadow: 0 0 24px rgba(155, 124, 255, .24);
+    }
+
+    .profile-inner {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--shell);
+      border-radius: inherit;
+      color: #161616;
+      font-size: 14px;
+      font-weight: 850;
+      background: var(--green);
+    }
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .overview {
+      display: grid;
+      grid-template-columns: minmax(280px, .92fr) repeat(3, minmax(235px, .78fr));
+      gap: 14px;
+      margin-top: 58px;
+      align-items: stretch;
+    }
+
+    .welcome {
+      min-height: 206px;
+      padding: 5px 28px 8px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 520;
+      letter-spacing: .005em;
+      margin-bottom: 14px;
+    }
+
+    .welcome h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(48px, 4.3vw, 74px);
+      line-height: .94;
+      letter-spacing: -.057em;
+      font-weight: 500;
+    }
+
+    .welcome h1 span { display: block; }
+
+    .role {
+      position: absolute;
+      right: 24px;
+      bottom: 33px;
+      padding: 8px 15px;
+      border-radius: var(--radius-control);
+      background: var(--violet);
+      color: #121310;
+      font-size: 12px;
+      font-weight: 760;
+      transform: rotate(-2deg);
+    }
+
+    .metric {
+      min-height: 206px;
+      border-radius: var(--radius-panel);
+      background: var(--surface);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(255,255,255,.025);
+    }
+
+    .metric.accent {
+      background: var(--green);
+      color: #151713;
+    }
+
+    .metric-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 530;
+      letter-spacing: -.015em;
+    }
+
+    .metric-icon {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #e5e5df;
+    }
+
+    .metric.accent .metric-icon {
+      border-color: rgba(21,23,19,.26);
+      color: #151713;
+    }
+
+    .metric-arrow {
+      margin-left: auto;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f7f7f2;
+      color: #171717;
+    }
+
+    .metric.accent .metric-arrow { background: #191919; color: var(--green); }
+
+    .metric-value {
+      margin-top: 22px;
+      font-family: var(--font-data);
+      font-size: clamp(34px, 3vw, 49px);
+      line-height: 1;
+      letter-spacing: -.048em;
+      font-weight: 540;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    .metric-foot {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .metric.accent .metric-foot { color: rgba(21,23,19,.65); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 30px 0 16px;
+    }
+
+    .controls .pill { height: 44px; padding-inline: 22px; }
+
+    .controls-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-round {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .export {
+      height: 44px;
+      padding: 0 20px;
+      border-radius: var(--radius-control);
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1.52fr .9fr .9fr;
+      gap: 14px;
+    }
+
+    .panel {
+      min-width: 0;
+      height: 385px;
+      border-radius: var(--radius-panel);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,.028);
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 45px;
+    }
+
+    .head-icon {
+      width: 43px;
+      height: 43px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 620;
+      letter-spacing: -.02em;
+    }
+
+    .segmented {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: var(--radius-control);
+      background: var(--surface-3);
+    }
+
+    .segment {
+      height: 34px;
+      padding: 0 17px;
+      border: 0;
+      background: transparent;
+      border-radius: var(--radius-control);
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .segment.active { background: var(--green); color: #161616; font-weight: 800; }
+
+    .more {
+      margin-left: 5px;
+      width: 43px;
+      height: 43px;
+      border: 0;
+      border-radius: 50%;
+      background: #f6f6f1;
+      color: #171717;
+      font-size: 19px;
+      cursor: pointer;
+    }
+
+    .chart {
+      height: 285px;
+      margin-top: 15px;
+      position: relative;
+    }
+
+    .chart svg { width: 100%; height: 100%; overflow: visible; }
+    .grid-line { stroke: rgba(255,255,255,.07); stroke-dasharray: 5 7; }
+    .axis-text { fill: #797974; font-size: 10px; }
+    .bar-hatch { stroke: var(--violet); stroke-width: 9; stroke-dasharray: 3 5; stroke-linecap: round; opacity: .72; }
+    .bar-focus { fill: url(#barGlow); }
+    .bar-dot { fill: #f4f4ef; stroke: #171717; stroke-width: 5; }
+
+    .chart-tag {
+      position: absolute;
+      left: 50.6%;
+      top: 62px;
+      transform: translateX(-50%);
+      padding: 13px 17px;
+      border-radius: 13px;
+      background: rgba(52,52,56,.96);
+      box-shadow: 0 14px 35px rgba(0,0,0,.3);
+      text-align: center;
+      color: #bdbdb7;
+      font-size: 10px;
+    }
+
+    .chart-tag strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-family: var(--font-data);
+      font-size: 26px;
+      font-weight: 560;
+      letter-spacing: -.035em;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    .delta {
+      position: absolute;
+      left: 50.6%;
+      top: 1px;
+      transform: translateX(-50%);
+      padding: 5px 8px;
+      border-radius: 20px;
+      color: #15200c;
+      background: var(--green);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .panel-select {
+      margin-left: auto;
+      height: 39px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: var(--radius-control);
+      background: #f5f5f0;
+      color: #171717;
+      font-size: 12px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      margin: 15px 2px 8px;
+      font-size: 9px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+    .legend i {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      border-radius: 3px;
+      background: #474742;
+    }
+
+    .legend span:nth-child(2) i { background: #6c713f; }
+    .legend span:nth-child(3) i { background: #a2bd53; }
+    .legend span:nth-child(4) i { background: var(--green); }
+
+    .load-grid {
+      display: grid;
+      grid-template-columns: 27px repeat(7, 1fr);
+      gap: 7px;
+      margin-top: 20px;
+      align-items: center;
+    }
+
+    .day, .time {
+      font-size: 9px;
+      color: #6f6f6a;
+      text-align: center;
+    }
+
+    .time { text-align: left; }
+
+    .cell {
+      aspect-ratio: 1.18;
+      border-radius: 7px;
+      background:
+        repeating-linear-gradient(135deg, rgba(200,255,88,.15) 0 3px, transparent 3px 7px),
+        #2b2d28;
+    }
+
+    .cell.l1 { background: #4b4f34; }
+    .cell.l2 { background: #6e7a3d; }
+    .cell.l3 { background: #a4c64d; }
+    .cell.l4 { background: var(--green); box-shadow: 0 0 18px rgba(200,255,88,.16); }
+    .cell.off { opacity: .18; }
+
+    .project-list { margin-top: 14px; }
+
+    .search {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-control);
+      padding: 0 15px;
+      color: var(--muted);
+    }
+
+    .search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    .project {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 11px;
+      align-items: center;
+      min-height: 69px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project:last-child { border-bottom: 0; }
+
+    .project-symbol {
+      width: 39px;
+      height: 39px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--surface-3);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .project:nth-child(3) .project-symbol { color: var(--violet); }
+    .project:nth-child(4) .project-symbol { color: #ffbf75; }
+
+    .project-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      color: #deded9;
+    }
+
+    .project-meta {
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .project-status {
+      font-size: 9px;
+      color: var(--green);
+      text-align: right;
+    }
+
+    .project-status b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: #dcdcd7;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 10;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 18px;
+      border-radius: 100px;
+      background: var(--green);
+      color: #151713;
+      font-size: 13px;
+      font-weight: 750;
+      transition: .2s ease;
+    }
+
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    @media (max-width: 1220px) {
+      body { padding: 28px; }
+      .app { border-radius: 30px; }
+      .overview { grid-template-columns: 1.15fr repeat(3, 1fr); margin-top: 40px; }
+      .welcome h1 { font-size: 52px; }
+      .role { display: none; }
+      .workspace { grid-template-columns: 1.35fr 1fr; }
+      .panel:last-child { grid-column: 1 / -1; height: auto; }
+      .project-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .project {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body { display: block; padding: 0; background: var(--shell); }
+      .app { width: 100%; min-height: 100vh; border: 0; border-radius: 0; padding: 20px; }
+      .nav .pill:not(.active) { display: none; }
+      .nav .pill.active { padding-inline: 16px; }
+      .topbar { gap: 8px; }
+      .brand { margin-right: 0; }
+      .overview { grid-template-columns: repeat(2, 1fr); }
+      .welcome { grid-column: 1 / -1; min-height: 150px; }
+      .welcome h1 { font-size: 58px; }
+      .metric { min-height: 176px; }
+      .metric:last-child { grid-column: 1 / -1; }
+      .workspace { grid-template-columns: 1fr; }
+      .panel { height: auto; min-height: 380px; }
+      .project-list { grid-template-columns: 1fr; }
+      .controls { overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .controls-right { display: none; }
+    }
+
+    @media (max-width: 580px) {
+      .app { padding: 16px; }
+      .brand { width: 43px; height: 43px; border-radius: 14px; }
+      .round-button { width: 43px; height: 43px; }
+      .profile { width: 44px; height: 44px; }
+      .overview { display: block; margin-top: 34px; }
+      .welcome { min-height: 155px; padding: 0; }
+      .welcome h1 { font-size: 50px; }
+      .metric { margin-top: 10px; min-height: 155px; }
+      .metric-value { font-size: 41px; }
+      .controls { margin-top: 24px; }
+      .panel { border-radius: 22px; padding: 15px; }
+      .segmented .segment:first-child { display: none; }
+      .chart { height: 255px; }
+      .workspace { gap: 10px; }
+      .load-grid { gap: 5px; }
+      .cell { border-radius: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 6h14a2 2 0 0 1 2 2v10H5a2 2 0 0 1-2-2V6a3 3 0 0 1 3-3h10"/><path d="M15 11h6v4h-6a2 2 0 0 1 0-4Z"/></symbol>
+    <symbol id="i-clapper" viewBox="0 0 24 24"><path d="M4 8h16v12H4z"/><path d="m4 8 2-4h4L8 8m5 0 2-4h4l-2 4"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M15 9l5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 19c0-4 2-6 6-6s6 2 6 6"/><path d="M16 5a3 3 0 0 1 0 6m1 3c3 .5 4 2 4 5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20 15a4 4 0 0 1-4 4H8l-5 2 2-5V8a4 4 0 0 1 4-4h7a4 4 0 0 1 4 4z"/></symbol>
+  </svg>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="MakersHub"><span class="brand-mark"></span></div>
+      <nav class="nav" aria-label="Navegação principal">
+        <button class="pill active"><svg class="icon"><use href="#i-grid"/></svg>Visão geral</button>
+        <button class="pill">Projetos <span aria-hidden="true">⌄</span></button>
+        <button class="pill">Financeiro <span class="count">7</span></button>
+        <button class="pill">Clientes</button>
+        <button class="pill">Performance</button>
+      </nav>
+      <div class="spacer"></div>
+      <button class="round-button" aria-label="Buscar"><svg class="icon"><use href="#i-search"/></svg></button>
+      <button class="round-button" aria-label="Notificações"><svg class="icon"><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <div class="profile" aria-label="Mauricio"><div class="profile-inner">MR</div></div>
+    </header>
+
+    <section class="overview">
+      <div class="welcome">
+        <div class="eyebrow">Boa tarde,</div>
+        <h1>Mauricio<span>Rastro</span></h1>
+        <span class="role">Studio owner</span>
+      </div>
+
+      <article class="metric">
+        <div class="metric-top">
+          <span class="metric-icon"><svg class="icon"><use href="#i-wallet"/></svg></span>
+          <span>Receita do mês</span>
+          <span class="metric-arrow"><svg class="icon"><use href="#i-arrow"/></svg></span>
+        </div>
+        <div>
+          <div class="metric-value">R$ 61.000</div>
+          <div class="metric-foot">+18,4% em relação a junho</div>
+        </div>
+      </article>
+
+      <article class="metric">
+        <div class="metric-top">
+          <span class="metric-icon"><svg class="icon"><use href="#i-clapper"/></svg></span>
+          <span>Projetos ativos</span>
+          <span class="metric-arrow"><svg class="icon"><use href="#i-arrow"/></svg></span>
+        </div>
+        <div>
+          <div class="metric-value">05</div>
+          <div class="metric-foot">4 dentro do prazo · 1 em atenção</div>
+        </div>
+      </article>
+
+      <article class="metric accent">
+        <div class="metric-top">
+          <span class="metric-icon"><svg class="icon"><use href="#i-target"/></svg></span>
+          <span>Meta do mês</span>
+          <span class="metric-arrow"><svg class="icon"><use href="#i-arrow"/></svg></span>
+        </div>
+        <div>
+          <div class="metric-value">305%</div>
+          <div class="metric-foot">R$ 61.000 de R$ 20.000</div>
+        </div>
+      </article>
+    </section>
+
+    <div class="controls">
+      <button class="pill active">Tudo</button>
+      <button class="pill">Produção</button>
+      <button class="pill">Financeiro</button>
+      <button class="pill">Comercial</button>
+      <div class="controls-right">
+        <button class="control-round" aria-label="Filtrar"><svg class="icon"><use href="#i-filter"/></svg></button>
+        <button class="control-round" aria-label="Período"><svg class="icon"><use href="#i-calendar"/></svg></button>
+        <button class="export"><svg class="icon"><use href="#i-download"/></svg>Exportar relatório</button>
+      </div>
+    </div>
+
+    <section class="workspace">
+      <article class="panel">
+        <header class="panel-head">
+          <span class="head-icon"><svg class="icon"><use href="#i-wallet"/></svg></span>
+          <span class="panel-title">Faturamento × custos</span>
+          <div class="segmented">
+            <button class="segment">Mensal</button>
+            <button class="segment active">Anual</button>
+          </div>
+          <button class="more" aria-label="Mais opções">•••</button>
+        </header>
+        <div class="chart">
+          <span class="delta">+22,8%</span>
+          <div class="chart-tag">Julho, 2026<strong>61.000</strong></div>
+          <svg viewBox="0 0 560 270" role="img" aria-label="Faturamento de fevereiro a julho">
+            <defs>
+              <linearGradient id="barGlow" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#baff3d"/>
+                <stop offset=".7" stop-color="#9784ef"/>
+                <stop offset="1" stop-color="#7662d0"/>
+              </linearGradient>
+            </defs>
+            <line class="grid-line" x1="42" y1="42" x2="540" y2="42"/>
+            <line class="grid-line" x1="42" y1="96" x2="540" y2="96"/>
+            <line class="grid-line" x1="42" y1="150" x2="540" y2="150"/>
+            <line class="grid-line" x1="42" y1="204" x2="540" y2="204"/>
+            <text class="axis-text" x="5" y="45">60k</text>
+            <text class="axis-text" x="5" y="99">40k</text>
+            <text class="axis-text" x="5" y="153">20k</text>
+            <text class="axis-text" x="16" y="207">0</text>
+            <line class="bar-hatch" x1="82" y1="178" x2="82" y2="204"/>
+            <line class="bar-hatch" x1="164" y1="151" x2="164" y2="204"/>
+            <line class="bar-hatch" x1="246" y1="169" x2="246" y2="204"/>
+            <rect class="bar-focus" x="291" y="48" width="62" height="156" rx="31"/>
+            <circle class="bar-dot" cx="322" cy="48" r="10"/>
+            <line class="bar-hatch" x1="404" y1="120" x2="404" y2="204"/>
+            <line class="bar-hatch" x1="486" y1="144" x2="486" y2="204"/>
+            <text class="axis-text" x="67" y="237">Fev</text>
+            <text class="axis-text" x="149" y="237">Mar</text>
+            <text class="axis-text" x="231" y="237">Abr</text>
+            <text class="axis-text" x="307" y="237" style="fill:#f5f5f1">Mai</text>
+            <text class="axis-text" x="389" y="237">Jun</text>
+            <text class="axis-text" x="471" y="237">Jul</text>
+          </svg>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head">
+          <span class="head-icon"><svg class="icon"><use href="#i-clock"/></svg></span>
+          <span class="panel-title">Carga de produção</span>
+          <button class="panel-select">Esta semana⌄</button>
+        </header>
+        <div class="legend">
+          <span><i></i>livre</span><span><i></i>leve</span><span><i></i>ocupado</span><span><i></i>crítico</span>
+        </div>
+        <div class="load-grid" aria-label="Mapa de carga semanal">
+          <span></span><span class="day">S</span><span class="day">T</span><span class="day">Q</span><span class="day">Q</span><span class="day">S</span><span class="day">S</span><span class="day">D</span>
+          <span class="time">09h</span><i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l4"></i><i class="cell l2"></i><i class="cell off"></i><i class="cell off"></i>
+          <span class="time">10h</span><i class="cell l1"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l4"></i><i class="cell l3"></i><i class="cell"></i><i class="cell off"></i>
+          <span class="time">11h</span><i class="cell l2"></i><i class="cell l3"></i><i class="cell l4"></i><i class="cell l4"></i><i class="cell l2"></i><i class="cell l1"></i><i class="cell off"></i>
+          <span class="time">14h</span><i class="cell"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l2"></i><i class="cell l4"></i><i class="cell l1"></i><i class="cell off"></i>
+          <span class="time">15h</span><i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l2"></i><i class="cell"></i><i class="cell off"></i>
+          <span class="time">16h</span><i class="cell off"></i><i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l1"></i><i class="cell off"></i><i class="cell off"></i>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head">
+          <span class="head-icon"><svg class="icon"><use href="#i-message"/></svg></span>
+          <span class="panel-title">Projetos em movimento</span>
+          <button class="more" style="margin-left:auto" aria-label="Novo projeto">+</button>
+        </header>
+        <div class="project-list">
+          <label class="search">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input placeholder="Buscar projeto" />
+          </label>
+          <div class="project">
+            <span class="project-symbol">PH</span>
+            <div><div class="project-name">Peixoto Cidadão Honorário</div><div class="project-meta">Entrega de vídeo principal</div></div>
+            <div class="project-status"><b>Hoje</b>Em edição</div>
+          </div>
+          <div class="project">
+            <span class="project-symbol">ED</span>
+            <div><div class="project-name">Editorial Fotos ED 28</div><div class="project-meta">Seleção e tratamento</div></div>
+            <div class="project-status"><b>03 jul</b>Revisão</div>
+          </div>
+          <div class="project">
+            <span class="project-symbol">TV</span>
+            <div><div class="project-name">Edição Vídeos Thiago</div><div class="project-meta">Pacote mensal · 06 peças</div></div>
+            <div class="project-status"><b>05 jul</b>Produção</div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast" role="status">Interação demonstrativa do conceito</div>
+
+  <script>
+    const toast = document.querySelector('.toast');
+    let toastTimer;
+
+    document.querySelectorAll('button').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.closest('.nav')) {
+          document.querySelectorAll('.nav .pill').forEach((item) => item.classList.remove('active'));
+          button.classList.add('active');
+        }
+        if (button.classList.contains('segment')) {
+          button.parentElement.querySelectorAll('.segment').forEach((item) => item.classList.remove('active'));
+          button.classList.add('active');
+        }
+        if (button.closest('.controls') && button.classList.contains('pill')) {
+          document.querySelectorAll('.controls .pill').forEach((item) => item.classList.remove('active'));
+          button.classList.add('active');
+        }
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1300);
+      });
+    });
+  </script>
+</body>
+</html>

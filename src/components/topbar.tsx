@@ -1,18 +1,30 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Command } from "lucide-react";
 import {
-  Notification, SearchNormal, Add, Profile2User, EmptyWallet, Calendar,
+  Notification,
+  SearchNormal,
+  Add,
+  Profile2User,
+  EmptyWallet,
+  Calendar,
 } from "iconsax-react";
 import { useRouterState, useNavigate } from "@tanstack/react-router";
 import { setPendingCreate } from "@/lib/pendingCreate";
 
 const titles: Record<string, { title: string; subtitle: string }> = {
   "/": { title: "Cockpit", subtitle: "Visão geral da operação" },
-  "/comercial": { title: "Comercial", subtitle: "Jornada Comercial — do primeiro contato ao fechamento" },
+  "/dashboard-v3": { title: "Cockpit", subtitle: "Preview local da nova Dashboard" },
+  "/comercial": {
+    title: "Comercial",
+    subtitle: "Jornada Comercial — do primeiro contato ao fechamento",
+  },
   "/propostas": { title: "Propostas", subtitle: "Criadas, enviadas e aprovadas" },
   "/contratos": { title: "Contratos", subtitle: "Documentos e assinaturas" },
   "/projetos": { title: "Projetos", subtitle: "Operação em andamento" },
@@ -25,18 +37,19 @@ const titles: Record<string, { title: string; subtitle: string }> = {
 };
 
 const ACOES = [
-  { tipo: "lead",       label: "Novo lead",             icon: Profile2User, to: "/comercial/" },
-  { tipo: "lancamento", label: "Lançamento financeiro", icon: EmptyWallet,  to: "/financeiro" },
-  { tipo: "evento",     label: "Novo evento na agenda", icon: Calendar,     to: "/agenda"     },
+  { tipo: "lead", label: "Novo lead", icon: Profile2User, to: "/comercial/" },
+  { tipo: "lancamento", label: "Lançamento financeiro", icon: EmptyWallet, to: "/financeiro" },
+  { tipo: "evento", label: "Novo evento na agenda", icon: Calendar, to: "/agenda" },
 ] as const;
 
 export function Topbar() {
-  const pathname = useRouterState({ select: s => s.location.pathname });
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const match = Object.keys(titles)
     .sort((a, b) => b.length - a.length)
-    .find(k => k === "/" ? pathname === "/" : pathname.startsWith(k));
+    .find((k) => (k === "/" ? pathname === "/" : pathname.startsWith(k)));
   const info = match ? titles[match] : { title: "MakersHub", subtitle: "" };
+  const previewV3 = import.meta.env.DEV && pathname.startsWith("/dashboard-v3");
 
   const handleNovo = (tipo: string, to: string) => {
     setPendingCreate(tipo);
@@ -45,18 +58,29 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl md:px-6">
+    <header
+      className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl md:px-6"
+      style={
+        previewV3 ? { fontFamily: '"IBM Plex Sans", Inter, system-ui, sans-serif' } : undefined
+      }
+    >
       <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground" />
 
       <div className="hidden min-w-0 flex-col leading-tight md:flex">
-        <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">{info.title}</h1>
+        <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">
+          {info.title}
+        </h1>
         {info.subtitle && <p className="truncate text-xs text-muted-foreground">{info.subtitle}</p>}
       </div>
 
       <div className="ml-auto flex items-center gap-2">
         <div className="hidden items-center gap-2 md:flex">
-          <span className="font-display text-sm font-light tracking-tight text-muted-foreground">MakersHub</span>
-          <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">v0.1.0</span>
+          <span className="font-display text-sm font-light tracking-tight text-muted-foreground">
+            MakersHub
+          </span>
+          <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+            v0.6.0
+          </span>
         </div>
 
         <button className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-surface-1/60 px-3 text-xs text-muted-foreground transition hover:border-border hover:bg-surface-2 hover:text-foreground md:flex">
@@ -67,7 +91,11 @@ export function Topbar() {
           </span>
         </button>
 
-        <Button size="icon" variant="ghost" className="relative size-9 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="relative size-9 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+        >
           <Notification size={16} color="currentColor" variant="Linear" />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
         </Button>
@@ -80,8 +108,12 @@ export function Topbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
-            {ACOES.map(a => (
-              <DropdownMenuItem key={a.tipo} onClick={() => handleNovo(a.tipo, a.to)} className="gap-2.5">
+            {ACOES.map((a) => (
+              <DropdownMenuItem
+                key={a.tipo}
+                onClick={() => handleNovo(a.tipo, a.to)}
+                className="gap-2.5"
+              >
                 <a.icon size={16} color="currentColor" variant="Linear" />
                 {a.label}
               </DropdownMenuItem>

@@ -1,12 +1,9 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "./supabase";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
-import { resetProjetosStore } from "./hooks/useProjetos";
-import { resetFinanceiroStore } from "./hooks/useFinanceiro";
-import { resetAgendaStore } from "./hooks/useAgenda";
-import { resetComercialStore } from "./hooks/useComercial";
-import { clearEmpresaId } from "./empresaId";
+import { disposeSessionScope } from "./sessionScope";
+import { setSessionHintCookie, clearSessionHintCookie } from "./sessionHint";
 
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type Usuario = Database["public"]["Tables"]["usuarios"]["Row"];
@@ -28,10 +25,40 @@ interface AuthContext extends AuthState {
 
 const Ctx = createContext<AuthContext | null>(null);
 
+// Promise compartilhada (fora do componente) que apenas OBTÉM a sessão
+// persistida. Dedupa chamadas concorrentes inclusive no remount do StrictMode
+// — o resultado é aplicado por cada instância, com guard próprio de
+// mounted/epoch, então nenhuma Promise fica presa ao setState de instância
+// desmontada. Invalidada quando a sessão persistida muda (login/logout).
+let persistedSessionPromise: Promise<Session | null> | null = null;
+
+function getPersistedSession(): Promise<Session | null> {
+  if (!persistedSessionPromise) {
+    persistedSessionPromise = supabase.auth
+      .getSession()
+      .then(({ data }) => data.session)
+      .catch(err => {
+        persistedSessionPromise = null; // permite retry num bootstrap futuro
+        throw err;
+      });
+  }
+  return persistedSessionPromise;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     session: null, user: null, usuario: null, empresa: null, loading: true,
   });
+
+  // epoch/generation guard: cada mudança de sessão bumpa o epoch; respostas
+  // assíncronas antigas (perfil/getSession de uma sessão anterior) são descartadas.
+  const epochRef = useRef(0);
+  // instância montada? nenhuma resposta assíncrona pode chamar setState após unmount
+  const mountedRef = useRef(false);
+  // failsafe corrente (spinner nunca trava pra sempre)
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // timers pendentes agendados pelo onAuthStateChange (cancelados no cleanup)
+  const pendingTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   const loadPerfil = async (userId: string) => {
     const { data: usuario } = await supabase
@@ -44,38 +71,99 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshEmpresa = async () => {
     if (!state.user) return;
+    const epoch = epochRef.current;
     const perfil = await loadPerfil(state.user.id);
-    if (perfil) setState(s => ({ ...s, ...perfil }));
+    if (perfil && mountedRef.current && epoch === epochRef.current) {
+      setState(s => ({ ...s, ...perfil }));
+    }
+  };
+
+  // Aplica uma sessão (ou ausência dela) ao estado, carregando o perfil fora
+  // da pilha do evento de auth. Só escreve se a instância ainda estiver
+  // montada e o epoch ainda for o corrente.
+  const applySession = async (session: Session | null, epoch: number) => {
+    if (!mountedRef.current || epoch !== epochRef.current) return;
+    if (session?.user) {
+      let perfil: Awaited<ReturnType<typeof loadPerfil>> = null;
+      try {
+        perfil = await loadPerfil(session.user.id);
+      } catch (err) {
+        console.error("[auth] falha ao carregar perfil:", err);
+      }
+      if (!mountedRef.current || epoch !== epochRef.current) return; // resposta antiga/unmount
+      setSessionHintCookie(); // sessão confirmada → cria/renova a dica pro SSR
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
+    } else {
+      clearSessionHintCookie(); // sem sessão (logout/expirada) → remove a dica
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
+    }
+  };
+
+  // Bootstrap idempotente: a OBTENÇÃO da sessão é deduplicada globalmente
+  // (getPersistedSession); a APLICAÇÃO é por instância, protegida por
+  // mounted/epoch — sobrevive ao remount do StrictMode sem prender Promise
+  // ao setState de uma instância desmontada.
+  const bootstrapSession = (): Promise<void> => {
+    const epoch = ++epochRef.current;
+    return getPersistedSession()
+      .then(session => applySession(session, epoch))
+      .catch(err => {
+        console.error("[auth] bootstrapSession:", err);
+        if (!mountedRef.current || epoch !== epochRef.current) return;
+        if (fallbackRef.current) clearTimeout(fallbackRef.current);
+        setState(s => s.loading ? { ...s, loading: false } : s);
+      });
   };
 
   useEffect(() => {
-    const fallback = setTimeout(() => {
+    mountedRef.current = true;
+
+    // failsafe: nunca deixa o spinner travado pra sempre
+    fallbackRef.current = setTimeout(() => {
       setState(s => s.loading ? { ...s, loading: false } : s);
-    }, 5000);
+    }, 8000);
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const perfil = await loadPerfil(session.user.id);
-        clearTimeout(fallback);
-        setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
-      } else {
-        clearTimeout(fallback);
-        setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
+    void bootstrapSession();
+
+    // IMPORTANTE: o callback NÃO pode ser async nem await métodos do supabase.
+    // O supabase-js segura um lock (navigator.locks) enquanto o callback roda;
+    // qualquer query aguardada aqui chama getSession() -> mesmo lock -> deadlock.
+    // Só registra a sessão e agenda o processamento fora da pilha do evento.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // refresh de token: só atualiza o token, mantém o perfil já carregado
+      if (event === "TOKEN_REFRESHED") {
+        if (session) {
+          setSessionHintCookie(); // renova a dica (escrita síncrona, sem await)
+          setState(s => ({ ...s, session, user: session.user }));
+        }
+        return;
       }
+      // ignora eventos sem mudança real de usuário
+      if (event === "INITIAL_SESSION") return; // já tratado pelo bootstrapSession
+
+      // Troca de sessão (login/logout/recovery): derruba TODOS os stores,
+      // caches e canais Realtime da sessão anterior — síncrono, sem await
+      // (removeChannel não é aguardado e não toca no lock de auth).
+      disposeSessionScope();
+      persistedSessionPromise = null; // sessão persistida mudou: invalida o cache do bootstrap
+      const epoch = ++epochRef.current; // invalida respostas em voo da sessão anterior
+      const timer = setTimeout(() => {
+        pendingTimersRef.current.delete(timer);
+        void applySession(session, epoch);
+      }, 0);
+      pendingTimersRef.current.add(timer);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
-      if (session?.user) {
-        const perfil = await loadPerfil(session.user.id);
-        clearTimeout(fallback);
-        setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
-      } else {
-        clearTimeout(fallback);
-        setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
-      }
-    });
-
-    return () => { clearTimeout(fallback); subscription.unsubscribe(); };
+    return () => {
+      mountedRef.current = false;
+      epochRef.current++; // inutiliza qualquer resposta em voo desta instância
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      for (const timer of pendingTimersRef.current) clearTimeout(timer);
+      pendingTimersRef.current.clear();
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -96,12 +184,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    resetProjetosStore();
-    resetFinanceiroStore();
-    resetAgendaStore();
-    resetComercialStore();
-    clearEmpresaId();
-    await supabase.auth.signOut();
+    try {
+      // Primeiro derruba a sessão no Supabase; só DEPOIS descarta os stores.
+      // (Na ordem antiga, hooks montados podiam re-inicializar os stores com
+      // dados do usuário que estava saindo, durante o await.)
+      await supabase.auth.signOut();
+    } finally {
+      // limpeza garantida mesmo se o signOut falhar (rede): invalida respostas
+      // em voo, o cache do bootstrap, a dica de sessão, derruba a sessão local
+      // e descarta TODOS os stores/caches/canais da sessão anterior.
+      clearSessionHintCookie();
+      persistedSessionPromise = null;
+      epochRef.current++;
+      disposeSessionScope();
+      if (mountedRef.current) {
+        setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
+      }
+    }
   };
 
   return (

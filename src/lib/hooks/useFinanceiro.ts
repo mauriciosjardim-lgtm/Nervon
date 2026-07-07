@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { dbErro } from "@/lib/dbError";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 import type { LancTipo, LancStatus, Lancamento } from "@/lib/mock/financeiro";
 import { getCarteiraAtiva, subscribeCarteiraAtiva, useCarteiras } from "./useCarteiras";
 
@@ -24,6 +26,7 @@ function rowToLanc(r: any): Lancamento {
     carteiraId: r.carteira_id ?? undefined,
     formaPagamento: r.forma_pagamento ?? undefined,
     observacoes: r.observacoes ?? undefined,
+    comprovanteUrl: r.comprovante_url ?? undefined,
   };
 }
 
@@ -43,6 +46,7 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(fn => fn());
 
 let initialized = false;
+let channel: ReturnType<typeof supabase.channel> | null = null;
 
 async function init() {
   if (initialized) return;
@@ -52,7 +56,7 @@ async function init() {
   loading = false;
   emit();
 
-  supabase.channel("financeiro_realtime")
+  channel = supabase.channel("financeiro_realtime")
     .on("postgres_changes", { event: "*", schema: "public", table: "financeiro" }, async () => {
       const { data: fresh } = await supabase.from("financeiro").select("*, projetos(nome)").order("vencimento", { ascending: true });
       lancamentos = (fresh ?? []).map(rowToLanc);
@@ -62,10 +66,13 @@ async function init() {
 }
 
 export function resetFinanceiroStore() {
+  if (channel) { void supabase.removeChannel(channel); channel = null; }
   initialized = false;
   lancamentos = [];
   loading = true;
+  emit();
 }
+registerSessionDisposer(resetFinanceiroStore);
 
 // ─── hook ────────────────────────────────────────────────────────────────────
 
@@ -113,11 +120,11 @@ export const financeiroActions = {
       carteira_id: input.carteiraId ?? null,
       forma_pagamento: input.formaPagamento ?? null,
       observacoes: input.observacoes ?? null,
+      comprovante_url: input.comprovanteUrl ?? null,
     }).select("*, projetos(nome)").single();
-    if (!error && data) {
-      lancamentos = [...lancamentos, rowToLanc(data)];
-      emit();
-    }
+    if (dbErro(error, "salvar lançamento")) return;
+    lancamentos = [...lancamentos, rowToLanc(data)];
+    emit();
     return data?.id;
   },
 
@@ -139,8 +146,10 @@ export const financeiroActions = {
       carteira_id: merged.carteiraId ?? null,
       forma_pagamento: merged.formaPagamento ?? null,
       observacoes: merged.observacoes ?? null,
+      comprovante_url: merged.comprovanteUrl ?? null,
     };
-    await supabase.from("financeiro").update(payload).eq("id", id);
+    const { error } = await supabase.from("financeiro").update(payload).eq("id", id);
+    if (dbErro(error, "atualizar lançamento")) return;
     lancamentos = lancamentos.map(l => l.id === id ? { ...l, ...input, status: reconciliarStatus(merged) } : l);
     emit();
   },
@@ -155,7 +164,8 @@ export const financeiroActions = {
   },
 
   async remove(id: string) {
-    await supabase.from("financeiro").delete().eq("id", id);
+    const { error } = await supabase.from("financeiro").delete().eq("id", id);
+    if (dbErro(error, "remover lançamento")) return;
     lancamentos = lancamentos.filter(l => l.id !== id);
     emit();
   },

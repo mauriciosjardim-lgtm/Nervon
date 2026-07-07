@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { dbErro } from "@/lib/dbError";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 import {
   calcular,
   type Orcamento, type OrcamentoPayload, type OrcamentoTemplate,
@@ -15,6 +17,7 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(fn => fn());
 
 let initialized = false;
+let channel: ReturnType<typeof supabase.channel> | null = null;
 
 function rowToOrc(r: any): Orcamento {
   return {
@@ -48,7 +51,7 @@ async function init() {
   loading = false;
   emit();
 
-  supabase.channel("orcamentos_realtime")
+  channel = supabase.channel("orcamentos_realtime")
     .on("postgres_changes", { event: "*", schema: "public", table: "orcamentos" }, async () => {
       const { data } = await supabase.from("orcamentos").select("*").order("criado_em", { ascending: false });
       orcamentos = (data ?? []).map(rowToOrc);
@@ -63,11 +66,14 @@ async function init() {
 }
 
 export function resetOrcamentosStore() {
+  if (channel) { void supabase.removeChannel(channel); channel = null; }
   initialized = false;
   orcamentos = [];
   templates = [];
   loading = true;
+  emit();
 }
+registerSessionDisposer(resetOrcamentosStore);
 
 // ─── hooks ───────────────────────────────────────────────────────────────────
 
@@ -121,7 +127,8 @@ export const orcamentosActions = {
   },
 
   async remover(id: string) {
-    await supabase.from("orcamentos").delete().eq("id", id);
+    const { error } = await supabase.from("orcamentos").delete().eq("id", id);
+    if (dbErro(error, "remover orçamento")) return;
     orcamentos = orcamentos.filter(o => o.id !== id);
     emit();
   },
@@ -139,7 +146,8 @@ export const orcamentosActions = {
   },
 
   async removerTemplate(id: string) {
-    await supabase.from("orcamento_templates").delete().eq("id", id);
+    const { error } = await supabase.from("orcamento_templates").delete().eq("id", id);
+    if (dbErro(error, "remover template")) return;
     templates = templates.filter(t => t.id !== id);
     emit();
   },

@@ -134,6 +134,9 @@
 /* Force dark — Nervon é dark only */
 html {
   color-scheme: dark;
+}
+
+body {
   overflow-x: clip;
 }
 
@@ -209,3 +212,28 @@ html {
 @utility surface-1 { background-color: var(--color-surface-1); }
 @utility surface-2 { background-color: var(--color-surface-2); }
 @utility surface-3 { background-color: var(--color-surface-3); }
+
+/*
+ * Safari/iOS recompõe áreas grandes a cada scroll quando fundos fixos e
+ * backdrop-filter aparecem juntos. Em dispositivos touch usamos superfícies
+ * quase opacas, mantendo o contraste sem o custo contínuo de blur da GPU.
+ */
+@media (hover: none) and (pointer: coarse) {
+  body {
+    background-attachment: scroll;
+    background-image:
+      radial-gradient(ellipse 90% 45% at 100% 0%, oklch(0.88 0.22 130 / 0.10), transparent);
+  }
+
+  [class*="bg-surface-1"] {
+    background-color: oklch(0.20 0.004 260 / 0.96) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .backdrop-blur-sm,
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}

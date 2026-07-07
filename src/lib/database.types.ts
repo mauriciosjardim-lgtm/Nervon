@@ -11,8 +11,15 @@ export interface Database {
           accent_color: string | null;
           criado_em: string;
           trial_expires_at: string | null;
+          razao_social: string | null;
+          cnpj: string | null;
+          endereco: string | null;
+          cidade: string | null;
+          estado: string | null;
+          cep: string | null;
+          plano: string;
         };
-        Insert: { id?: string; nome: string; logo_url?: string | null; accent_color?: string | null; criado_em?: string; trial_expires_at?: string | null };
+        Insert: { id?: string; nome: string; logo_url?: string | null; accent_color?: string | null; criado_em?: string; trial_expires_at?: string | null; razao_social?: string | null; cnpj?: string | null; endereco?: string | null; cidade?: string | null; estado?: string | null; cep?: string | null; plano?: string };
         Update: Partial<Database["public"]["Tables"]["empresas"]["Insert"]>;
         Relationships: [];
       };
@@ -88,12 +95,13 @@ export interface Database {
           responsavel: string;
           prazo: string | null;
           prioridade: "baixa" | "media" | "alta" | "urgente";
+          link: string | null;
           criado_em: string;
         };
         Insert: {
           id?: string; empresa_id: string; projeto_id: string; titulo: string; descricao?: string | null;
           status?: string; concluida?: boolean; responsavel?: string; prazo?: string | null;
-          prioridade?: "baixa" | "media" | "alta" | "urgente"; criado_em?: string;
+          prioridade?: "baixa" | "media" | "alta" | "urgente"; link?: string | null; criado_em?: string;
         };
         Update: Partial<Database["public"]["Tables"]["tarefas"]["Insert"]>;
         Relationships: [];

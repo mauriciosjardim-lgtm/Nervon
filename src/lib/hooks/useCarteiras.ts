@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { dbErro } from "@/lib/dbError";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 
 export interface Carteira {
   id: string;
@@ -29,7 +31,12 @@ export function resetCarteirasStore() {
   cartInitialized = false;
   carteiras = [];
   loadingCarteiras = true;
+  emitCart();
+  // seleção de carteira também é estado por-empresa — zera na troca de sessão
+  carteiraAtiva = null;
+  emitCarteiraAtiva();
 }
+registerSessionDisposer(resetCarteirasStore);
 
 // ─── carteira ativa (seleção global) ─────────────────────────────────────────
 
@@ -79,7 +86,8 @@ export const carteirasActions = {
     const empresa_id = await getEmpresaId();
     const { data, error } = await supabase
       .from("carteiras").insert({ empresa_id, ...input }).select().single();
-    if (!error && data) {
+    if (dbErro(error, "criar carteira")) return undefined;
+    if (data) {
       carteiras = [...carteiras, { id: data.id, nome: data.nome, tipo: data.tipo }];
       emitCart();
       return data.id as string;
@@ -88,13 +96,15 @@ export const carteirasActions = {
   },
 
   async rename(id: string, nome: string) {
-    await supabase.from("carteiras").update({ nome }).eq("id", id);
+    const { error } = await supabase.from("carteiras").update({ nome }).eq("id", id);
+    if (dbErro(error, "renomear carteira")) return;
     carteiras = carteiras.map(c => c.id === id ? { ...c, nome } : c);
     emitCart();
   },
 
   async remove(id: string) {
-    await supabase.from("carteiras").delete().eq("id", id);
+    const { error } = await supabase.from("carteiras").delete().eq("id", id);
+    if (dbErro(error, "remover carteira")) return;
     carteiras = carteiras.filter(c => c.id !== id);
     emitCart();
     if (carteiraAtiva === id) { carteiraAtiva = null; emitCarteiraAtiva(); }

@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { widgetCatalog } from "@/lib/dashboard/widgets";
+import { widgetCatalog } from "@/lib/dashboard/widget-catalog";
 import type { WidgetInstance } from "@/lib/dashboard/types";
 import { Add, TickCircle } from "iconsax-react";
 

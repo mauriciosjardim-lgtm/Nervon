@@ -16,6 +16,7 @@ export interface Lancamento {
   carteiraId?: string;
   formaPagamento?: string;
   observacoes?: string;
+  comprovanteUrl?: string;
 }
 
 export const fmtBRL = (v: number) =>
@@ -64,6 +65,23 @@ export function calcularMetricas(lancs: Lancamento[]): MetricasFin {
   return { recebido, aReceber, atrasadoReceber, pago, aPagar, atrasadoPagar, saldoRealizado, saldoPrevisto, margemRealizada };
 }
 
+// Fonte ÚNICA do resultado mensal realizado (competência = vencimento).
+// Usada por Dashboard e Performance para que os números "do mês" batam sempre.
+// Nunca usa pagamentoEm nem new Date() sobre strings date-only.
+export function resumoFinanceiroMes(lancamentos: Lancamento[], referencia = new Date()) {
+  const chave = `${referencia.getFullYear()}-${String(referencia.getMonth() + 1).padStart(2, "0")}`;
+  const doMes = lancamentos.filter(l => l.vencimento.slice(0, 7) === chave);
+  const receita = doMes
+    .filter(l => l.tipo === "receita" && l.status === "recebido")
+    .reduce((s, l) => s + l.valor, 0);
+  const despesas = doMes
+    .filter(l => l.tipo === "despesa" && l.status === "pago")
+    .reduce((s, l) => s + l.valor, 0);
+  const lucro = receita - despesas;
+  const margem = receita > 0 ? (lucro / receita) * 100 : 0;
+  return { receita, despesas, lucro, margem };
+}
+
 // Série mensal (últimos 6 meses) para gráfico
 export function serieMensal(lancs: Lancamento[]) {
   const meses: { key: string; label: string; receita: number; despesa: number; saldo: number }[] = [];
@@ -77,12 +95,13 @@ export function serieMensal(lancs: Lancamento[]) {
     });
   }
   for (const l of lancs) {
-    // Slice to "YYYY-MM" avoids UTC-midnight parsing bug for date-only strings from Supabase
-    const key = (l.pagamentoEm ?? l.vencimento).slice(0, 7);
+    // Competência = vencimento (mesmo critério do resumo mensal). Slice para "YYYY-MM"
+    // evita o bug de parse UTC de datas date-only vindas do Supabase.
+    const key = l.vencimento.slice(0, 7);
     const m = meses.find(x => x.key === key);
     if (!m) continue;
-    if (l.tipo === "receita") m.receita += l.valor;
-    else m.despesa += l.valor;
+    if (l.tipo === "receita" && l.status === "recebido") m.receita += l.valor;
+    else if (l.tipo === "despesa" && l.status === "pago") m.despesa += l.valor;
   }
   meses.forEach(m => { m.saldo = m.receita - m.despesa; });
   return meses;

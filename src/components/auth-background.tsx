@@ -127,4 +127,29 @@ const css = `
   .auth-orb, .auth-shimmer, .auth-dust span { animation: none; }
   .auth-dust { display: none; }
 }
+
+/*
+ * iOS/Safari: filtros grandes animados mantêm texturas do tamanho da viewport
+ * na GPU. O gradiente estático preserva a atmosfera sem repintura contínua.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .auth-orb {
+    animation: none;
+    filter: none;
+    will-change: auto;
+  }
+  .auth-orb--a {
+    width: 520px;
+    height: 520px;
+    top: -210px;
+    margin-left: -260px;
+    opacity: 0.72;
+  }
+  .auth-orb--b,
+  .auth-orb--c,
+  .auth-shimmer,
+  .auth-dust {
+    display: none;
+  }
+}
 `;

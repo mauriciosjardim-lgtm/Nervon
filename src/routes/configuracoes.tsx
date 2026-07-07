@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { convidarMembro } from "@/lib/api/equipe.functions";
+import { MODULOS_LABEL, PERMISSOES_PADRAO, type Permissoes } from "@/lib/permissoes";
 import { Target, Rocket, Terminal, Monitor } from "lucide-react";
-import { TickCircle, DocumentUpload, Brush, Buildings2, CloseCircle, Profile, Cpu, Copy, Trash, Key, ArrowRight2, ArrowLeft2, MagicStar, Refresh, DocumentDownload, ArrowDown2 } from "iconsax-react";
+import { TickCircle, DocumentUpload, Brush, Buildings2, CloseCircle, Profile, Cpu, Copy, Trash, Key, ArrowRight2, ArrowLeft2, MagicStar, Refresh, DocumentDownload, ArrowDown2, People } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { COR_PRESETS, applyBrandColor } from "@/lib/brandColor";
 
 export const Route = createFileRoute("/configuracoes")({
+  // ssr:false — módulo privado, dados 100% client-side (mesmo padrão de /financeiro)
+  ssr: false,
   head: () => ({ meta: [{ title: "Configurações — MakersHub" }] }),
   component: ConfiguracoesPage,
 });
@@ -54,7 +59,7 @@ function ConfiguracoesPage() {
           <ProdutoraSection />
           <BrandKitSection />
           <MetasSection />
-          <PlaceholderSection id="equipe" title="Equipe" desc="Convide membros, defina papéis e permissões." />
+          <EquipeSection />
           <AgenteIASection />
           <PlaceholderSection id="integracoes" title="Integrações" desc="Google Calendar, Drive, WhatsApp, Stripe." />
           <PlaceholderSection id="plano" title="Plano e Faturamento" desc="Gerencie sua assinatura MakersHub." />
@@ -498,11 +503,12 @@ function AgenteIASection() {
         </div>
       )}
 
-      {wizardAberto && (
+      {wizardAberto && createPortal(
         <ConectarWizard
           empresa={empresa}
           onClose={() => { setWizardAberto(false); carregar(); }}
-        />
+        />,
+        document.body,
       )}
     </section>
   );
@@ -915,6 +921,365 @@ function StepPronto() {
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Equipe ───────────────────────────────────────────────────────────────────
+
+interface Membro { id: string; nome: string; email: string; cargo: string | null; role: string; permissoes: Partial<Permissoes>; }
+interface Convite { id: string; email: string; nome: string | null; role: string; permissoes: Partial<Permissoes>; criado_em: string; }
+
+function EquipeSection() {
+  const { empresa, usuario, session } = useAuth();
+  const isAdmin = (usuario as any)?.role !== "membro";
+
+  const [membros,  setMembros]  = useState<Membro[]>([]);
+  const [convites, setConvites] = useState<Convite[]>([]);
+  const [loading,  setLoading]  = useState(true);
+
+  // Formulário de convite
+  const [email,       setEmail]       = useState("");
+  const [nomeConvite, setNomeConvite] = useState("");
+  const [role,        setRole]        = useState<"membro" | "admin">("membro");
+  const [permissoes,  setPermissoes]  = useState<Permissoes>({ ...PERMISSOES_PADRAO });
+  const [enviando,    setEnviando]    = useState(false);
+  const [linkCopiado, setLinkCopiado] = useState<string | null>(null);
+  const [erroConvite, setErroConvite] = useState<string | null>(null);
+
+  // Edição de acessos de um membro existente
+  const [editandoAcesso, setEditandoAcesso] = useState<string | null>(null);
+  const [acessoDraft,    setAcessoDraft]    = useState<Permissoes>({ ...PERMISSOES_PADRAO });
+  const [salvandoAcesso, setSalvandoAcesso] = useState(false);
+
+  const carregar = async () => {
+    if (!empresa) return;
+    const [{ data: m }, { data: c }] = await Promise.all([
+      supabase.from("usuarios").select("id, nome, email, cargo, role, permissoes").eq("empresa_id", empresa.id),
+      supabase.from("equipe_convites").select("id, email, nome, role, permissoes, criado_em").eq("empresa_id", empresa.id).eq("status", "pendente"),
+    ]);
+    setMembros((m ?? []) as Membro[]);
+    setConvites((c ?? []) as Convite[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { carregar(); }, [empresa]);
+
+  const convidar = async () => {
+    setErroConvite(null);
+    if (!email.trim()) { setErroConvite("Informe o e-mail."); return; }
+
+    // Pega um token FRESCO (renova se expirou) — evita "Não autenticado" por token velho
+    let accessToken = session?.access_token ?? "";
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.access_token) accessToken = data.session.access_token;
+    } catch { /* usa o token do contexto como fallback */ }
+    if (!accessToken) {
+      setErroConvite("Sua sessão expirou. Recarregue a página e entre novamente.");
+      return;
+    }
+
+    setEnviando(true);
+
+    try {
+      const json = await convidarMembro({
+        data: {
+          accessToken,
+          email:       email.trim(),
+          nome:        nomeConvite.trim() || undefined,
+          role:        role as "admin" | "membro",
+          permissoes:  role === "admin" ? {} : (permissoes as Record<string, boolean>),
+        },
+      });
+
+      // Link de backup caso o email falhe
+      if (json.emailError) {
+        const link = `https://makershub.app.br/aceitar-convite?token=${json.token}`;
+        try { await navigator.clipboard.writeText(link); } catch { /* permissão negada */ }
+        setLinkCopiado(link);
+      }
+
+      setEmail(""); setNomeConvite(""); setRole("membro"); setPermissoes({ ...PERMISSOES_PADRAO });
+      carregar();
+    } catch (err: any) {
+      setErroConvite(err?.message ?? "Erro ao convidar. Tente novamente.");
+      console.error("Erro no convidar:", err);
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const cancelarConvite = async (id: string) => {
+    await supabase.rpc("cancelar_convite", { p_id: id });
+    carregar();
+  };
+
+  const removerMembro = async (id: string) => {
+    if (!confirm("Remover este membro? O acesso dele será revogado imediatamente. O histórico de tarefas e atividades é preservado.")) return;
+    const { error } = await supabase.rpc("remover_membro", { p_usuario_id: id });
+    if (error) { setErroConvite(error.message); return; }
+    carregar();
+  };
+
+  const alterarPapel = async (id: string, novoRole: "admin" | "membro", perms?: Partial<Permissoes>) => {
+    setErroConvite(null);
+    const { error } = await supabase.rpc("alterar_papel_membro", {
+      p_usuario_id: id,
+      p_role: novoRole,
+      p_permissoes: novoRole === "admin" ? {} : (perms ?? { ...PERMISSOES_PADRAO }),
+    });
+    if (error) { setErroConvite(error.message); return; }
+    carregar();
+  };
+
+  const abrirAcesso = (m: Membro) => {
+    setErroConvite(null);
+    setEditandoAcesso(m.id);
+    setAcessoDraft({ ...PERMISSOES_PADRAO, ...(m.permissoes ?? {}) });
+  };
+
+  const salvarAcesso = async (id: string) => {
+    setSalvandoAcesso(true);
+    setErroConvite(null);
+    const { error } = await supabase.rpc("alterar_papel_membro", {
+      p_usuario_id: id,
+      p_role: "membro",
+      p_permissoes: acessoDraft,
+    });
+    setSalvandoAcesso(false);
+    if (error) { setErroConvite(error.message); return; }
+    setEditandoAcesso(null);
+    carregar();
+  };
+
+  const togglePerm = (k: keyof Permissoes) =>
+    setPermissoes(p => ({ ...p, [k]: !p[k] }));
+
+  return (
+    <section id="equipe" className="rounded-2xl border border-border/60 bg-surface-1/60 p-6 backdrop-blur-sm">
+      <div className="mb-2 flex items-center gap-2">
+        <People size={16} color="currentColor" variant="Linear" className="text-primary" />
+        <h2 className="font-display text-lg font-semibold tracking-tight">Equipe</h2>
+      </div>
+      <p className="mb-6 text-sm text-muted-foreground">Convide membros, defina papéis e controle o acesso por módulo.</p>
+
+      {/* Membros ativos */}
+      {!loading && membros.length > 0 && (
+        <div className="mb-6">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Membros ativos</p>
+          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+            {membros.map(m => (
+              <li key={m.id} className="bg-surface-2/30">
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/15 text-[11px] font-bold text-primary">
+                    {m.nome.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{m.nome}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">{m.email}</p>
+                  </div>
+                  {isAdmin && m.id !== usuario?.id ? (
+                    <select
+                      value={m.role === "admin" ? "admin" : "membro"}
+                      onChange={e => alterarPapel(m.id, e.target.value as "admin" | "membro", m.permissoes)}
+                      className="shrink-0 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] font-medium text-foreground outline-none transition hover:bg-surface-1 focus:border-primary/40"
+                    >
+                      <option value="membro">Membro</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                      m.role === "admin" ? "bg-primary/15 text-primary" : "bg-surface-3 text-muted-foreground",
+                    )}>
+                      {m.role === "admin" ? "Admin" : "Membro"}
+                    </span>
+                  )}
+                  {m.id === usuario?.id && (
+                    <span className="shrink-0 text-[10px] text-muted-foreground">você</span>
+                  )}
+                  {isAdmin && m.id !== usuario?.id && m.role !== "admin" && (
+                    <button
+                      onClick={() => editandoAcesso === m.id ? setEditandoAcesso(null) : abrirAcesso(m)}
+                      title="Gerenciar acessos"
+                      data-active={editandoAcesso === m.id}
+                      className="shrink-0 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-surface-1 hover:text-foreground data-[active=true]:border-primary/40 data-[active=true]:text-primary"
+                    >
+                      Acessos
+                    </button>
+                  )}
+                  {isAdmin && m.id !== usuario?.id && (
+                    <button
+                      onClick={() => removerMembro(m.id)}
+                      title="Remover da equipe"
+                      className="shrink-0 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash size={14} color="currentColor" variant="Linear" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Painel de acessos por módulo */}
+                {editandoAcesso === m.id && (
+                  <div className="space-y-3 border-t border-border/50 bg-surface-1/40 px-4 py-3">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Módulos com acesso</p>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {(Object.keys(MODULOS_LABEL) as (keyof Permissoes)[]).map(k => (
+                        <label key={k} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-surface-2/30 px-3 py-2 text-xs transition hover:border-primary/30">
+                          <input
+                            type="checkbox"
+                            checked={!!acessoDraft[k]}
+                            onChange={() => setAcessoDraft(p => ({ ...p, [k]: !p[k] }))}
+                            className="size-3.5 accent-primary"
+                          />
+                          {MODULOS_LABEL[k]}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button onClick={() => salvarAcesso(m.id)} disabled={salvandoAcesso} className="h-8 rounded-lg px-4 text-xs">
+                        {salvandoAcesso ? "Salvando…" : "Salvar acessos"}
+                      </Button>
+                      <button onClick={() => setEditandoAcesso(null)} className="text-[11px] text-muted-foreground hover:text-foreground">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Convites pendentes */}
+      {convites.length > 0 && (
+        <div className="mb-6">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Convites pendentes</p>
+          <ul className="divide-y divide-border/50 overflow-hidden rounded-xl border border-border/50">
+            {convites.map(c => (
+              <li key={c.id} className="flex items-center gap-3 bg-surface-2/20 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{c.email}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {c.nome ? `${c.nome} · ` : ""}{c.role === "admin" ? "Admin" : "Membro"} · Enviado {new Date(c.criado_em).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    const { data } = await supabase.from("equipe_convites").select("token").eq("id", c.id).single();
+                    if (data) {
+                      const link = `${window.location.origin}/aceitar-convite?token=${data.token}`;
+                      navigator.clipboard.writeText(link);
+                      setLinkCopiado(link);
+                      setTimeout(() => setLinkCopiado(null), 3000);
+                    }
+                  }}
+                  className="shrink-0 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-surface-1"
+                >
+                  <Copy size={12} color="currentColor" variant="Linear" />
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => cancelarConvite(c.id)}
+                    className="shrink-0 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash size={14} color="currentColor" variant="Linear" />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Link copiado feedback */}
+      {linkCopiado && (
+        <div className="mb-4 space-y-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+          <div className="flex items-center gap-2 text-xs text-primary">
+            <TickCircle size={14} color="currentColor" variant="Linear" />
+            Email não enviado — compartilhe o link diretamente com o membro:
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded bg-surface-2 px-2 py-1 text-[10px] text-foreground">{linkCopiado}</code>
+            <button
+              onClick={async () => {
+                try { await navigator.clipboard.writeText(linkCopiado); } catch { /* sem permissão */ }
+              }}
+              className="shrink-0 rounded-md border border-border/60 bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-surface-1"
+            >
+              <Copy size={12} color="currentColor" variant="Linear" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Formulário de convite */}
+      {isAdmin && (
+        <div className="space-y-4 rounded-xl border border-dashed border-border/60 p-4">
+          <p className="text-sm font-medium">Convidar novo membro</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">E-mail <span className="text-destructive">*</span></Label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@email.com" type="email" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Nome (opcional)</Label>
+              <Input value={nomeConvite} onChange={e => setNomeConvite(e.target.value)} placeholder="Como chamá-lo?" />
+            </div>
+          </div>
+
+          {/* Role toggle */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Papel</Label>
+            <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-surface-1 p-1">
+              {(["membro", "admin"] as const).map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={cn(
+                    "rounded-md py-1.5 text-xs font-medium transition",
+                    role === r ? "bg-surface-3 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {r === "admin" ? "Admin (acesso total)" : "Membro (acesso limitado)"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Permissões por módulo — só para membros */}
+          {role === "membro" && (
+            <div className="space-y-2">
+              <Label className="text-xs">Módulos com acesso</Label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {(Object.keys(MODULOS_LABEL) as (keyof Permissoes)[]).map(k => (
+                  <label key={k} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-surface-2/30 px-3 py-2 text-xs transition hover:border-primary/30">
+                    <input
+                      type="checkbox"
+                      checked={permissoes[k]}
+                      onChange={() => togglePerm(k)}
+                      className="size-3.5 accent-primary"
+                    />
+                    {MODULOS_LABEL[k]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {erroConvite && (
+            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erroConvite}</p>
+          )}
+
+          <Button onClick={convidar} disabled={enviando} className="h-9 rounded-lg px-5 text-sm">
+            {enviando ? "Enviando…" : "Enviar convite"}
+          </Button>
+        </div>
+      )}
+    </section>
   );
 }
 

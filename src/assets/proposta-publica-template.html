@@ -1,0 +1,2718 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-accent="lime">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta — MakersHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=Bodoni+Moda:ital,wght@1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   MAKERSHUB — PROPOSTA PÚBLICA / TEMPLATE REFINADO V3
+   Pensado para ler somente do snapshot `conteudo_enviado`.
+   - Dark fixo + cor principal via Brand Kit
+   - Visual editorial + SaaS premium
+   - Suporte a preço fechado e pacotes
+   - Print/PDF via @media print
+   ============================================================ */
+
+/* ---------- BASE DARK FIXA + COR PRINCIPAL DO BRAND KIT ---------- */
+:root,
+[data-accent="lime"] {
+  /* Estrutura visual fixa do template */
+  --bg: #08090A;
+  --bg-2: #0D0F11;
+  --surface: #131518;
+  --surface-2: #1A1D21;
+  --surface-3: #0F1114;
+  --tinta: #F4F5F6;
+  --tinta-suave: #9A9DA3;
+  --tinta-fraca: #62666D;
+  --linha: rgba(255,255,255,.11);
+  --linha-suave: rgba(255,255,255,.06);
+  --sombra: 0 24px 80px rgba(0,0,0,.34);
+  --danger: #FF5B5B;
+
+  /* Cor principal: Verde Limão */
+  --acento: #A3FF2B;
+  --acento-2: #D4FF7A;
+  --acento-tinta: #08090A;
+  --acento-soft: rgba(163,255,43,.12);
+  --glow: rgba(163,255,43,.13);
+  --acento-print: #5E7A16;
+}
+
+[data-accent="blue"] {
+  --acento: #1495F5;
+  --acento-2: #73C4FF;
+  --acento-tinta: #FFFFFF;
+  --acento-soft: rgba(20,149,245,.14);
+  --glow: rgba(20,149,245,.14);
+  --acento-print: #0E5A8A;
+}
+
+[data-accent="purple"] {
+  --acento: #8B5CF6;
+  --acento-2: #B79CFF;
+  --acento-tinta: #FFFFFF;
+  --acento-soft: rgba(139,92,246,.15);
+  --glow: rgba(139,92,246,.14);
+  --acento-print: #5B3BA8;
+}
+
+[data-accent="pink"] {
+  --acento: #E957B5;
+  --acento-2: #FF9DD8;
+  --acento-tinta: #FFFFFF;
+  --acento-soft: rgba(233,87,181,.15);
+  --glow: rgba(233,87,181,.13);
+  --acento-print: #9A2F76;
+}
+
+[data-accent="orange"] {
+  --acento: #FF812B;
+  --acento-2: #FFB276;
+  --acento-tinta: #08090A;
+  --acento-soft: rgba(255,129,43,.14);
+  --glow: rgba(255,129,43,.13);
+  --acento-print: #A64D17;
+}
+
+[data-accent="cyan"] {
+  --acento: #12C7CE;
+  --acento-2: #7EE8EC;
+  --acento-tinta: #08090A;
+  --acento-soft: rgba(18,199,206,.14);
+  --glow: rgba(18,199,206,.13);
+  --acento-print: #08777C;
+}
+
+[data-accent="red"] {
+  --acento: #FF4148;
+  --acento-2: #FF858A;
+  --acento-tinta: #FFFFFF;
+  --acento-soft: rgba(255,65,72,.14);
+  --glow: rgba(255,65,72,.13);
+  --acento-print: #A52229;
+}
+
+[data-accent="yellow"] {
+  --acento: #FFD033;
+  --acento-2: #FFE486;
+  --acento-tinta: #08090A;
+  --acento-soft: rgba(255,208,51,.14);
+  --glow: rgba(255,208,51,.12);
+  --acento-print: #A87C00;
+}
+
+[data-accent="white"] {
+  --acento: #EEF1F4;
+  --acento-2: #FFFFFF;
+  --acento-tinta: #08090A;
+  --acento-soft: rgba(255,255,255,.10);
+  --glow: rgba(255,255,255,.08);
+  --acento-print: #6F737A;
+}
+
+/* ---------- RESET / BASE ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% -10%, var(--glow), transparent 34rem),
+    radial-gradient(circle at 15% 12%, rgba(255,255,255,.035), transparent 24rem),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  color: var(--tinta);
+  font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .33;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.20'/%3E%3C/svg%3E");
+}
+
+button, input, textarea, select { font: inherit; }
+
+[hidden] { display: none !important; }
+
+a { color: inherit; }
+
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 28px 96px;
+}
+
+/* ---------- TIPOGRAFIA ---------- */
+.mono,
+.eyebrow,
+.meta-label,
+.kicker,
+.toolbar .marca,
+.btn-imprimir,
+.section-num,
+.item .qtd,
+.item .valor,
+.pacote .preco,
+.pacote .tag,
+.stat-label,
+.stat-val,
+.condicao .eyebrow,
+.etapa .prazo {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.eyebrow,
+.meta-label,
+.kicker {
+  font-size: .68rem;
+  line-height: 1.2;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+
+h1, h2, h3 {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+.serif,
+.destaque-serif {
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--acento);
+}
+
+/* ---------- TOOLBAR ---------- */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 26px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border-bottom: 1px solid var(--linha);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.toolbar .marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .72rem;
+  letter-spacing: .13em;
+  color: var(--tinta-suave);
+  text-transform: uppercase;
+}
+
+.toolbar .marca::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--acento);
+  box-shadow: 0 0 18px var(--glow);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-imprimir {
+  border: 1px solid var(--linha);
+  background: var(--surface);
+  color: var(--tinta);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: .70rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,0,0,.08);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease;
+}
+
+.btn-imprimir:hover {
+  transform: translateY(-1px);
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-tinta);
+}
+
+.btn-imprimir:focus-visible,
+.seletor-acento button:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+}
+
+/* ---------- STRIP / HEADER ---------- */
+.confidential {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 26px auto 0;
+  padding: 0 28px;
+}
+
+.confidential-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 16px;
+  color: var(--tinta-suave);
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  box-shadow: var(--sombra);
+}
+
+.confidential span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topo {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: flex-start;
+  padding: 46px 0 28px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: .82rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--acento);
+}
+
+.brand-tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  font-weight: 300;
+  color: var(--tinta-suave);
+}
+
+.doc-meta {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 14px 22px;
+  text-align: right;
+  min-width: 260px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-value {
+  font-size: .83rem;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+/* ---------- BANNER ---------- */
+.banner-expirada {
+  display: none;
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--danger) 38%, var(--linha));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  color: var(--tinta);
+  box-shadow: var(--sombra);
+}
+
+.banner-expirada.visivel { display: block; }
+
+/* ---------- HERO / CAPA ---------- */
+.capa {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: 32px;
+  align-items: stretch;
+  min-height: 590px;
+  padding: 54px;
+  border: 1px solid var(--linha);
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 78%, transparent), color-mix(in srgb, var(--surface-3) 95%, transparent)),
+    radial-gradient(circle at 90% 6%, var(--glow), transparent 34rem);
+  box-shadow: var(--sombra);
+}
+
+.capa::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--acento), transparent);
+  opacity: .42;
+}
+
+.capa::after {
+  content: '';
+  position: absolute;
+  top: -28%;
+  right: -16%;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow), transparent 68%);
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* permite a coluna encolher — sem isso o título estoura sobre o card */
+}
+
+.hero-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 34px;
+  color: var(--acento);
+}
+
+.hero-label::before {
+  content: '';
+  width: 42px;
+  height: 1px;
+  background: currentColor;
+}
+
+.capa h1 {
+  /* 100% da coluna (não px fixo) + teto menor + quebra de palavra longa:
+     títulos tipo "CHAMPIONS" estouravam a coluna e invadiam o card ao lado */
+  max-width: 100%;
+  font-size: clamp(2.5rem, 6vw, 5.2rem);
+  line-height: .92;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  color: var(--tinta);
+}
+
+.capa h1 .serif-word {
+  display: inline-block;
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--acento);
+  letter-spacing: -.055em;
+}
+
+.hero-sub {
+  max-width: 620px;
+  margin-top: 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .86rem;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--tinta-suave);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 46px;
+}
+
+.stat {
+  min-width: 120px;
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--linha);
+}
+
+.stat:first-child { border-left-color: var(--acento); }
+
+.stat-icon {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--acento);
+  opacity: .75;
+}
+
+.stat-icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stat-val {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--acento);
+  font-size: clamp(1.15rem, 2vw, 1.7rem);
+  letter-spacing: -.08em;
+  font-weight: 500;
+}
+
+.stat-label {
+  display: block;
+  max-width: 160px;
+  color: var(--tinta-suave);
+  font-size: .62rem;
+  line-height: 1.45;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.client-card {
+  position: relative;
+  z-index: 2;
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  padding: 30px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 88%, transparent), var(--surface)),
+    radial-gradient(circle at 100% 0%, var(--glow), transparent 20rem);
+  border: 1px solid var(--linha);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.client-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.proposta-numero {
+  color: var(--acento);
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--acento-soft);
+  border: 1px solid color-mix(in srgb, var(--acento) 30%, var(--linha));
+}
+
+.client-info {
+  display: grid;
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.info-block {
+  display: grid;
+  gap: 5px;
+}
+
+.info-block .valor {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+.client-card-footer {
+  margin-top: auto;
+  padding-top: 26px;
+  color: var(--tinta-suave);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  line-height: 1.65;
+}
+
+/* ---------- SEÇÕES ---------- */
+.bloco {
+  position: relative;
+  padding: 76px 0;
+}
+
+.bloco::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: var(--linha);
+}
+
+.bloco:last-of-type::after { display: none; }
+
+.section-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 34px;
+}
+
+.section-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--acento);
+  background: var(--acento-soft);
+  border: 1px solid color-mix(in srgb, var(--acento) 30%, var(--linha));
+}
+
+.section-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.section-num {
+  color: var(--tinta-fraca);
+  font-size: .72rem;
+  letter-spacing: .16em;
+}
+
+.section-title-group {
+  display: grid;
+  gap: 8px;
+}
+
+.bloco > .eyebrow {
+  display: block;
+  margin-bottom: 22px;
+}
+
+.bloco h2,
+.section-title {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
+}
+
+.section-desc {
+  max-width: 62ch;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .76rem;
+  line-height: 1.7;
+  font-weight: 300;
+  color: var(--tinta-suave);
+}
+
+.texto-contexto {
+  max-width: 76ch;
+  padding: 38px;
+  border: 1px solid var(--linha);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  box-shadow: 0 14px 45px rgba(0,0,0,.08);
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  line-height: 1.85;
+  white-space: pre-line;
+}
+
+.texto-contexto::first-letter {
+  color: var(--acento);
+}
+
+/* ---------- ITENS / PREÇO FECHADO ---------- */
+.lista-itens {
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px 28px;
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--linha-suave);
+  transition: background .16s ease;
+}
+
+.item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--acento);
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+
+.item.com-valores {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.item:hover {
+  background: color-mix(in srgb, var(--acento) 4%, transparent);
+}
+
+.item:hover::before {
+  opacity: 1;
+}
+
+.item:last-child { border-bottom: none; }
+
+.item .desc {
+  font-weight: 800;
+  font-size: .98rem;
+  color: var(--tinta);
+}
+
+.item .detalhe {
+  grid-column: 1;
+  max-width: 72ch;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .73rem;
+  line-height: 1.6;
+  color: var(--tinta-suave);
+}
+
+.item .valor {
+  align-self: start;
+  color: var(--tinta);
+  font-weight: 500;
+  font-size: .86rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.item .qtd {
+  color: var(--tinta-suave);
+  font-size: .70rem;
+  font-weight: 400;
+}
+
+.card-investimento {
+  margin-top: 22px;
+  padding: 34px;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--acento) 34%, var(--linha));
+  background:
+    radial-gradient(circle at 100% 0%, var(--glow), transparent 20rem),
+    linear-gradient(135deg, var(--surface), var(--surface-2));
+  box-shadow: var(--sombra);
+}
+
+.card-investimento .linha-calc {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 7px 0;
+  color: var(--tinta-suave);
+  font-size: .86rem;
+}
+
+.card-investimento .linha-calc .num {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--tinta);
+  white-space: nowrap;
+}
+
+.card-investimento .total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--linha);
+}
+
+.card-investimento .total .rotulo {
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.45rem, 2.5vw, 2.1rem);
+  color: var(--acento);
+}
+
+.card-investimento .total .num-total {
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: .95;
+  letter-spacing: -.055em;
+  color: var(--tinta);
+  text-align: right;
+}
+
+/* ---------- PACOTES ---------- */
+.pacote {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 34px 30px 30px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--linha);
+  border-radius: 26px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.12);
+  overflow: hidden;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.pacote:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--acento) 34%, var(--linha));
+}
+
+.pacote.recomendado {
+  background: var(--acento);
+  color: var(--acento-tinta);
+  border-color: var(--acento);
+  transform: translateY(-8px);
+}
+
+.pacote.recomendado:hover { transform: translateY(-10px); }
+
+.pacote.recomendado::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255,255,255,.28), transparent 16rem),
+    linear-gradient(180deg, rgba(255,255,255,.15), transparent 36%);
+}
+
+.pacote .tag {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tinta) 92%, transparent);
+  color: var(--bg);
+  font-size: .55rem;
+  font-weight: 500;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.pacote.recomendado .tag {
+  background: var(--acento-tinta);
+  color: var(--acento);
+}
+
+.pacote h3 {
+  position: relative;
+  z-index: 1;
+  max-width: 80%;
+  margin-top: 18px;
+  margin-bottom: 10px;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pacote .preco {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0 28px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: .95;
+  letter-spacing: -.055em;
+  color: var(--tinta);
+}
+
+.pacote.recomendado .preco,
+.pacote.recomendado h3,
+.pacote.recomendado li,
+.pacote.recomendado .li-detalhe {
+  color: var(--acento-tinta);
+}
+
+.pacote .pkg-desc {
+  position: relative;
+  z-index: 1;
+  min-height: 52px;
+  margin-bottom: 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  line-height: 1.65;
+  color: var(--tinta-suave);
+}
+
+.pacote.recomendado .pkg-desc {
+  color: color-mix(in srgb, var(--acento-tinta) 78%, transparent);
+}
+
+.pacote ul {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin-top: auto;
+}
+
+.pacote li {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--linha-suave);
+  font-size: .86rem;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+.pacote li:first-child {
+  border-top: 1px solid var(--linha-suave);
+}
+
+.pacote.recomendado li {
+  border-bottom-color: rgba(0,0,0,.13);
+}
+
+.pacote.recomendado li:first-child {
+  border-top-color: rgba(0,0,0,.13);
+}
+
+.pacote li::before {
+  content: '→';
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--acento);
+}
+
+.pacote.recomendado li::before {
+  color: var(--acento-tinta);
+}
+
+.pacote li .li-detalhe {
+  display: block;
+  padding-left: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .68rem;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+
+/* ---------- PACOTES / COMPARATIVO FLUIDO ---------- */
+.grade-pacotes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.pacotes-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.pacotes-resumo .pacote {
+  min-height: auto;
+  padding: 30px;
+}
+
+.pacotes-resumo .pacote h3 {
+  max-width: 82%;
+}
+
+.pacotes-resumo .pacote .preco {
+  margin: 18px 0 0;
+}
+
+.comparativo-wrap {
+  margin-top: 10px;
+  border: 1px solid var(--linha);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 82%, transparent), color-mix(in srgb, var(--surface-3) 94%, transparent));
+  overflow: hidden;
+  box-shadow: 0 18px 70px rgba(0,0,0,.14);
+}
+
+.comp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.comp-title {
+  font-weight: 800;
+  font-size: .98rem;
+  letter-spacing: -.02em;
+  color: var(--tinta);
+}
+
+.comp-subtitle {
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .70rem;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+
+.comp-pill {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: var(--acento-soft);
+  color: var(--acento);
+  border: 1px solid color-mix(in srgb, var(--acento) 26%, var(--linha));
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.comparativo-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparativo-grid {
+  --pkg-cols: 3;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.25fr) repeat(var(--pkg-cols), minmax(190px, 1fr));
+  min-width: calc(260px + (var(--pkg-cols) * 190px));
+}
+
+.comp-cell {
+  min-height: 76px;
+  padding: 18px 20px;
+  border-right: 1px solid var(--linha-suave);
+  border-bottom: 1px solid var(--linha-suave);
+  background: color-mix(in srgb, var(--surface) 52%, transparent);
+}
+
+.comp-cell:nth-child(4n) {
+  border-right: none;
+}
+
+.comp-grid-dynamic .comp-cell:nth-child(n) {
+  border-right: 1px solid var(--linha-suave);
+}
+
+.comp-cell.last-col {
+  border-right: none !important;
+}
+
+.comp-head {
+  min-height: 110px;
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
+}
+
+.comp-head.comp-head-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.comp-head.recomendado {
+  background: var(--acento);
+  color: var(--acento-tinta);
+}
+
+.comp-head .tag-mini {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--acento-soft);
+  color: var(--acento);
+  border: 1px solid color-mix(in srgb, var(--acento) 28%, var(--linha));
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.comp-head.recomendado .tag-mini {
+  background: var(--acento-tinta);
+  color: var(--acento);
+  border-color: transparent;
+}
+
+.comp-head-title {
+  display: block;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.comp-head-price {
+  display: block;
+  margin-top: 8px;
+  font-weight: 800;
+  font-size: 1.45rem;
+  letter-spacing: -.05em;
+  color: inherit;
+}
+
+.comp-feature {
+  background: color-mix(in srgb, var(--surface-2) 56%, transparent);
+}
+
+.comp-feature-title {
+  display: block;
+  font-weight: 800;
+  font-size: .9rem;
+  color: var(--tinta);
+}
+
+.comp-feature-detail {
+  display: block;
+  margin-top: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .68rem;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+
+.comp-status {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  color: var(--tinta);
+}
+
+.status-mark {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  margin-top: -2px;
+}
+
+.status-mark svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.comp-status.incluso .status-mark {
+  background: var(--acento-soft);
+  color: var(--acento);
+  border: 1px solid color-mix(in srgb, var(--acento) 28%, transparent);
+}
+
+.comp-status.nao-incluso {
+  color: var(--tinta-fraca);
+}
+
+.comp-status.nao-incluso .status-mark {
+  background: rgba(255,255,255,.025);
+  color: var(--tinta-fraca);
+  border: 1px solid var(--linha);
+}
+
+.comp-status-main {
+  display: block;
+  font-weight: 800;
+  font-size: .82rem;
+  line-height: 1.25;
+}
+
+.comp-status-detail {
+  display: block;
+  margin-top: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .66rem;
+  line-height: 1.5;
+  color: var(--tinta-suave);
+}
+
+.comp-head.recomendado + .comp-cell,
+.comp-cell.recomendado-col {
+  background: color-mix(in srgb, var(--acento) 6%, var(--surface));
+}
+
+/* ---------- PAGAMENTO / CONDIÇÕES ---------- */
+.payment-grid,
+.condicoes,
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.payment-step,
+.condicao,
+.note-card {
+  position: relative;
+  padding: 28px;
+  border: 1px solid var(--linha);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  overflow: hidden;
+}
+
+.payment-step::before {
+  content: attr(data-num);
+  position: absolute;
+  right: 18px;
+  top: 8px;
+  font-weight: 800;
+  font-size: 5rem;
+  line-height: 1;
+  letter-spacing: -.08em;
+  color: color-mix(in srgb, var(--tinta) 5%, transparent);
+}
+
+.payment-pct {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: .95;
+  letter-spacing: -.06em;
+  color: var(--acento);
+}
+
+.payment-when,
+.condicao .valor,
+.note-title {
+  position: relative;
+  z-index: 1;
+  font-weight: 800;
+  font-size: .95rem;
+  color: var(--tinta);
+}
+
+.payment-desc,
+.condicoes-obs,
+.note-text {
+  position: relative;
+  z-index: 1;
+  margin-top: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: .74rem;
+  line-height: 1.7;
+  color: var(--tinta-suave);
+  white-space: pre-line;
+}
+
+.condicao .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.condicoes-obs {
+  margin-top: 18px;
+  padding: 22px 26px;
+  border: 1px solid var(--linha);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
+}
+
+.note-card strong,
+.note-text strong {
+  color: var(--acento);
+  font-weight: 500;
+}
+
+.note-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  color: var(--acento);
+  background: var(--acento-soft);
+  border: 1px solid color-mix(in srgb, var(--acento) 26%, var(--linha));
+}
+
+.note-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- CRONOGRAMA ---------- */
+.cronograma {
+  position: relative;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding-left: 24px;
+}
+
+.cronograma::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--acento), var(--linha) 70%, transparent);
+  opacity: .5;
+}
+
+.etapa {
+  position: relative;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  padding: 20px 24px;
+  border: 1px solid var(--linha);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.etapa::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 24px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--acento);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.etapa .prazo {
+  color: var(--acento);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.etapa .nome {
+  font-weight: 800;
+  font-size: .98rem;
+}
+
+/* ---------- RODAPÉ ---------- */
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  padding: 44px 0 0;
+}
+
+.rodape .validade {
+  max-width: 420px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .74rem;
+  line-height: 1.6;
+  color: var(--tinta-suave);
+}
+
+.rodape .assinatura-estudio {
+  font-weight: 800;
+  font-size: .82rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--acento);
+  text-align: right;
+}
+
+/* ---------- SELETOR DE COR PRINCIPAL (preview/dev) ---------- */
+.seletor-acento {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--sombra);
+  backdrop-filter: blur(12px);
+}
+
+.seletor-acento button {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid var(--linha);
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease;
+}
+
+.seletor-acento button:hover {
+  transform: translateY(-1px);
+  border-color: var(--acento);
+}
+
+.seletor-acento .sw-lime   { background: #A3FF2B; }
+.seletor-acento .sw-blue   { background: #1495F5; }
+.seletor-acento .sw-purple { background: #8B5CF6; }
+.seletor-acento .sw-pink   { background: #E957B5; }
+.seletor-acento .sw-orange { background: #FF812B; }
+.seletor-acento .sw-cyan   { background: #12C7CE; }
+.seletor-acento .sw-red    { background: #FF4148; }
+.seletor-acento .sw-yellow { background: #FFD033; }
+.seletor-acento .sw-white  { background: #EEF1F4; }
+
+/* ---------- RESPONSIVO ---------- */
+@media (max-width: 980px) {
+  .capa {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 42px;
+  }
+
+  .client-card {
+    min-height: auto;
+  }
+
+  .grade-pacotes,
+  .payment-grid,
+  .condicoes,
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pacote.recomendado {
+    transform: none;
+  }
+
+  .pacote.recomendado:hover {
+    transform: translateY(-2px);
+  }
+
+  .doc-meta {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .shell,
+  .confidential {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .toolbar {
+    padding: 12px 16px;
+  }
+
+  .toolbar .marca {
+    font-size: .62rem;
+  }
+
+  .btn-imprimir {
+    padding: 9px 12px;
+    font-size: .62rem;
+  }
+
+  .confidential-inner {
+    border-radius: 18px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .topo {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 32px 0 20px;
+  }
+
+  .doc-meta {
+    grid-template-columns: 1fr 1fr;
+    text-align: left;
+  }
+
+  .capa {
+    padding: 30px 22px;
+    border-radius: 24px;
+  }
+
+  .hero-stats {
+    gap: 16px;
+    padding-top: 34px;
+  }
+
+  .stat {
+    min-width: calc(50% - 10px);
+  }
+
+  .client-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .bloco {
+    padding: 54px 0;
+  }
+
+  .section-header {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .texto-contexto {
+    padding: 24px;
+    border-radius: 22px;
+  }
+
+  .item {
+    grid-template-columns: 1fr;
+    padding: 20px 20px;
+  }
+
+  .item .detalhe {
+    grid-column: 1;
+  }
+
+  .item .valor {
+    text-align: left;
+  }
+
+  .card-investimento {
+    padding: 24px;
+  }
+
+  .card-investimento .total {
+    grid-template-columns: 1fr;
+  }
+
+  .card-investimento .total .num-total {
+    text-align: left;
+  }
+
+  .etapa {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 18px 20px;
+  }
+
+  .rodape {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rodape .assinatura-estudio {
+    text-align: left;
+  }
+
+  .seletor-acento {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* ============================================================
+   IMPRESSÃO — PDF do MVP.
+   No papel, força versão light para legibilidade/economia.
+   ============================================================ */
+@page { margin: 1.6cm; }
+
+@media print {
+  :root, [data-accent] {
+    --bg: #FFFFFF;
+    --bg-2: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-2: #FFFFFF;
+    --surface-3: #FFFFFF;
+    --tinta: #111111;
+    --tinta-suave: #555550;
+    --tinta-fraca: #777770;
+    --linha: #D0D0D0;
+    --linha-suave: #E5E5E5;
+    --acento: var(--acento-print);
+    --acento-2: var(--acento-print);
+    --acento-tinta: #FFFFFF;
+    --glow: transparent;
+    --sombra: none;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    font-size: 10.5pt;
+  }
+
+  body::before,
+  .toolbar,
+  .seletor-acento,
+  .no-print {
+    display: none !important;
+  }
+
+  .confidential {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  .confidential-inner {
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    border-bottom: 1pt solid var(--linha);
+    padding: 0 0 8pt;
+  }
+
+  .shell {
+    max-width: none;
+    padding: 0;
+  }
+
+  .topo {
+    padding: 18pt 0;
+  }
+
+  .capa {
+    min-height: auto;
+    padding: 24pt;
+    border-radius: 0;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .capa h1 {
+    font-size: 38pt;
+  }
+
+  .client-card {
+    min-height: auto;
+    border-radius: 0;
+  }
+
+  .bloco {
+    padding: 26pt 0;
+  }
+
+  .section-header,
+  .bloco h2,
+  .bloco > .eyebrow {
+    break-after: avoid;
+  }
+
+  .item,
+  .card-investimento,
+  .pacote,
+  .etapa,
+  .condicao,
+  .payment-step,
+  .note-card,
+  .texto-contexto {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .grade-pacotes {
+    grid-template-columns: 1fr;
+  }
+
+  .pacote.recomendado {
+    background: #F3F7D8 !important;
+    color: #111111 !important;
+    transform: none;
+  }
+
+  .payment-grid,
+  .condicoes,
+  .notes-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .comparativo-wrap {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .comparativo-scroll {
+    overflow: visible;
+  }
+
+  .comparativo-grid {
+    min-width: 0;
+    grid-template-columns: minmax(190px, 1.25fr) repeat(var(--pkg-cols), minmax(120px, 1fr));
+  }
+
+  .comp-cell {
+    padding: 10pt;
+    min-height: auto;
+  }
+
+  .rodape {
+    padding-top: 24pt;
+  }
+
+  a {
+    color: var(--tinta);
+    text-decoration: none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="toolbar no-print">
+  <span class="marca">MakersHub · Proposta</span>
+  <div class="toolbar-actions">
+    <button class="btn-imprimir" onclick="baixarPropostaHtml()">Baixar proposta</button>
+  </div>
+</header>
+
+<div class="confidential no-print">
+  <div class="confidential-inner">
+    <span id="propConfidencial">Proposta comercial — uso restrito</span>
+    <span id="propStripMeta">Link público gerado pelo MakersHub</span>
+  </div>
+</div>
+
+<main class="shell">
+
+  <header class="topo">
+    <div class="brand">
+      <div class="brand-name" id="propBrand">MakersHub</div>
+      <div class="brand-tagline" id="propBrandTagline">propostas comerciais para audiovisual</div>
+    </div>
+
+    <div class="doc-meta">
+      <div class="meta-item">
+        <span class="meta-label">Documento</span>
+        <span class="meta-value">Proposta comercial</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Número</span>
+        <span class="meta-value" id="propNumero">PROP-0000-000</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Data</span>
+        <span class="meta-value" id="propData">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Status</span>
+        <span class="meta-value" id="propStatus">Publicada</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner-expirada" id="bannerExpirada">
+    Esta proposta expirou. Fala com quem te enviou para receber uma versão atualizada.
+  </div>
+
+  <!-- CAPA -->
+  <section class="capa">
+    <div class="hero-copy">
+      <div class="hero-label eyebrow">Proposta audiovisual</div>
+      <h1 id="propTitulo">—</h1>
+      <p class="hero-sub" id="propSubtitulo">
+        Proposta comercial estruturada para apresentar escopo, investimento, cronograma e condições com clareza.
+      </p>
+
+      <div class="hero-stats" id="heroStats">
+        <div class="stat">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <span class="stat-val" id="statItens">—</span>
+          <span class="stat-label">Itens no escopo</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+          <span class="stat-val" id="statFormato">—</span>
+          <span class="stat-label">Formato comercial</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+          <span class="stat-val" id="statValidade">—</span>
+          <span class="stat-label">Validade</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="client-card">
+      <div class="client-card-top">
+        <span class="eyebrow">Preparada para</span>
+        <span class="eyebrow proposta-numero" id="propNumeroCard">PROP-0000-000</span>
+      </div>
+
+      <div class="client-info">
+        <div class="info-block">
+          <span class="meta-label">Cliente</span>
+          <span class="valor" id="propCliente">—</span>
+        </div>
+        <div class="info-block" id="campoEmpresa" hidden>
+          <span class="meta-label">Empresa</span>
+          <span class="valor" id="propEmpresa">—</span>
+        </div>
+        <div class="info-block">
+          <span class="meta-label">Investimento</span>
+          <span class="valor" id="propInvestimentoResumo">—</span>
+        </div>
+      </div>
+
+      <div class="client-card-footer" id="clientCardFooter">
+        Esta proposta foi preparada exclusivamente para você.
+      </div>
+    </aside>
+  </section>
+
+  <!-- CONTEXTO -->
+  <section class="bloco" id="blocoContexto" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg></span>
+        <span class="section-num">01</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">O ponto de partida</h2>
+        <p class="section-desc">Contexto da oportunidade, objetivo do projeto e raciocínio por trás da proposta.</p>
+      </div>
+    </div>
+    <p class="texto-contexto" id="propContexto"></p>
+  </section>
+
+  <!-- ESCOPO + INVESTIMENTO (preço fechado) -->
+  <section class="bloco" id="blocoFechado" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        <span class="section-num">02</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Escopo e investimento</h2>
+        <p class="section-desc">Itens contratados, quantidades, detalhes e composição do valor final.</p>
+      </div>
+    </div>
+
+    <ul class="lista-itens" id="listaItens"></ul>
+
+    <div class="card-investimento">
+      <div class="linha-calc" id="linhaSubtotal" hidden>
+        <span>Subtotal</span><span class="num" id="numSubtotal"></span>
+      </div>
+      <div class="linha-calc" id="linhaDesconto" hidden>
+        <span id="rotuloDesconto">Desconto</span><span class="num" id="numDesconto"></span>
+      </div>
+      <div class="total">
+        <span class="rotulo" id="rotuloTotal">Investimento total</span>
+        <span class="num-total" id="numTotal">—</span>
+      </div>
+      <div class="linha-calc" id="linhaContratoTotal" hidden>
+        <span>Total do contrato (<span id="numMesesContrato"></span> meses)</span>
+        <span class="num" id="numContratoTotal"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTREGAS MENSAIS (conteúdo recorrente) -->
+  <section class="bloco" id="blocoEntregasMensais" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+        <span class="section-num">03</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">O que você recebe todo mês</h2>
+        <p class="section-desc">Volume de entregas incluído em cada ciclo mensal do contrato.</p>
+      </div>
+    </div>
+
+    <ul class="lista-itens" id="listaEntregasMensais"></ul>
+  </section>
+
+  <!-- PACOTES -->
+  <section class="bloco" id="blocoPacotes" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+        <span class="section-num">02</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Cenários de contratação</h2>
+        <p class="section-desc">Opções organizadas por escopo, valor e profundidade de entrega.</p>
+      </div>
+    </div>
+
+    <div class="grade-pacotes" id="gradePacotes"></div>
+  </section>
+
+  <!-- PAGAMENTO (opcional) -->
+  <section class="bloco" id="blocoPagamento" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+        <span class="section-num">04</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Condições de pagamento</h2>
+        <p class="section-desc">Etapas de pagamento e critérios de início do projeto.</p>
+      </div>
+    </div>
+
+    <div class="payment-grid" id="gradePagamento"></div>
+  </section>
+
+  <!-- CRONOGRAMA -->
+  <section class="bloco" id="blocoCronograma" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+        <span class="section-num">05</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Cronograma</h2>
+        <p class="section-desc">Sequência prevista para alinhamento, produção, entrega e acompanhamento.</p>
+      </div>
+    </div>
+
+    <ul class="cronograma" id="listaCronograma"></ul>
+  </section>
+
+  <!-- CONDIÇÕES -->
+  <section class="bloco" id="blocoCondicoes" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <span class="section-num">06</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Observações e condições gerais</h2>
+        <p class="section-desc">Pontos importantes para evitar ruído na aprovação e execução.</p>
+      </div>
+    </div>
+
+    <div class="condicoes" id="gradeCondicoes"></div>
+    <p class="condicoes-obs" id="condObs" hidden></p>
+  </section>
+
+  <!-- OBSERVAÇÕES EM CARDS (opcional) -->
+  <section class="bloco" id="blocoObservacoes" hidden>
+    <div class="section-header">
+      <div class="section-badge">
+        <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>
+        <span class="section-num">07</span>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title">Notas importantes</h2>
+        <p class="section-desc">Informações complementares em formato de cards.</p>
+      </div>
+    </div>
+    <div class="notes-grid" id="gradeObservacoes"></div>
+  </section>
+
+  <!-- RODAPÉ -->
+  <footer class="rodape">
+    <span class="validade" id="propValidade" hidden></span>
+    <span class="assinatura-estudio" id="propEstudio">Feito com MakersHub</span>
+  </footer>
+
+</main>
+
+<div class="seletor-acento no-print" role="group" aria-label="Cor principal da proposta">
+  <button class="sw-lime"   title="Verde Limão" onclick="setPreviewAccent('lime')"></button>
+  <button class="sw-blue"   title="Azul"        onclick="setPreviewAccent('blue')"></button>
+  <button class="sw-purple" title="Roxo"        onclick="setPreviewAccent('purple')"></button>
+  <button class="sw-pink"   title="Rosa"        onclick="setPreviewAccent('pink')"></button>
+  <button class="sw-orange" title="Laranja"     onclick="setPreviewAccent('orange')"></button>
+  <button class="sw-cyan"   title="Ciano"       onclick="setPreviewAccent('cyan')"></button>
+  <button class="sw-red"    title="Vermelho"    onclick="setPreviewAccent('red')"></button>
+  <button class="sw-yellow" title="Amarelo"     onclick="setPreviewAccent('yellow')"></button>
+  <button class="sw-white"  title="Branco"      onclick="setPreviewAccent('white')"></button>
+</div>
+
+<script>
+/* ============================================================
+   RENDER — recebe o objeto retornado por proposta_publica(token)
+   Preferência:
+   const { data } = await supabase.rpc('proposta_publica', { p_token: token });
+   renderProposta(data);
+
+   Regra de ouro:
+   A página pública deve ler apenas o snapshot enviado.
+   Não buscar itens/pacotes relacionais fora do JSON congelado.
+   ============================================================ */
+
+const dadosExemplo = {
+  numero: 14,
+  ano: 2026,
+  cliente_nome: "Dra. Fernanda Sampaio",
+  cliente_empresa: "Clínica Sampaio",
+  titulo_projeto: "Conteúdo audiovisual para autoridade médica",
+  subtitulo: "Produção mensal de vídeos, fotos e peças verticais para fortalecer posicionamento, gerar confiança e transformar a rotina clínica em conteúdo consistente.",
+  contexto: "A clínica já possui autoridade no atendimento presencial, mas essa percepção ainda não aparece com a mesma força nos canais digitais. A proposta é criar uma rotina audiovisual clara, bonita e sustentável — com conteúdo que mostre bastidores, conhecimento, prova social e posicionamento, sem parecer propaganda genérica.",
+  tipo_preco: "pacotes", // "fechado" | "pacotes"
+  accent_key: "lime",
+  organizacao_nome: "Rastro Visual",
+  organizacao_tagline: "estratégia audiovisual · Porto Alegre, RS",
+  subtotal: 4800.00,
+  desconto_tipo: "percentual",
+  desconto_valor: 10,
+  valor_final: 4320.00,
+  expira_em: "2026-07-20",
+  expirada: false,
+  entregas_mensais: [
+    { descricao: "Vídeos editados para feed", quantidade: 4 },
+    { descricao: "Stories", quantidade: 12 },
+    { descricao: "Fotos tratadas", quantidade: 12 }
+  ],
+  itens: [
+    { pacote: "Essencial", chave: "reels", descricao: "4 Reels mensais", detalhe: "Captação, edição, legendas e entrega em 9:16", quantidade: 4, valor_unit: 650.00 },
+    { pacote: "Essencial", chave: "fotos", descricao: "Banco de fotos", detalhe: "12 fotos tratadas para feed, site e anúncios", quantidade: 1, valor_unit: 600.00 },
+
+    { pacote: "Completo", chave: "reels", descricao: "8 Reels mensais", detalhe: "Captação, edição, legendas e variações de abertura", quantidade: 8, valor_unit: 620.00 },
+    { pacote: "Completo", chave: "fotos", descricao: "Banco de fotos", detalhe: "20 fotos tratadas por mês", quantidade: 1, valor_unit: 800.00 },
+    { pacote: "Completo", chave: "institucional", descricao: "1 vídeo institucional trimestral", detalhe: "Valor diluído mensalmente", quantidade: 1, valor_unit: 1200.00 },
+
+    { pacote: "Premium", chave: "reels", descricao: "12 Reels mensais", detalhe: "Conteúdo recorrente com múltiplos quadros", quantidade: 12, valor_unit: 600.00 },
+    { pacote: "Premium", chave: "fotos", descricao: "Banco de fotos completo", detalhe: "30 fotos tratadas por mês", quantidade: 1, valor_unit: 1000.00 },
+    { pacote: "Premium", chave: "institucional", descricao: "Vídeo institucional trimestral", detalhe: "Roteiro, captação e finalização premium", quantidade: 1, valor_unit: 1600.00 },
+    { pacote: "Premium", chave: "criativo", descricao: "Acompanhamento criativo", detalhe: "Roteiros e pauta mensal de conteúdo", quantidade: 1, valor_unit: 900.00 }
+  ],
+  pacotes: [
+    { nome: "Essencial", descricao: "Base enxuta para começar com consistência.", valor: 3200, destaque: false },
+    { nome: "Completo", descricao: "Formato recomendado para presença digital sustentada.", valor: 6960, destaque: true },
+    { nome: "Premium", descricao: "Operação de alto volume com mais profundidade criativa.", valor: 10700, destaque: false }
+  ],
+  // Ideal para comparação fluida: cada opção aparece em todos os pacotes.
+  opcoes_comparacao: [
+    { chave: "reels", titulo: "Reels mensais", descricao: "Captação, edição, legendas e entrega em 9:16." },
+    { chave: "fotos", titulo: "Banco de fotos", descricao: "Fotos tratadas para feed, site, anúncios e materiais comerciais." },
+    { chave: "institucional", titulo: "Vídeo institucional trimestral", descricao: "Roteiro, captação e finalização de peça com maior profundidade." },
+    { chave: "criativo", titulo: "Acompanhamento criativo", descricao: "Roteiros, pautas e direção criativa mensal." }
+  ],
+  cronograma: [
+    { etapa: "Alinhamento e planejamento do primeiro mês", prazo: "Semana 1" },
+    { etapa: "Primeira diária de captação", prazo: "Semana 2" },
+    { etapa: "Entrega do primeiro lote de conteúdo", prazo: "Semana 3" },
+    { etapa: "Rotina mensal estabelecida", prazo: "Mês 2 em diante" }
+  ],
+  condicoes: {
+    pagamento: "50% na aprovação, 50% na primeira entrega",
+    validade_dias: 15,
+    revisoes_inclusas: "2 rodadas por peça",
+    obs: "Valores não incluem impulsionamento de mídia paga. Deslocamentos fora de Porto Alegre podem ser orçados à parte quando necessário.",
+    pagamento_etapas: [
+      { percentual: "50%", quando: "Na aprovação", descricao: "Reserva de agenda, alinhamento e início do planejamento." },
+      { percentual: "50%", quando: "Na primeira entrega", descricao: "Quitação após entrega do primeiro lote de conteúdo." }
+    ]
+  },
+  observacoes: [
+    { icone: "video", titulo: "Produção otimizada", texto: "A diária é planejada para render múltiplos conteúdos a partir da mesma captação." },
+    { icone: "edit", titulo: "Revisões", texto: "Inclui 2 rodadas de ajustes por peça, desde que dentro do escopo aprovado." },
+    { icone: "package", titulo: "Entrega", texto: "Arquivos finais entregues em formatos otimizados para redes sociais." }
+  ]
+};
+
+// Baixa a própria página como HTML auto-contido (abre offline em qualquer
+// navegador; o snapshot congelado + render já viajam dentro do arquivo).
+function baixarPropostaHtml() {
+  const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const nome = (document.title || "proposta")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  a.download = (nome || "proposta") + ".html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+const brl = v => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const dataBR = iso => {
+  if (!iso) return "—";
+  return new Date(String(iso).slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR");
+};
+
+const accentAliases = {
+  lime: "lime", verde: "lime", verde_limao: "lime", limao: "lime",
+  blue: "blue", azul: "blue",
+  purple: "purple", roxo: "purple",
+  pink: "pink", rosa: "pink",
+  orange: "orange", laranja: "orange",
+  cyan: "cyan", ciano: "cyan",
+  red: "red", vermelho: "red",
+  yellow: "yellow", amarelo: "yellow",
+  white: "white", branco: "white"
+};
+
+function aplicarAcento(d) {
+  const root = document.documentElement;
+  const keyRaw = d.accent_key || d.accent || d.cor_principal || d.brand_color_key || d.accentColor || "lime";
+  const key = accentAliases[normalizaTexto(keyRaw).replace(/\s+/g, "_")] || "lime";
+
+  const customHex = d.accent_hex || d.brand_color || d.cor_principal_hex || null;
+  root.removeAttribute("data-tema");
+
+  if (customHex && /^#?[0-9a-f]{6}$/i.test(String(customHex))) {
+    const hex = String(customHex).startsWith("#") ? String(customHex) : `#${customHex}`;
+    const rgb = hexToRgb(hex);
+    const text = d.accent_text || d.brand_color_text || contrastText(hex);
+    const print = d.accent_print || hex;
+    root.dataset.accent = "custom";
+    root.style.setProperty("--acento", hex);
+    root.style.setProperty("--acento-2", hex);
+    root.style.setProperty("--acento-tinta", text);
+    root.style.setProperty("--acento-print", print);
+    if (rgb) {
+      root.style.setProperty("--acento-soft", `rgba(${rgb.r},${rgb.g},${rgb.b},.14)`);
+      root.style.setProperty("--glow", `rgba(${rgb.r},${rgb.g},${rgb.b},.13)`);
+    }
+    return;
+  }
+
+  root.dataset.accent = key;
+  ["--acento", "--acento-2", "--acento-tinta", "--acento-print", "--acento-soft", "--glow"].forEach(prop => root.style.removeProperty(prop));
+}
+
+function setPreviewAccent(key) {
+  const root = document.documentElement;
+  ["--acento", "--acento-2", "--acento-tinta", "--acento-print", "--acento-soft", "--glow"].forEach(prop => root.style.removeProperty(prop));
+  root.dataset.accent = key;
+}
+
+function hexToRgb(hex) {
+  const clean = String(hex).replace("#", "");
+  if (!/^[0-9a-f]{6}$/i.test(clean)) return null;
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16)
+  };
+}
+
+function contrastText(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return "#08090A";
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  return luminance > 0.58 ? "#08090A" : "#FFFFFF";
+}
+
+function renderProposta(d) {
+  if (!d) return;
+
+  // Cor principal / marca
+  aplicarAcento(d);
+  setText("propBrand", d.organizacao_nome || d.estudio_nome || "MakersHub");
+  setText("propBrandTagline", d.organizacao_tagline || "propostas comerciais para audiovisual");
+  setText("propEstudio", d.organizacao_nome || d.estudio_nome || "Feito com MakersHub");
+
+  // Número
+  const numeroFormatado = `PROP-${d.ano || new Date().getFullYear()}-${String(d.numero || 0).padStart(3, "0")}`;
+  setText("propNumero", numeroFormatado);
+  setText("propNumeroCard", numeroFormatado);
+
+  // Expirada
+  if (d.expirada) {
+    document.getElementById("bannerExpirada").classList.add("visivel");
+    setText("propStatus", "Expirada");
+  }
+
+  // Capa
+  setHeroTitle("propTitulo", d.titulo_projeto || "Proposta comercial");
+  setText("propSubtitulo", d.subtitulo || "Proposta comercial estruturada para apresentar escopo, investimento, cronograma e condições com clareza.");
+  setText("propCliente", d.cliente_nome || "—");
+  if (d.cliente_empresa) {
+    document.getElementById("campoEmpresa").hidden = false;
+    setText("propEmpresa", d.cliente_empresa);
+  }
+
+  setText("propData", d.enviada_em ? dataBR(d.enviada_em) : new Date().toLocaleDateString("pt-BR"));
+
+  const totalResumo = getInvestimentoResumo(d);
+  setText("propInvestimentoResumo", totalResumo);
+  setText("statItens", String((d.itens || []).length || "—"));
+  setText("statFormato", d.tipo_preco === "pacotes" ? "Pacotes" : "Fechado");
+  setText("statValidade", getValidadeResumo(d));
+
+  setText("propStripMeta", `${d.cliente_empresa || d.cliente_nome || "Cliente"} · ${numeroFormatado}`);
+
+  // Contexto
+  if (d.contexto) {
+    document.getElementById("blocoContexto").hidden = false;
+    setText("propContexto", d.contexto);
+  }
+
+  // Preço fechado
+  if (d.tipo_preco === "fechado") renderFechado(d);
+
+  // Pacotes
+  if (d.tipo_preco === "pacotes") renderPacotes(d);
+
+  // Entregas mensais (conteúdo recorrente)
+  renderEntregasMensais(d);
+
+  // Pagamento opcional
+  renderPagamento(d);
+
+  // Cronograma
+  renderCronograma(d);
+
+  // Condições
+  renderCondicoes(d);
+
+  // Observações opcionais
+  renderObservacoes(d);
+
+  // Validade no rodapé
+  if (d.expira_em) {
+    const v = document.getElementById("propValidade");
+    v.hidden = false;
+    v.textContent = `Proposta válida até ${dataBR(d.expira_em)}. Depois desse prazo, valores e agenda podem ser revisados.`;
+    setText("clientCardFooter", `Esta proposta foi preparada exclusivamente para você. Válida até ${dataBR(d.expira_em)}.`);
+  }
+
+  // Numeração das seções reflete apenas os blocos visíveis
+  renumerarSecoes();
+}
+
+function renumerarSecoes() {
+  let n = 0;
+  document.querySelectorAll(".bloco:not([hidden]) .section-num").forEach(el => {
+    el.textContent = String(++n).padStart(2, "0");
+  });
+}
+
+function renderFechado(d) {
+  document.getElementById("blocoFechado").hidden = false;
+  const ul = document.getElementById("listaItens");
+  ul.innerHTML = "";
+
+  (d.itens || []).filter(i => !i.pacote).forEach(i => {
+    const quantidade = Number(i.quantidade || 1);
+    const valorUnitario = Number(i.valor_unit || i.valor_unitario || 0);
+    const li = document.createElement("li");
+    li.className = `item${d.exibir_valores_itens ? " com-valores" : ""}`;
+    const qtd = quantidade !== 1
+      ? ` <span class="qtd">× ${quantidade}${d.exibir_valores_itens && valorUnitario ? ` · ${brl(valorUnitario)} cada` : ""}</span>`
+      : "";
+    li.innerHTML =
+      `<span class="desc">${esc(i.descricao)}${qtd}</span>` +
+      (d.exibir_valores_itens ? `<span class="valor">${brl(quantidade * valorUnitario)}</span>` : "") +
+      (i.detalhe ? `<span class="detalhe">${esc(i.detalhe)}</span>` : "");
+    ul.appendChild(li);
+  });
+
+  const temDesconto = d.desconto_tipo && Number(d.desconto_valor) > 0;
+  if (temDesconto) {
+    document.getElementById("linhaSubtotal").hidden = false;
+    setText("numSubtotal", brl(d.subtotal));
+
+    document.getElementById("linhaDesconto").hidden = false;
+    setText("rotuloDesconto", d.desconto_tipo === "percentual" ? `Desconto (${d.desconto_valor}%)` : "Desconto");
+
+    const vDesc = d.desconto_tipo === "percentual"
+      ? Number(d.subtotal || 0) * Number(d.desconto_valor || 0) / 100
+      : Number(d.desconto_valor || 0);
+    setText("numDesconto", "− " + brl(vDesc));
+  }
+
+  setText("numTotal", brl(d.valor_final || d.total || 0));
+
+  // Serviço recorrente: relabela o total como mensalidade e, se houver prazo
+  // definido, mostra o total do contrato calculado (mensal × duração).
+  const recorrencia = d.recorrencia || {};
+  if (recorrencia.ativa) {
+    setText("rotuloTotal", "Valor mensal");
+    const meses = Number(recorrencia.duracao_meses || 0);
+    if (meses > 0) {
+      document.getElementById("linhaContratoTotal").hidden = false;
+      setText("numMesesContrato", String(meses));
+      setText("numContratoTotal", brl(Number(d.valor_final || 0) * meses));
+    }
+  } else {
+    setText("rotuloTotal", "Investimento total");
+  }
+}
+
+function renderEntregasMensais(d) {
+  const entregas = Array.isArray(d.entregas_mensais) ? d.entregas_mensais : [];
+  if (!entregas.length) return;
+
+  document.getElementById("blocoEntregasMensais").hidden = false;
+  const ul = document.getElementById("listaEntregasMensais");
+  ul.innerHTML = "";
+
+  entregas.forEach(e => {
+    const quantidade = Number(e.quantidade || 1);
+    const li = document.createElement("li");
+    li.className = "item";
+    const qtd = quantidade !== 1 ? ` <span class="qtd">× ${quantidade}/mês</span>` : "";
+    li.innerHTML = `<span class="desc">${esc(e.descricao)}${qtd}</span>`;
+    ul.appendChild(li);
+  });
+}
+
+function renderPacotes(d) {
+  const pacotes = Array.isArray(d.pacotes) ? d.pacotes : [];
+  if (!pacotes.length) return;
+
+  document.getElementById("blocoPacotes").hidden = false;
+  const grade = document.getElementById("gradePacotes");
+  grade.innerHTML = "";
+
+  const pacotesView = pacotes.map((p, idx) => {
+    const itensDoPacote = Array.isArray(p.itens)
+      ? p.itens
+      : (d.itens || []).filter(i => normalizaTexto(i.pacote) === normalizaTexto(p.nome));
+
+    return {
+      pacote: p,
+      idx,
+      nome: p.nome || `Pacote ${idx + 1}`,
+      descricao: p.descricao || p.detalhe || `Cenário ${String(idx + 1).padStart(2, "0")}`,
+      valor: p.valor_final ?? p.valor ?? p.total ?? calculaPacote(itensDoPacote),
+      destaque: Boolean(p.destaque),
+      itens: itensDoPacote
+    };
+  });
+
+  const resumo = document.createElement("div");
+  resumo.className = "pacotes-resumo";
+  resumo.innerHTML = pacotesView.map(p =>
+    `<article class="pacote${p.destaque ? " recomendado" : ""}">` +
+      (p.destaque ? `<span class="tag">Recomendado</span>` : `<span class="tag">Cenário ${String(p.idx + 1).padStart(2, "0")}</span>`) +
+      `<h3>${esc(p.nome)}</h3>` +
+      `<p class="pkg-desc">${esc(p.descricao)}</p>` +
+      `<div class="preco">${brl(p.valor)}</div>` +
+    `</article>`
+  ).join("");
+  grade.appendChild(resumo);
+
+  const features = montaOpcoesComparacao(d, pacotesView);
+  if (!features.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "comparativo-wrap";
+
+  const grid = document.createElement("div");
+  grid.className = "comparativo-grid comp-grid-dynamic";
+  grid.style.setProperty("--pkg-cols", String(pacotesView.length));
+
+  grid.innerHTML +=
+    `<div class="comp-cell comp-head comp-head-empty">` +
+      `<span class="comp-title">Comparativo de escopo</span>` +
+      `<span class="comp-subtitle">As mesmas opções aparecem em todos os pacotes para facilitar a comparação.</span>` +
+    `</div>`;
+
+  pacotesView.forEach(p => {
+    grid.innerHTML +=
+      `<div class="comp-cell comp-head${p.destaque ? " recomendado" : ""}${p.idx === pacotesView.length - 1 ? " last-col" : ""}">` +
+        `<span class="tag-mini">${p.destaque ? "Recomendado" : `Cenário ${String(p.idx + 1).padStart(2, "0")}`}</span>` +
+        `<span class="comp-head-title">${esc(p.nome)}</span>` +
+        `<span class="comp-head-price">${brl(p.valor)}</span>` +
+      `</div>`;
+  });
+
+  features.forEach(feature => {
+    grid.innerHTML +=
+      `<div class="comp-cell comp-feature">` +
+        `<span class="comp-feature-title">${esc(feature.titulo)}</span>` +
+        (feature.descricao ? `<span class="comp-feature-detail">${esc(feature.descricao)}</span>` : "") +
+      `</div>`;
+
+    pacotesView.forEach(p => {
+      const item = encontraItemComparacao(p.itens, feature);
+      const incluso = Boolean(item);
+      grid.innerHTML +=
+        `<div class="comp-cell${p.destaque ? " recomendado-col" : ""}${p.idx === pacotesView.length - 1 ? " last-col" : ""}">` +
+          `<div class="comp-status ${incluso ? "incluso" : "nao-incluso"}">` +
+            `<span class="status-mark" aria-hidden="true">${statusSvg(incluso)}</span>` +
+            `<span class="comp-status-text">` +
+              `<span class="comp-status-main">${incluso ? esc(item.texto_comparacao || item.descricao || item.nome || "Incluso") : "Não incluso"}</span>` +
+              (incluso && item.detalhe ? `<span class="comp-status-detail">${esc(item.detalhe)}</span>` : "") +
+            `</span>` +
+          `</div>` +
+        `</div>`;
+    });
+  });
+
+  wrap.innerHTML =
+    `<div class="comp-toolbar">` +
+      `<div>` +
+        `<div class="comp-title">O que muda entre os pacotes</div>` +
+        `<div class="comp-subtitle">Comparação lado a lado, com o mesmo texto de opção para todos os cenários.</div>` +
+      `</div>` +
+      `<span class="comp-pill">Comparação</span>` +
+    `</div>` +
+    `<div class="comparativo-scroll"></div>`;
+  wrap.querySelector(".comparativo-scroll").appendChild(grid);
+  grade.appendChild(wrap);
+}
+
+function renderPagamento(d) {
+  const etapas = d.condicoes?.pagamento_etapas || d.pagamento_etapas || [];
+  if (!Array.isArray(etapas) || !etapas.length) return;
+
+  document.getElementById("blocoPagamento").hidden = false;
+  const grade = document.getElementById("gradePagamento");
+  grade.innerHTML = "";
+
+  etapas.forEach((e, idx) => {
+    const div = document.createElement("div");
+    div.className = "payment-step";
+    div.dataset.num = String(idx + 1).padStart(2, "0");
+    div.innerHTML =
+      `<div class="payment-pct">${esc(e.percentual || e.valor || "")}</div>` +
+      `<div class="payment-when">${esc(e.quando || e.titulo || "")}</div>` +
+      (e.descricao ? `<div class="payment-desc">${esc(e.descricao)}</div>` : "");
+    grade.appendChild(div);
+  });
+}
+
+function renderCronograma(d) {
+  if (!Array.isArray(d.cronograma) || !d.cronograma.length) return;
+
+  document.getElementById("blocoCronograma").hidden = false;
+  const ul = document.getElementById("listaCronograma");
+  ul.innerHTML = "";
+
+  d.cronograma.forEach(e => {
+    const li = document.createElement("li");
+    li.className = "etapa";
+    li.innerHTML =
+      `<span class="prazo">${esc(e.prazo || "")}</span>` +
+      `<span class="nome">${esc(e.etapa || e.nome || "")}</span>`;
+    ul.appendChild(li);
+  });
+}
+
+function textoParcelamento(d) {
+  const p = d.condicoes?.parcelamento;
+  const max = Number(p?.max_parcelas || 0);
+  // Recorrência já É uma forma de parcelamento (mensalidade) — não repete o conceito.
+  if (!max || max < 2 || d.recorrencia?.ativa) return null;
+  const base = Number(d.valor_final || d.total || 0);
+  return `Em até ${max}x de ${brl(base / max)} (sem juros)`;
+}
+
+function textoDuracaoContrato(d) {
+  if (!d.recorrencia?.ativa) return null;
+  const meses = Number(d.recorrencia.duracao_meses || 0);
+  return meses > 0 ? `${meses} meses` : "Sem prazo definido — renovação mensal";
+}
+
+function renderCondicoes(d) {
+  const c = d.condicoes || {};
+  const pares = [
+    ["Pagamento", c.pagamento],
+    ["Parcelamento", textoParcelamento(d)],
+    ["Duração do contrato", textoDuracaoContrato(d)],
+    ["Duração da cobertura", Number(d.numero_diarias || 0) > 1 ? `${d.numero_diarias} dias` : null],
+    ["Validade da proposta", c.validade_dias ? `${c.validade_dias} dias` : null],
+    ["Revisões inclusas", c.revisoes_inclusas],
+    ["Prazo de entrega", c.prazo_entrega],
+    ["Formato de entrega", c.formato_entrega]
+  ].filter(([, v]) => v);
+
+  if (!pares.length && !c.obs) return;
+
+  document.getElementById("blocoCondicoes").hidden = false;
+  const grade = document.getElementById("gradeCondicoes");
+  grade.innerHTML = "";
+
+  pares.forEach(([rotulo, valor]) => {
+    const div = document.createElement("div");
+    div.className = "condicao";
+    div.innerHTML = `<span class="eyebrow">${esc(rotulo)}</span><span class="valor">${esc(valor)}</span>`;
+    grade.appendChild(div);
+  });
+
+  if (c.obs) {
+    const obs = document.getElementById("condObs");
+    obs.hidden = false;
+    obs.textContent = c.obs;
+  }
+}
+
+function renderObservacoes(d) {
+  if (!Array.isArray(d.observacoes) || !d.observacoes.length) return;
+
+  document.getElementById("blocoObservacoes").hidden = false;
+  const grade = document.getElementById("gradeObservacoes");
+  grade.innerHTML = "";
+
+  d.observacoes.forEach(o => {
+    const iconName = normalizaIcone(o.icone || o.icon || o.titulo);
+    const div = document.createElement("div");
+    div.className = "note-card";
+    div.innerHTML =
+      `<div class="note-icon note-icon--${esc(iconName)}" aria-hidden="true">${iconeSvg(iconName)}</div>` +
+      `<div class="note-title">${esc(o.titulo || "")}</div>` +
+      `<div class="note-text">${esc(o.texto || "")}</div>`;
+    grade.appendChild(div);
+  });
+}
+
+function montaOpcoesComparacao(d, pacotesView) {
+  const declaradas = d.opcoes_comparacao || d.opcoesComparacao || d.comparativo_pacotes || [];
+  if (Array.isArray(declaradas) && declaradas.length) {
+    return declaradas.map(o => {
+      if (typeof o === "string") return { chave: normalizaChave(o), titulo: o, descricao: "" };
+      const titulo = o.titulo || o.nome || o.descricao || o.chave || "Opção";
+      const chaveExplicita = String(o.chave || o.key || "").trim().toLowerCase();
+      return {
+        chave: chaveExplicita || normalizaChave(titulo),
+        titulo,
+        descricao: o.descricao || o.detalhe || ""
+      };
+    });
+  }
+
+  const mapa = new Map();
+  pacotesView.forEach(p => {
+    p.itens.forEach(i => {
+      const titulo = i.opcao || i.titulo_comparacao || i.descricao || i.nome || "Opção";
+      const chaveExplicita = String(i.chave || i.key || "").trim().toLowerCase();
+      const chave = chaveExplicita || normalizaChave(i.opcao || titulo);
+      if (!mapa.has(chave)) {
+        mapa.set(chave, { chave, titulo: limpaTituloComparacao(titulo), descricao: i.descricao_comparacao || "" });
+      }
+    });
+  });
+  return [...mapa.values()];
+}
+
+function encontraItemComparacao(itens, feature) {
+  // 1º: match exato por chave explícita (forma recomendada — o app deve
+  // gravar `chave` no item e na opção de comparação)
+  const chaveExplicita = String(feature.chave || "").trim().toLowerCase();
+  if (chaveExplicita) {
+    const exato = (itens || []).find(i =>
+      String(i.chave || i.key || "").trim().toLowerCase() === chaveExplicita
+    );
+    if (exato) return exato;
+  }
+
+  // 2º (fallback): normalização heurística por texto — frágil para
+  // nomes de serviço fora do padrão; não confiar como caminho principal
+  const alvo = normalizaChave(feature.chave || feature.titulo);
+  return (itens || []).find(i => {
+    const candidatos = [i.chave, i.key, i.opcao, i.titulo_comparacao, i.descricao, i.nome]
+      .filter(Boolean)
+      .map(normalizaChave);
+    return candidatos.includes(alvo);
+  });
+}
+
+function limpaTituloComparacao(texto) {
+  const t = String(texto || "").trim();
+  const normalizado = normalizaTexto(t);
+  if (normalizado.includes("reels")) return "Reels mensais";
+  if (normalizado.includes("foto")) return "Banco de fotos";
+  if (normalizado.includes("institucional")) return "Vídeo institucional";
+  if (normalizado.includes("criativ")) return "Acompanhamento criativo";
+  return t.replace(/^\d+\s*[x×]?\s*/i, "").trim();
+}
+
+function normalizaChave(valor) {
+  const texto = normalizaTexto(valor);
+  if (texto.includes("reels")) return "reels";
+  if (texto.includes("foto")) return "fotos";
+  if (texto.includes("institucional")) return "institucional";
+  if (texto.includes("criativ")) return "criativo";
+  return texto.replace(/\b\d+\b/g, "").replace(/\s+/g, " ").trim();
+}
+
+function normalizaTexto(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function statusSvg(incluso) {
+  if (incluso) return '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+  return '<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+}
+
+function normalizaIcone(valor) {
+  const bruto = String(valor || "").toLowerCase();
+  const t = normalizaTexto(bruto);
+  if (t.includes("video") || t.includes("producao") || t.includes("film")) return "video";
+  if (t.includes("revis") || t.includes("edit") || t.includes("ajuste")) return "edit";
+  if (t.includes("entrega") || t.includes("arquivo") || t.includes("pacote")) return "package";
+  if (t.includes("document") || t.includes("prestacao") || t.includes("contas")) return "document";
+  if (t.includes("imposto") || t.includes("rapido")) return "bolt";
+  if (t.includes("alvo") || t.includes("objetivo") || t.includes("trilha") || t.includes("locucao")) return "target";
+  if (t.includes("desloc")) return "route";
+  if (t.includes("validade") || t.includes("agenda") || t.includes("prazo")) return "calendar";
+  return "spark";
+}
+
+function iconeSvg(nome) {
+  const icons = {
+    video: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>',
+    edit: '<svg viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.3 2.3 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+    package: '<svg viewBox="0 0 24 24"><path d="M4 7.5L12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>',
+    document: '<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 10-13h-7l0-7z"/></svg>',
+    target: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+    route: '<svg viewBox="0 0 24 24"><path d="M6 19c3-7 9 1 12-6"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="13" r="2"/><path d="M8 5h8l2 4H6l2-4z"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>',
+    spark: '<svg viewBox="0 0 24 24"><path d="M12 3l2.2 6.2L20 12l-5.8 2.8L12 21l-2.2-6.2L4 12l5.8-2.8L12 3z"/></svg>'
+  };
+  return icons[nome] || icons.spark;
+}
+
+function calculaPacote(itens) {
+  return (itens || []).reduce((total, i) => {
+    return total + Number(i.quantidade || 1) * Number(i.valor_unit || i.valor_unitario || 0);
+  }, 0);
+}
+
+function getInvestimentoResumo(d) {
+  if (d.tipo_preco === "fechado") return brl(d.valor_final || d.total || 0);
+  const valores = (d.pacotes || []).map(p => Number(p.valor_final ?? p.valor ?? p.total ?? 0)).filter(Boolean);
+  if (!valores.length) return "Pacotes sob medida";
+  const min = Math.min(...valores);
+  const max = Math.max(...valores);
+  return min === max ? brl(min) : `${brl(min)} – ${brl(max)}`;
+}
+
+function getValidadeResumo(d) {
+  if (d.condicoes?.validade_dias) return `${d.condicoes.validade_dias} dias`;
+  if (d.expira_em) return dataBR(d.expira_em);
+  return "—";
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value ?? "";
+}
+
+function setHeroTitle(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const texto = String(value || "Proposta comercial").trim();
+  const partes = texto.split(/\s+/);
+  if (partes.length >= 2) {
+    const ultima = partes.pop();
+    el.innerHTML = `${esc(partes.join(" "))}<br><span class="serif-word">${esc(ultima)}</span>`;
+  } else {
+    el.textContent = texto;
+  }
+}
+
+function esc(s) {
+  const div = document.createElement("div");
+  div.textContent = String(s ?? "");
+  return div.innerHTML;
+}
+
+// Ao abrir apenas o arquivo-base, não exibe dados fictícios de um cliente.
+// O MakersHub substitui somente a chamada abaixo pelo snapshot da proposta real.
+const dadosTemplateVazio = {
+  organizacao_nome: "Makers Hub",
+  cliente_nome: "",
+  cliente_empresa: "",
+  titulo_projeto: "Prévia da proposta",
+  subtitulo: "Abra uma proposta pelo MakersHub para visualizar o conteúdo completo.",
+  contexto: "",
+  tipo_preco: "fechado",
+  valor_final: 0,
+  itens: [],
+  pacotes: [],
+  cronograma: [],
+  observacoes: [],
+  condicoes: {},
+  accent_key: "lime"
+};
+renderProposta(dadosTemplateVazio);
+</script>
+</body>
+</html>

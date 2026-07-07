@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { dbErro } from "@/lib/dbError";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 import type { TipoEvento, RefTipo, Evento } from "@/lib/mock/agenda";
 
 function rowToEvento(r: any): Evento {
@@ -22,6 +24,7 @@ let loading = true;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(fn => fn());
 let initialized = false;
+let channel: ReturnType<typeof supabase.channel> | null = null;
 
 async function init() {
   if (initialized) return;
@@ -31,7 +34,7 @@ async function init() {
   loading = false;
   emit();
 
-  supabase.channel("eventos_realtime")
+  channel = supabase.channel("eventos_realtime")
     .on("postgres_changes", { event: "*", schema: "public", table: "eventos" }, async () => {
       const { data: fresh } = await supabase.from("eventos").select("*").order("inicio", { ascending: true });
       eventos = (fresh ?? []).map(rowToEvento);
@@ -41,10 +44,13 @@ async function init() {
 }
 
 export function resetAgendaStore() {
+  if (channel) { void supabase.removeChannel(channel); channel = null; }
   initialized = false;
   eventos = [];
   loading = true;
+  emit();
 }
+registerSessionDisposer(resetAgendaStore);
 
 // ─── hook ────────────────────────────────────────────────────────────────────
 
@@ -64,7 +70,7 @@ export function useAgendaSupa() {
 export const agendaActions = {
   async criar(input: Omit<Evento, "id" | "criadoEm">) {
     const empresa_id = await getEmpresaId();
-    const { data } = await supabase.from("eventos").insert({
+    const { data, error } = await supabase.from("eventos").insert({
       empresa_id, titulo: input.titulo, descricao: input.descricao ?? null,
       inicio: input.inicio, fim: input.fim,
       dia_todo: input.diaTodo ?? false, tipo: input.tipo,
@@ -72,6 +78,7 @@ export const agendaActions = {
       participantes: input.participantes ?? null,
       ref_tipo: input.refTipo ?? null, ref_id: input.refId ?? null,
     }).select().single();
+    if (dbErro(error, "criar evento")) return null;
     if (data) {
       eventos = [...eventos, rowToEvento(data)].sort((a, b) => a.inicio.localeCompare(b.inicio));
       emit();
@@ -91,13 +98,15 @@ export const agendaActions = {
     if (patch.participantes !== undefined) payload.participantes = patch.participantes;
     if (patch.refTipo !== undefined) payload.ref_tipo = patch.refTipo;
     if (patch.refId !== undefined) payload.ref_id = patch.refId;
-    await supabase.from("eventos").update(payload).eq("id", id);
+    const { error } = await supabase.from("eventos").update(payload).eq("id", id);
+    if (dbErro(error, "atualizar evento")) return;
     eventos = eventos.map(e => e.id === id ? { ...e, ...patch } : e);
     emit();
   },
 
   async remover(id: string) {
-    await supabase.from("eventos").delete().eq("id", id);
+    const { error } = await supabase.from("eventos").delete().eq("id", id);
+    if (dbErro(error, "remover evento")) return;
     eventos = eventos.filter(e => e.id !== id);
     emit();
   },

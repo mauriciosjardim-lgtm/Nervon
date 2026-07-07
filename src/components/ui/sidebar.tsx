@@ -317,7 +317,14 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<"main
       <main
         ref={ref}
         className={cn(
-          "relative flex w-full flex-1 flex-col",
+          // min-w-0: sem isso, este item flex (dentro do flex-row do
+          // SidebarProvider) recusa encolher abaixo da largura do próprio
+          // conteúdo — em telas menores (MacBook 14"), páginas largas (ex:
+          // Kanban de Projetos) forçam a linha inteira (sidebar+conteúdo) a
+          // estourar a viewport, e o overflow-x:clip do body corta tudo sem
+          // possibilidade de rolar. Com min-w-0, o overflow fica contido no
+          // scroll interno de cada página (ex: overflow-x-auto do Kanban).
+          "relative flex w-full min-w-0 flex-1 flex-col",
           "md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
           className,
         )}

@@ -2,11 +2,11 @@
 // Deriva indicadores dos stores existentes (financeiro, comercial, projetos).
 // Campos marcados como "estimativa" ou "null" (sem fonte real ainda).
 
-import { calcularMetricas, serieMensal, fmtBRL } from "./financeiro";
+import { calcularMetricas, serieMensal, resumoFinanceiroMes, fmtBRL } from "./financeiro";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
 import { useComercial, type EtapaJornada } from "@/lib/hooks/useComercial";
 import { useProjetos } from "@/lib/hooks/useProjetos";
-import { loadMetas } from "./metas";
+import { loadMetas, progressoMes } from "./metas";
 
 export { fmtBRL };
 
@@ -19,15 +19,17 @@ const delta = (atual: number, anterior: number): DeltaInfo => ({
 
 /* ============ Visão Geral ============ */
 export function useVisaoGeral() {
-  const { lancamentos: lancs } = useFinanceiroSupa();
+  // Performance = consolidado da empresa; o seletor de carteira só afeta o módulo Financeiro.
+  const { lancamentos: lancs } = useFinanceiroSupa({ somenteEmpresa: true });
   const com = useComercial(s => s);
   const pj = useProjetos();
 
-  const m = calcularMetricas(lancs);
-  const metas = loadMetas();
-  const receitaMes = m.recebido;
-  const lucroMes = m.saldoRealizado;
-  const margemMes = m.margemRealizada;
+  // Valores "do mês" pela competência (vencimento) — mesma fonte da Dashboard.
+  const resumo = resumoFinanceiroMes(lancs);
+  const progresso = progressoMes(loadMetas(), lancs);
+  const receitaMes = resumo.receita;
+  const lucroMes = resumo.lucro;
+  const margemMes = resumo.margem;
   const projetosAtivos = pj.projetos.filter(p => p.fase !== "concluido" && p.fase !== "pausado").length;
   const projetosCriticos = pj.projetos.filter(p => {
     const diasAteEntrega = (new Date(p.dataEntrega).getTime() - Date.now()) / 86400000;
@@ -40,7 +42,9 @@ export function useVisaoGeral() {
   const taxaConversao = (leadsFechados + leadsPerdidos) ? (leadsFechados / (leadsFechados + leadsPerdidos)) * 100 : 0;
   const ticketMedio = leadsFechados ? com.leads.filter(l => l.etapa === "fechado").reduce((s, l) => s + l.valor, 0) / leadsFechados : 0;
 
-  const pctMeta = metas.meta ? (receitaMes / metas.meta) * 100 : 0;
+  // Meta idêntica à Dashboard (progressoMes já aplica competência por vencimento).
+  const pctMeta = progresso.atingiuMeta ? progresso.pctSuper : progresso.pctMeta;
+  const metaExibida = progresso.atingiuMeta ? progresso.superMeta : progresso.meta;
 
   const saudeFinanceira = Math.min(100, Math.max(0, margemMes * 2));
   const saudeOperacional = Math.min(100, Math.max(0, 100 - (projetosCriticos * 20)));
@@ -52,7 +56,7 @@ export function useVisaoGeral() {
     receitaMes, lucroMes, margemMes,
     projetosAtivos, projetosCriticos, clientesAtivos,
     taxaConversao, ticketMedio,
-    meta: metas.meta, pctMeta,
+    meta: metaExibida, pctMeta,
     saudeEmpresa,
     saudeFinanceira, saudeOperacional, saudeComercial, saudeMeta,
   };
@@ -103,7 +107,7 @@ export function usePerformanceProducao() {
 
 /* ============ Financeiro ============ */
 export function usePerformanceFinanceiro() {
-  const { lancamentos: lancs } = useFinanceiroSupa();
+  const { lancamentos: lancs } = useFinanceiroSupa({ somenteEmpresa: true });
   const m = calcularMetricas(lancs);
   return { ...m };
 }
@@ -111,7 +115,7 @@ export function usePerformanceFinanceiro() {
 /* ============ Clientes ============ */
 export function usePerformanceClientes() {
   const pj = useProjetos();
-  const { lancamentos: lancs } = useFinanceiroSupa();
+  const { lancamentos: lancs } = useFinanceiroSupa({ somenteEmpresa: true });
 
   const map = new Map<string, { nome: string; receita: number; projetos: number; lucro: number }>();
   pj.projetos.forEach(p => {
@@ -152,7 +156,7 @@ export function usePerformanceEquipe() {
 
 /* ============ Crescimento ============ */
 export function usePerformanceCrescimento() {
-  const { lancamentos: lancs } = useFinanceiroSupa();
+  const { lancamentos: lancs } = useFinanceiroSupa({ somenteEmpresa: true });
   const serie = serieMensal(lancs);
 
   const last = serie[serie.length - 1];

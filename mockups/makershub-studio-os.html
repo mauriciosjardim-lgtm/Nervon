@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MakersHub — Studio OS Concept</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d11;
+      --bg-soft: #0b1116;
+      --panel: #0e151b;
+      --panel-2: #111a21;
+      --line: rgba(206, 224, 235, 0.09);
+      --line-strong: rgba(206, 224, 235, 0.15);
+      --text: #f5f7f8;
+      --muted: #7f8b94;
+      --green: #a6f22e;
+      --green-2: #c4ff57;
+      --green-soft: rgba(166, 242, 46, 0.13);
+      --violet: #8b5cf6;
+      --cyan: #50d5e7;
+      --blue: #4da3ff;
+      --coral: #ff6b5f;
+      --orange: #ff9f43;
+      --radius: 16px;
+      --shadow: 0 22px 80px rgba(0, 0, 0, 0.28);
+      --sidebar: 166px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 77% 8%, rgba(166, 242, 46, 0.055), transparent 26%),
+        radial-gradient(circle at 8% 95%, rgba(166, 242, 46, 0.04), transparent 27%),
+        linear-gradient(145deg, #080d11 0%, #090f14 55%, #071015 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .icon-sprite {
+      position: fixed;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: 0 0 auto;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 20;
+      width: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: rgba(7, 12, 16, 0.88);
+      backdrop-filter: blur(20px);
+    }
+
+    .brand {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 3px;
+      color: var(--green);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.32em;
+    }
+
+    .nav {
+      display: grid;
+      gap: 5px;
+      padding: 22px 10px;
+    }
+
+    .nav-label {
+      margin: 11px 8px 4px;
+      color: #546069;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      position: relative;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 11px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      color: #89959f;
+      text-decoration: none;
+      transition: 160ms ease;
+    }
+
+    .nav-item:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .nav-item.active {
+      color: var(--text);
+      border-color: rgba(166, 242, 46, 0.1);
+      background: linear-gradient(90deg, rgba(166, 242, 46, 0.13), rgba(166, 242, 46, 0.035));
+    }
+
+    .nav-item.active .icon { color: var(--green); }
+
+    .nav-item.active::after {
+      content: "";
+      position: absolute;
+      right: 10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green);
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 12px;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--green);
+      color: #10170c;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 0 24px rgba(166, 242, 46, 0.18);
+    }
+
+    .profile-info {
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .profile-info strong {
+      display: block;
+      overflow: hidden;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-info small { color: var(--muted); font-size: 9px; }
+
+    .shell {
+      grid-column: 2;
+      min-width: 0;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      height: 70px;
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) minmax(260px, 360px) minmax(260px, 1fr);
+      align-items: center;
+      gap: 20px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 13, 17, 0.82);
+      backdrop-filter: blur(20px);
+    }
+
+    .page-title strong {
+      display: block;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .page-title small { color: var(--muted); font-size: 9px; }
+
+    .search {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--muted);
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 11px;
+    }
+
+    .search kbd {
+      padding: 2px 5px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      color: #6f7b84;
+      font-size: 9px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .month, .icon-button, .primary-button {
+      height: 36px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .month {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 12px;
+      color: #d5dadd;
+      font-size: 10px;
+    }
+
+    .icon-button {
+      position: relative;
+      width: 36px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+    }
+
+    .icon-button:hover, .month:hover {
+      color: var(--text);
+      border-color: rgba(166, 242, 46, 0.25);
+    }
+
+    .notification::after {
+      content: "3";
+      position: absolute;
+      top: -4px;
+      right: -3px;
+      min-width: 14px;
+      height: 14px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--bg);
+      border-radius: 9px;
+      background: #f34b4b;
+      color: white;
+      font-size: 7px;
+      font-weight: 800;
+    }
+
+    .primary-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      border-color: rgba(166, 242, 46, 0.45);
+      background: linear-gradient(135deg, var(--green-2), var(--green));
+      color: #0c1308;
+      font-size: 11px;
+      font-weight: 850;
+      box-shadow: 0 10px 28px rgba(166, 242, 46, 0.16);
+    }
+
+    .primary-button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+
+    main {
+      width: min(100%, 1500px);
+      margin: 0 auto;
+      padding: 25px 26px 34px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      align-items: stretch;
+      gap: 22px;
+      margin-bottom: 14px;
+    }
+
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 152px;
+      padding: 5px 4px;
+    }
+
+    .eyebrow {
+      color: #6d7981;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 430px;
+      margin: 14px 0 10px;
+      font-size: clamp(32px, 3.1vw, 49px);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    h1 span { color: var(--green); }
+
+    .timecode {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #69757e;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+    }
+
+    .timecode em {
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #718089;
+      font-family: inherit;
+      font-size: 7px;
+      font-style: normal;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 0.88fr 1.7fr;
+      gap: 12px;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.022), transparent 42%),
+        rgba(13, 20, 26, 0.88);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.13);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.022);
+    }
+
+    .metric {
+      min-height: 152px;
+      padding: 18px;
+    }
+
+    .metric-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #aab3b9;
+      font-size: 10px;
+    }
+
+    .metric-icon, .section-icon {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      color: var(--green);
+      background: rgba(255, 255, 255, 0.018);
+    }
+
+    .metric-value {
+      margin-top: 19px;
+      font-size: 27px;
+      font-weight: 760;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-caption {
+      margin-top: 11px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .metric-caption strong { color: var(--green); }
+
+    .metric-line {
+      position: absolute;
+      right: 14px;
+      bottom: 40px;
+      width: 42%;
+      height: 45px;
+      opacity: 0.95;
+    }
+
+    .avatar-stack {
+      display: flex;
+      margin-top: 14px;
+    }
+
+    .tiny-avatar {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      margin-left: -5px;
+      border: 2px solid #10171d;
+      border-radius: 50%;
+      background: #202b33;
+      color: #d7dddf;
+      font-size: 7px;
+      font-weight: 800;
+    }
+
+    .tiny-avatar:first-child { margin-left: 0; background: #5c3b31; }
+    .tiny-avatar:nth-child(2) { background: #324a43; }
+    .tiny-avatar:nth-child(3) { background: #3e365f; }
+    .tiny-avatar:nth-child(4) { background: #5c4253; }
+
+    .metric-wide {
+      background:
+        radial-gradient(circle at 92% 17%, rgba(166, 242, 46, 0.08), transparent 38%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.023), transparent 46%),
+        rgba(13, 20, 26, 0.92);
+    }
+
+    .metric-wide .metric-value { color: var(--green); font-size: 30px; }
+
+    .progress-track {
+      position: relative;
+      height: 12px;
+      margin-top: 16px;
+      overflow: hidden;
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(120deg, rgba(255,255,255,.07) 0 3px, transparent 3px 7px),
+        rgba(255,255,255,.035);
+    }
+
+    .progress-track span {
+      display: block;
+      width: 88%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--green-2));
+      box-shadow: 0 0 20px rgba(166, 242, 46, 0.25);
+    }
+
+    .dashboard-grid, .bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+      gap: 12px;
+    }
+
+    .section-head {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: -0.025em;
+    }
+
+    .section-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .mini-select {
+      height: 31px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.018);
+      color: #8f9aa2;
+    }
+
+    .chart-panel { min-height: 306px; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      padding: 0 17px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .legend span { display: flex; align-items: center; gap: 6px; }
+
+    .legend i {
+      width: 13px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--green);
+    }
+
+    .legend span:last-child i {
+      opacity: 0.55;
+      background: repeating-linear-gradient(90deg, var(--green) 0 4px, transparent 4px 7px);
+    }
+
+    .chart-wrap {
+      height: 225px;
+      padding: 8px 13px 12px 10px;
+    }
+
+    .chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+
+    .quick-panel { min-height: 306px; }
+
+    .quick-subtitle {
+      margin: -9px 16px 10px 57px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .quick-list {
+      display: grid;
+      gap: 6px;
+      padding: 0 12px 12px;
+    }
+
+    .quick-action {
+      width: 100%;
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr) 18px;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.014);
+      text-align: left;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .quick-action:hover {
+      transform: translateX(2px);
+      border-color: rgba(166, 242, 46, 0.28);
+      background: rgba(166, 242, 46, 0.045);
+    }
+
+    .quick-action .action-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(196,255,87,.9), rgba(124,190,25,.72));
+      color: #10170c;
+      box-shadow: 0 7px 18px rgba(166,242,46,.11);
+    }
+
+    .quick-action strong { display: block; font-size: 10px; }
+    .quick-action small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+    .quick-action .chevron { color: #9aa4aa; font-size: 17px; }
+
+    .bottom-grid { margin-top: 12px; }
+
+    .projects-panel, .deliveries-panel { min-height: 320px; }
+
+    .link-button {
+      margin-left: auto;
+      border: 0;
+      background: none;
+      color: var(--green);
+      font-size: 9px;
+      cursor: pointer;
+    }
+
+    .project-table {
+      width: calc(100% - 24px);
+      margin: 0 12px 12px;
+      border-collapse: collapse;
+      table-layout: fixed;
+      overflow: hidden;
+      border-radius: 11px;
+      background: rgba(4, 8, 11, 0.32);
+    }
+
+    .project-table th {
+      height: 27px;
+      border-bottom: 1px solid var(--line);
+      color: #77848c;
+      font-size: 8px;
+      font-weight: 500;
+      text-align: left;
+    }
+
+    .project-table th:first-child,
+    .project-table td:first-child { padding-left: 10px; }
+
+    .project-table td {
+      height: 47px;
+      border-bottom: 1px solid rgba(206,224,235,.065);
+      color: #aab4ba;
+      font-size: 9px;
+    }
+
+    .project-table tr:last-child td { border-bottom: 0; }
+    .project-table th:nth-child(1) { width: 35%; }
+    .project-table th:nth-child(2) { width: 10%; }
+    .project-table th:nth-child(3) { width: 24%; }
+    .project-table th:nth-child(4) { width: 12%; }
+    .project-table th:nth-child(5) { width: 17%; }
+    .project-table th:nth-child(6) { width: 2%; }
+
+    .project-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .project-mark {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      color: #7d8991;
+      background: rgba(255,255,255,.018);
+    }
+
+    .project-name strong {
+      display: block;
+      overflow: hidden;
+      color: #e8ecee;
+      font-size: 9px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-name small {
+      display: block;
+      margin-top: 2px;
+      color: #68757e;
+      font-size: 7px;
+    }
+
+    .phase {
+      display: inline-flex;
+      align-items: center;
+      min-height: 21px;
+      padding: 0 8px;
+      border-radius: 6px;
+      color: #081012;
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: .03em;
+    }
+
+    .phase.pre { background: var(--green); }
+    .phase.film { background: var(--blue); }
+    .phase.edit { background: var(--cyan); }
+    .phase.post { background: var(--violet); color: white; }
+
+    .progress-cell {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .progress-cell b {
+      width: 27px;
+      color: #c9d0d4;
+      font-size: 8px;
+      font-weight: 500;
+    }
+
+    .micro-progress {
+      width: min(100%, 116px);
+      height: 4px;
+      overflow: hidden;
+      border-radius: 4px;
+      background: rgba(255,255,255,.065);
+    }
+
+    .micro-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+    }
+
+    .responsibles { display: flex; }
+
+    .responsibles .tiny-avatar {
+      width: 23px;
+      height: 23px;
+      font-size: 6px;
+    }
+
+    .urgent { color: var(--coral) !important; }
+    .tomorrow { color: var(--orange) !important; }
+
+    .delivery-list {
+      display: grid;
+      gap: 6px;
+      padding: 0 12px;
+    }
+
+    .delivery {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.012);
+    }
+
+    .delivery-date {
+      color: var(--green);
+      font-size: 20px;
+      font-weight: 650;
+      line-height: .83;
+      text-align: center;
+    }
+
+    .delivery-date small {
+      display: block;
+      margin-top: 5px;
+      color: #75818a;
+      font-size: 7px;
+      letter-spacing: .08em;
+    }
+
+    .delivery-info { min-width: 0; }
+
+    .delivery-info strong {
+      display: block;
+      overflow: hidden;
+      color: #dfe5e8;
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .delivery-info small { display: block; margin-top: 3px; color: #6f7c84; font-size: 7px; }
+
+    .delivery-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status {
+      padding: 5px 7px;
+      border-radius: 6px;
+      background: rgba(139,92,246,.78);
+      color: white;
+      font-size: 7px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status.today { background: var(--coral); }
+    .status.next { background: var(--orange); color: #2a1400; }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 40;
+      padding: 12px 16px;
+      border: 1px solid rgba(166,242,46,.25);
+      border-radius: 11px;
+      background: #111a17;
+      color: #dfe8df;
+      box-shadow: var(--shadow);
+      font-size: 10px;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: 200ms ease;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1180px) {
+      :root { --sidebar: 76px; }
+      .brand { justify-content: center; padding: 0; }
+      .brand strong { font-size: 11px; }
+      .brand small, .nav-item span, .nav-label, .profile-info { display: none; }
+      .nav-item { justify-content: center; padding: 0; }
+      .nav-item.active::after { right: 8px; }
+      .profile { justify-content: center; padding-inline: 0; }
+      .hero { grid-template-columns: 280px minmax(0,1fr); }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric-wide { grid-column: 1 / -1; min-height: 130px; }
+      .metric-wide .progress-track { max-width: 80%; }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        grid-template-columns: 1fr auto;
+        padding-inline: 18px;
+      }
+      .search { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .welcome { min-height: auto; }
+      h1 { margin-bottom: 12px; }
+      .dashboard-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .quick-panel { min-height: auto; }
+      .quick-list { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      :root { --sidebar: 0px; }
+      .app { display: block; padding-bottom: 67px; }
+      .shell { width: 100%; }
+      .sidebar {
+        inset: auto 0 0;
+        width: 100%;
+        height: 67px;
+        display: block;
+        border-top: 1px solid var(--line);
+        border-right: 0;
+      }
+      .brand, .sidebar-bottom, .nav-label, .nav-item:nth-of-type(n+7) { display: none; }
+      .nav {
+        height: 100%;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
+        padding: 7px;
+      }
+      .nav-item { height: 52px; }
+      .nav-item.active::after { right: 50%; bottom: 3px; transform: translateX(50%); }
+      .topbar {
+        height: 59px;
+        padding-inline: 13px;
+      }
+      .page-title small, .month, .top-actions .avatar { display: none; }
+      .primary-button { padding-inline: 12px; }
+      main { padding: 17px 13px 24px; }
+      .hero { gap: 12px; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric-wide { grid-column: auto; }
+      .metric { min-height: 130px; }
+      .quick-list { grid-template-columns: 1fr; }
+      .project-table th:nth-child(2),
+      .project-table td:nth-child(2),
+      .project-table th:nth-child(5),
+      .project-table td:nth-child(5),
+      .project-table th:nth-child(6),
+      .project-table td:nth-child(6) { display: none; }
+      .project-table th:nth-child(1) { width: 46%; }
+      .project-table th:nth-child(3) { width: 34%; }
+      .project-table th:nth-child(4) { width: 20%; }
+      .delivery {
+        grid-template-columns: 39px minmax(0, 1fr);
+      }
+      .delivery-side { grid-column: 2; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M9 12v2h6v-2"/></symbol>
+    <symbol id="i-clapper" viewBox="0 0 24 24"><path d="M4 8h16v12H4zM4 8l2-5h16l-2 5M7 3 5 8m7-5-2 5m7-5-2 5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H18v16H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 8h14M15 12h6v4h-6a2 2 0 1 1 0-4Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-9M15 6h6v6"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M17 15a6 6 0 0 1 5 6"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h8l-1 8 9-12h-8z"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2zM9 7h6M9 11h6M9 15h3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div><strong>MakersHub</strong><small>STUDIO OS</small></div>
+      </div>
+
+      <nav class="nav" aria-label="Navegação principal">
+        <span class="nav-label">Operação</span>
+        <a class="nav-item active" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Dashboard</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-briefcase"/></svg><span>Comercial</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-clapper"/></svg><span>Projetos</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-calendar"/></svg><span>Agenda</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-wallet"/></svg><span>Financeiro</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-file"/></svg><span>Contratos</span></a>
+        <a class="nav-item" href="#"><svg class="icon"><use href="#i-chart"/></svg><span>Performance</span></a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="#" style="margin:8px 10px;"><svg class="icon"><use href="#i-settings"/></svg><span>Configurações</span></a>
+        <div class="profile">
+          <span class="avatar">M</span>
+          <span class="profile-info"><strong>Mauricio</strong><small>Administrador</small></span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="shell">
+      <header class="topbar">
+        <div class="page-title"><strong>Cockpit</strong><small>Visão geral da operação</small></div>
+        <label class="search">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <input aria-label="Buscar" placeholder="Buscar em tudo..." />
+          <kbd>⌘ K</kbd>
+        </label>
+        <div class="top-actions">
+          <button class="month"><svg class="icon"><use href="#i-calendar"/></svg> jul 2026⌄</button>
+          <button class="icon-button notification" aria-label="Notificações"><svg class="icon"><use href="#i-bell"/></svg></button>
+          <span class="avatar" style="width:36px;height:36px;background:#20272d;color:#dce2e5;box-shadow:none;">M</span>
+          <button class="primary-button" data-action="Novo item"><svg class="icon"><use href="#i-plus"/></svg> Novo</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="welcome">
+            <span class="eyebrow">quinta-feira, 2 de julho</span>
+            <h1>Boa tarde, <span>Mauricio.</span></h1>
+            <div class="timecode"><em>studio timecode</em> 14:32:18:07 <i class="live-dot"></i></div>
+          </div>
+
+          <div class="metrics">
+            <article class="panel metric">
+              <div class="metric-head"><span class="metric-icon"><svg class="icon"><use href="#i-wallet"/></svg></span>Receita do mês</div>
+              <div class="metric-value">R$ 61.000</div>
+              <svg class="metric-line" viewBox="0 0 140 50" aria-hidden="true">
+                <defs><linearGradient id="miniFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a6f22e" stop-opacity=".36"/><stop offset="1" stop-color="#a6f22e" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0 43 22 45 44 36 62 38 81 26 99 30 118 16 140 11V50H0Z" fill="url(#miniFill)"/>
+                <path d="M0 43 22 45 44 36 62 38 81 26 99 30 118 16 140 11" fill="none" stroke="#a6f22e" stroke-width="2.3"/>
+              </svg>
+              <div class="metric-caption"><strong>▲ +18,2%</strong>&nbsp;&nbsp; vs mês anterior</div>
+            </article>
+
+            <article class="panel metric">
+              <div class="metric-head"><span class="metric-icon"><svg class="icon"><use href="#i-clapper"/></svg></span>Projetos ativos</div>
+              <div class="metric-value">5</div>
+              <div class="avatar-stack">
+                <i class="tiny-avatar">MC</i><i class="tiny-avatar">LT</i><i class="tiny-avatar">RS</i><i class="tiny-avatar">AF</i><i class="tiny-avatar">+2</i>
+              </div>
+              <div class="metric-caption"><strong>●</strong>&nbsp; 2 em pós-produção</div>
+            </article>
+
+            <article class="panel metric metric-wide">
+              <div class="metric-head"><span class="metric-icon"><svg class="icon"><use href="#i-trend"/></svg></span>Meta do mês</div>
+              <div class="metric-value">305%</div>
+              <div class="progress-track"><span></span></div>
+              <div class="metric-caption">R$ 61.000 · meta R$ 20.000</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel chart-panel">
+            <header class="section-head">
+              <span class="section-icon"><svg class="icon"><use href="#i-chart"/></svg></span>
+              <h2>Faturamento × Custos</h2>
+              <div class="section-tools"><button class="mini-select">jul 2026⌄</button><span>•••</span></div>
+            </header>
+            <div class="legend"><span><i></i>Receita</span><span><i></i>Custos</span></div>
+            <div class="chart-wrap">
+              <svg viewBox="0 0 900 230" preserveAspectRatio="none" role="img" aria-label="Gráfico de faturamento e custos">
+                <defs>
+                  <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop stop-color="#a6f22e" stop-opacity=".32"/>
+                    <stop offset="1" stop-color="#a6f22e" stop-opacity="0"/>
+                  </linearGradient>
+                  <pattern id="stripeFill" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <rect width="2" height="7" fill="#a6f22e" opacity=".08"/>
+                  </pattern>
+                </defs>
+                <g stroke="rgba(206,224,235,.08)" stroke-width="1">
+                  <path d="M48 15H880M48 63H880M48 111H880M48 159H880M48 207H880"/>
+                </g>
+                <g fill="#64717a" font-size="9" font-family="Inter, sans-serif">
+                  <text x="13" y="19">80k</text><text x="13" y="67">60k</text><text x="13" y="115">40k</text><text x="13" y="163">20k</text><text x="25" y="211">0</text>
+                  <text x="47" y="227">jan</text><text x="184" y="227">fev</text><text x="320" y="227">mar</text><text x="456" y="227">abr</text><text x="592" y="227">mai</text><text x="728" y="227">jun</text><text x="866" y="227">jul</text>
+                </g>
+                <path d="M50 201 C130 195 160 190 228 184 S310 164 365 177 S435 171 502 154 S585 140 640 137 S720 116 758 102 S806 72 837 70 S864 37 880 14 L880 207 L50 207 Z" fill="url(#areaFill)"/>
+                <path d="M50 201 C130 195 160 190 228 184 S310 164 365 177 S435 171 502 154 S585 140 640 137 S720 116 758 102 S806 72 837 70 S864 37 880 14 L880 207 L50 207 Z" fill="url(#stripeFill)"/>
+                <path d="M50 201 C130 195 160 190 228 184 S310 164 365 177 S435 171 502 154 S585 140 640 137 S720 116 758 102 S806 72 837 70 S864 37 880 14" fill="none" stroke="#b8ff38" stroke-width="2.5"/>
+                <path d="M50 207 C140 203 170 195 230 193 S310 186 365 187 S440 175 505 180 S580 173 640 169 S720 154 770 157 S835 135 880 143" fill="none" stroke="#a6f22e" stroke-width="1.5" stroke-dasharray="5 5" opacity=".65"/>
+                <circle cx="880" cy="14" r="6" fill="#10171b" stroke="#d1ff7c" stroke-width="3"/>
+              </svg>
+            </div>
+          </article>
+
+          <article class="panel quick-panel">
+            <header class="section-head"><span class="section-icon"><svg class="icon"><use href="#i-bolt"/></svg></span><h2>Ação rápida</h2></header>
+            <p class="quick-subtitle">O que você deseja fazer?</p>
+            <div class="quick-list">
+              <button class="quick-action" data-action="Novo projeto">
+                <span class="action-icon"><svg class="icon"><use href="#i-clapper"/></svg></span>
+                <span><strong>Novo projeto</strong><small>Criar um novo projeto audiovisual</small></span><span class="chevron">›</span>
+              </button>
+              <button class="quick-action" data-action="Novo lançamento">
+                <span class="action-icon"><svg class="icon"><use href="#i-receipt"/></svg></span>
+                <span><strong>Novo lançamento</strong><small>Registrar lançamento ou campanha</small></span><span class="chevron">›</span>
+              </button>
+              <button class="quick-action" data-action="Nova entrada financeira">
+                <span class="action-icon"><svg class="icon"><use href="#i-wallet"/></svg></span>
+                <span><strong>Nova entrada financeira</strong><small>Receita, custo ou transferência</small></span><span class="chevron">›</span>
+              </button>
+              <button class="quick-action" data-action="Agendar reunião">
+                <span class="action-icon"><svg class="icon"><use href="#i-calendar"/></svg></span>
+                <span><strong>Agendar reunião</strong><small>Marcar reunião com cliente ou time</small></span><span class="chevron">›</span>
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <section class="bottom-grid">
+          <article class="panel projects-panel">
+            <header class="section-head"><span class="section-icon"><svg class="icon"><use href="#i-clapper"/></svg></span><h2>Projetos em produção</h2><button class="link-button">Ver todos</button></header>
+            <table class="project-table">
+              <thead><tr><th>Projeto</th><th>Fase</th><th>Progresso</th><th>Entrega</th><th>Responsáveis</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="project-name"><span class="project-mark"><svg class="icon"><use href="#i-clapper"/></svg></span><span><strong>PEIXOTO CIDADÃO HONORÁRIO</strong><small>Documentário</small></span></div></td>
+                  <td><span class="phase post">PÓS</span></td>
+                  <td><div class="progress-cell"><b>72%</b><span class="micro-progress"><span style="width:72%"></span></span></div></td>
+                  <td class="urgent">2 jul</td>
+                  <td><div class="responsibles"><i class="tiny-avatar">MC</i><i class="tiny-avatar">LT</i><i class="tiny-avatar">RS</i><i class="tiny-avatar">+2</i></div></td><td>⋮</td>
+                </tr>
+                <tr>
+                  <td><div class="project-name"><span class="project-mark"><svg class="icon"><use href="#i-clapper"/></svg></span><span><strong>EDIÇÃO VÍDEOS THIAGO</strong><small>Institucional</small></span></div></td>
+                  <td><span class="phase edit">EDIÇÃO</span></td>
+                  <td><div class="progress-cell"><b>48%</b><span class="micro-progress"><span style="width:48%"></span></span></div></td>
+                  <td class="tomorrow">3 jul</td>
+                  <td><div class="responsibles"><i class="tiny-avatar">AF</i><i class="tiny-avatar">LT</i><i class="tiny-avatar">+1</i></div></td><td>⋮</td>
+                </tr>
+                <tr>
+                  <td><div class="project-name"><span class="project-mark"><svg class="icon"><use href="#i-clapper"/></svg></span><span><strong>VSL NOVO PRODUTO</strong><small>Comercial</small></span></div></td>
+                  <td><span class="phase film">FILMAGEM</span></td>
+                  <td><div class="progress-cell"><b>36%</b><span class="micro-progress"><span style="width:36%"></span></span></div></td>
+                  <td>5 jul</td>
+                  <td><div class="responsibles"><i class="tiny-avatar">MC</i><i class="tiny-avatar">RS</i><i class="tiny-avatar">+1</i></div></td><td>⋮</td>
+                </tr>
+                <tr>
+                  <td><div class="project-name"><span class="project-mark"><svg class="icon"><use href="#i-clapper"/></svg></span><span><strong>SÉRIE MAKERSHUB</strong><small>Conteúdo</small></span></div></td>
+                  <td><span class="phase pre">PRÉ</span></td>
+                  <td><div class="progress-cell"><b>15%</b><span class="micro-progress"><span style="width:15%"></span></span></div></td>
+                  <td>10 jul</td>
+                  <td><div class="responsibles"><i class="tiny-avatar">MC</i><i class="tiny-avatar">LT</i></div></td><td>⋮</td>
+                </tr>
+                <tr>
+                  <td><div class="project-name"><span class="project-mark"><svg class="icon"><use href="#i-clapper"/></svg></span><span><strong>CAMPANHA VERÃO 2026</strong><small>Comercial</small></span></div></td>
+                  <td><span class="phase pre">PRÉ</span></td>
+                  <td><div class="progress-cell"><b>8%</b><span class="micro-progress"><span style="width:8%"></span></span></div></td>
+                  <td>14 jul</td>
+                  <td><div class="responsibles"><i class="tiny-avatar">AF</i><i class="tiny-avatar">+1</i></div></td><td>⋮</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+
+          <article class="panel deliveries-panel">
+            <header class="section-head"><span class="section-icon"><svg class="icon"><use href="#i-calendar"/></svg></span><h2>Próximas entregas</h2><button class="link-button">Ver agenda</button></header>
+            <div class="delivery-list">
+              <div class="delivery">
+                <div class="delivery-date">2<small>JUL</small></div>
+                <div class="delivery-info"><strong>PEIXOTO CIDADÃO HONORÁRIO</strong><small>Entrega de episódio 2</small></div>
+                <div class="delivery-side"><span class="status today">HOJE</span><div class="responsibles"><i class="tiny-avatar">MC</i><i class="tiny-avatar">+2</i></div></div>
+              </div>
+              <div class="delivery">
+                <div class="delivery-date">3<small>JUL</small></div>
+                <div class="delivery-info"><strong>EDIÇÃO VÍDEOS THIAGO</strong><small>Entrega final</small></div>
+                <div class="delivery-side"><span class="status next">AMANHÃ</span><div class="responsibles"><i class="tiny-avatar">AF</i><i class="tiny-avatar">+1</i></div></div>
+              </div>
+              <div class="delivery">
+                <div class="delivery-date" style="color:#738089">5<small>JUL</small></div>
+                <div class="delivery-info"><strong>VSL NOVO PRODUTO</strong><small>Montagem final</small></div>
+                <div class="delivery-side"><span class="status">EM 3 DIAS</span><div class="responsibles"><i class="tiny-avatar">RS</i></div></div>
+              </div>
+              <div class="delivery">
+                <div class="delivery-date" style="color:#738089">10<small>JUL</small></div>
+                <div class="delivery-info"><strong>SÉRIE MAKERSHUB</strong><small>Entrega do episódio 1</small></div>
+                <div class="delivery-side"><span class="status">EM 8 DIAS</span><div class="responsibles"><i class="tiny-avatar">MC</i><i class="tiny-avatar">+2</i></div></div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div class="toast" role="status"></div>
+
+  <script>
+    const toast = document.querySelector(".toast");
+    let toastTimer;
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        clearTimeout(toastTimer);
+        toast.textContent = `${button.dataset.action} — simulação visual`;
+        toast.classList.add("show");
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      });
+    });
+
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      item.addEventListener("click", (event) => {
+        event.preventDefault();
+        document.querySelectorAll(".nav-item").forEach((nav) => nav.classList.remove("active"));
+        item.classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

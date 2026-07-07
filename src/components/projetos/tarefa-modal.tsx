@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PRIORIDADES, getFaseInfo, type Tarefa, type Prioridade, type StatusTarefa } from "@/lib/mock/projetos";
 import { projetosActions } from "@/lib/hooks/useProjetos";
+import { ResponsavelSelect } from "@/components/projetos/membros-select";
+import { useAuth } from "@/lib/auth";
 import { Trash } from "iconsax-react";
 
 const toLocalInput = (iso: string) => {
@@ -16,18 +18,22 @@ const toLocalInput = (iso: string) => {
 
 export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open: boolean; onClose: () => void; projetoId: string; tarefa?: Tarefa | null; fases?: string[] }) {
   const editando = !!tarefa;
+  const { usuario } = useAuth();
   const [titulo, setTitulo] = useState(""); const [descricao, setDescricao] = useState("");
   const [responsavel, setResponsavel] = useState(""); const [prazo, setPrazo] = useState("");
   const [prioridade, setPrioridade] = useState<Prioridade>("media"); const [status, setStatus] = useState<StatusTarefa>("briefing");
+  const [link, setLink] = useState("");
 
   useEffect(() => {
     if (!open) return;
     if (tarefa) {
       setTitulo(tarefa.titulo); setDescricao(tarefa.descricao ?? ""); setResponsavel(tarefa.responsavel);
       setPrazo(tarefa.prazo ? toLocalInput(tarefa.prazo) : ""); setPrioridade(tarefa.prioridade); setStatus(tarefa.status);
+      setLink(tarefa.link ?? "");
     } else {
       const amanha = new Date(); amanha.setDate(amanha.getDate() + 1); amanha.setHours(10, 0, 0, 0);
-      setTitulo(""); setDescricao(""); setResponsavel("Você"); setPrazo(toLocalInput(amanha.toISOString())); setPrioridade("media"); setStatus("briefing");
+      setTitulo(""); setDescricao(""); setResponsavel(usuario?.nome ?? ""); setPrazo(toLocalInput(amanha.toISOString())); setPrioridade("media"); setStatus("briefing");
+      setLink("");
     }
   }, [open, tarefa]);
 
@@ -38,6 +44,7 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
       responsavel: responsavel.trim() || "Você",
       prazo: prazo ? new Date(prazo).toISOString() : undefined,
       prioridade, status, concluida: tarefa?.concluida ?? false,
+      link: link.trim(),
     };
     if (editando && tarefa) projetosActions.atualizarTarefa(tarefa.id, payload);
     else projetosActions.criarTarefa(payload);
@@ -53,7 +60,7 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
         <div className="space-y-3">
           <div className="space-y-1.5"><Label className="text-xs">Título</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label className="text-xs">Responsável</Label><Input value={responsavel} onChange={e => setResponsavel(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label className="text-xs">Responsável</Label><ResponsavelSelect value={responsavel} onChange={setResponsavel} /></div>
             <div className="space-y-1.5"><Label className="text-xs">Prazo (opcional)</Label><Input type="datetime-local" value={prazo} onChange={e => setPrazo(e.target.value)} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -71,6 +78,11 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases }: { open:
             </div>
           </div>
           <div className="space-y-1.5"><Label className="text-xs">Descrição</Label><Textarea rows={2} value={descricao} onChange={e => setDescricao(e.target.value)} /></div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Link da tarefa</Label>
+            <Input type="url" value={link} onChange={e => setLink(e.target.value)} placeholder="https://drive.google.com/…" />
+            <p className="text-[10px] text-muted-foreground">Drive, Frame.io, Vimeo, documento ou referência</p>
+          </div>
           {prazo && <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-[11px] text-primary">📅 Esta tarefa aparecerá na Agenda automaticamente</p>}
         </div>
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">

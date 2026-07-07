@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
 import { useProjetos } from "@/lib/hooks/useProjetos";
 import { useComercial } from "@/lib/hooks/useComercial";
 import { useAgendaSupa } from "@/lib/hooks/useAgenda";
+import { temAcesso, type Permissoes } from "@/lib/permissoes";
 import {
   DndContext, PointerSensor, KeyboardSensor, closestCenter,
   useSensor, useSensors, type DragEndEvent,
@@ -18,10 +19,7 @@ import {
 } from "iconsax-react";
 import type { Icon as IcIcon } from "iconsax-react";
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
-} from "recharts";
-import {
-  format, startOfMonth, endOfMonth, subMonths, addMonths,
+  format, startOfMonth, endOfMonth, addMonths,
   isSameMonth, eachDayOfInterval, isToday,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,11 +27,15 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { WidgetCard } from "@/components/dashboard/widget-card";
 import { PersonalizeSheet } from "@/components/dashboard/personalize-sheet";
-import { widgetRegistry } from "@/lib/dashboard/widgets";
+import { widgetRegistry } from "@/lib/dashboard/widget-catalog";
+import { MembroDashboard } from "@/components/dashboard/membro-dashboard";
 import { loadState, saveState, type PersistedState } from "@/lib/dashboard/storage";
 import type { WidgetSize } from "@/lib/dashboard/types";
 import { loadMetas, progressoMes } from "@/lib/mock/metas";
 import { useAuth } from "@/lib/auth";
+
+// Gráfico (recharts ~100KB) carregado sob demanda — dashboard pinta antes
+const AnalyticChart = lazy(() => import("@/components/dashboard/analytic-chart"));
 
 const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -43,8 +45,31 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
+// Mapa categoria do widget → módulo de permissão
+const CATEGORIA_MODULO: Record<string, keyof Permissoes | null> = {
+  "Financeiro":    "financeiro",
+  "Comercial":     "comercial",
+  "Operacional":   "projetos",
+  "Pessoal":       null,
+  "Inteligência":  null,
+};
+
 function Dashboard() {
   const { usuario } = useAuth();
+  const role = (usuario as any)?.role ?? "admin";
+  // Membros têm uma dashboard própria, focada nas tarefas deles.
+  // Dispatcher fino: evita hooks condicionais no cockpit do admin.
+  if (role !== "admin") return <MembroDashboard />;
+  return <AdminDashboard />;
+}
+
+function AdminDashboard() {
+  const { usuario } = useAuth();
+  const role = (usuario as any)?.role ?? "admin";
+  const permissoes = (usuario as any)?.permissoes as Partial<Permissoes> | null ?? null;
+  const podeVer = (modulo: keyof Permissoes) =>
+    role === "admin" || temAcesso(permissoes, modulo);
+
   const [state, setState] = useState<PersistedState | null>(null);
   const [editing, setEditing] = useState(false);
   const [personalizing, setPersonalizing] = useState(false);
@@ -102,14 +127,14 @@ function Dashboard() {
   const nome = usuario?.nome ? `, ${usuario.nome.split(" ")[0]}` : "";
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-6 px-4 py-7 md:px-8 md:py-9">
+    <div className="mx-auto w-full max-w-[1400px] space-y-5 px-4 py-5 sm:space-y-6 sm:py-7 md:px-8 md:py-9">
       {/* Greeting */}
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
           </p>
-          <h1 className="mt-1 font-display text-[2rem] font-bold tracking-tight text-foreground">
+          <h1 className="mt-1 font-display text-[1.75rem] font-bold tracking-tight text-foreground sm:text-[2rem]">
             {greet()}{nome}.
           </h1>
         </div>
@@ -124,41 +149,59 @@ function Dashboard() {
       </div>
 
       {/* KPI Strip */}
-      <KpiStrip />
+      <KpiStrip podeVerFinanceiro={podeVer("financeiro")} podeVerProjetos={podeVer("projetos")} />
 
       {/* Hero: chart + agenda */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <AnalyticChart />
-        <CalendarPanel />
-      </div>
-
-      {/* Widget grid */}
-      {active.widgets.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Widgets</span>
-            {editing && (
-              <Button
-                onClick={() => setPersonalizing(true)}
-                size="sm"
-                className="h-7 gap-1.5 rounded-lg bg-primary px-3 text-xs text-primary-foreground hover:bg-primary-glow"
-              >
-                <Add size={12} color="currentColor" variant="Linear" /> Widget
-              </Button>
-            )}
-          </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={active.widgets.map(w => w.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-12 gap-4">
-                {active.widgets.map(w => (
-                  <WidgetCard key={w.id} widget={w} editing={editing}
-                    onRemove={() => removeWidget(w.id)} onResize={s => resizeWidget(w.id, s)} />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </section>
+      {(podeVer("financeiro") || podeVer("agenda")) && (
+        <div className={cn(
+          "grid grid-cols-1 gap-4",
+          podeVer("financeiro") && podeVer("agenda") && "lg:grid-cols-[1fr_320px]",
+        )}>
+          {podeVer("financeiro") && (
+            <Suspense fallback={<div className="h-[290px] animate-pulse rounded-2xl border border-white/[0.06] bg-surface-1/50" />}>
+              <AnalyticChart />
+            </Suspense>
+          )}
+          {podeVer("agenda") && <CalendarPanel />}
+        </div>
       )}
+
+      {/* Widget grid — filtrado por permissões */}
+      {(() => {
+        const visibleWidgets = active.widgets.filter(w => {
+          const meta = widgetRegistry[w.type];
+          if (!meta) return true;
+          const modulo = CATEGORIA_MODULO[meta.category] ?? null;
+          if (!modulo) return true;
+          return podeVer(modulo);
+        });
+        return visibleWidgets.length > 0 ? (
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Widgets</span>
+              {editing && (
+                <Button
+                  onClick={() => setPersonalizing(true)}
+                  size="sm"
+                  className="h-7 gap-1.5 rounded-lg bg-primary px-3 text-xs text-primary-foreground hover:bg-primary-glow"
+                >
+                  <Add size={12} color="currentColor" variant="Linear" /> Widget
+                </Button>
+              )}
+            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={visibleWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-12 gap-4">
+                  {visibleWidgets.map(w => (
+                    <WidgetCard key={w.id} widget={w} editing={editing}
+                      onRemove={() => removeWidget(w.id)} onResize={s => resizeWidget(w.id, s)} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </section>
+        ) : null;
+      })()}
 
       {active.widgets.length === 0 && editing && (
         <div className="grid place-items-center rounded-2xl border border-dashed border-border px-6 py-14 text-center">
@@ -192,13 +235,13 @@ function KpiCard({
   href?: string;
 }) {
   const inner = (
-    <div className="group flex h-full items-center gap-4 rounded-2xl border border-white/[0.06] bg-surface-1/70 p-4 transition hover:border-primary/20 hover:bg-surface-2/70">
-      <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/[0.05]">
+    <div className="group flex h-full items-center gap-3.5 rounded-2xl border border-white/[0.06] bg-surface-1/70 p-3.5 transition hover:border-primary/20 hover:bg-surface-2/70 sm:gap-4 sm:p-4">
+      <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/[0.05] sm:size-12 sm:rounded-2xl">
         <Icon size={20} color="var(--color-primary)" variant="Linear" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
-        <p className="mt-0.5 font-display text-2xl font-bold tabular-nums tracking-tight text-foreground">{value}</p>
+        <p className="mt-0.5 whitespace-nowrap font-display text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-2xl">{value}</p>
         {sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{sub}</p>}
       </div>
     </div>
@@ -206,14 +249,17 @@ function KpiCard({
   return href ? <Link to={href as any} className="block h-full">{inner}</Link> : <div className="h-full">{inner}</div>;
 }
 
-function KpiStrip() {
+function KpiStrip({ podeVerFinanceiro, podeVerProjetos }: { podeVerFinanceiro: boolean; podeVerProjetos: boolean }) {
   const { lancamentos } = useFinanceiroSupa({ somenteEmpresa: true });
   const leads = useComercial(s => s.leads);
   const { projetos } = useProjetos();
   const hoje = new Date();
 
+  // Mesmo critério da página Financeiro: agrupa por vencimento do período (não por data
+  // de pagamento) — senão um lançamento vencido em julho mas pago em outro mês some daqui
+  // mesmo aparecendo como "recebido" na página Financeiro.
   const receita = lancamentos
-    .filter(l => l.tipo === "receita" && l.pagamentoEm && isSameMonth(new Date(l.pagamentoEm), hoje))
+    .filter(l => l.tipo === "receita" && l.status === "recebido" && isSameMonth(new Date(l.vencimento.slice(0, 10) + "T12:00:00"), hoje))
     .reduce((s, l) => s + l.valor, 0);
 
   const leadsAtivos = leads.filter(l => !["fechado", "perdido"].includes(l.etapa));
@@ -222,30 +268,39 @@ function KpiStrip() {
   const p = progressoMes(loadMetas(), lancamentos);
   const metaPct = p.atingiuMeta ? p.pctSuper : p.pctMeta;
 
+  const totalCards = (podeVerFinanceiro ? 2 : 0) + (podeVerProjetos ? 1 : 0);
+
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-      <KpiCard icon={EmptyWallet} label="Receita do mês" value={brl(receita)} href="/financeiro" />
-      <KpiCard icon={Kanban} label="Projetos ativos" value={String(projetosAtivos)} href="/projetos" />
-      <div className="rounded-2xl border border-white/[0.06] bg-surface-1/70 p-4">
-        <div className="flex items-center gap-3">
-          <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/[0.05]">
-            <TrendUp size={20} color="var(--color-primary)" variant="Linear" />
+    <div className={cn(
+      "grid gap-3",
+      totalCards === 1 && "grid-cols-1 max-w-xs",
+      totalCards === 2 && "grid-cols-1 sm:grid-cols-2",
+      totalCards >= 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    )}>
+      {podeVerFinanceiro && <KpiCard icon={EmptyWallet} label="Receita do mês" value={brl(receita)} href="/financeiro" />}
+      {podeVerProjetos  && <KpiCard icon={Kanban} label="Projetos ativos" value={String(projetosAtivos)} href="/projetos" />}
+      {podeVerFinanceiro && (
+        <div className="rounded-2xl border border-white/[0.06] bg-surface-1/70 p-3.5 sm:p-4">
+          <div className="flex items-center gap-3">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/[0.05] sm:size-12 sm:rounded-2xl">
+              <TrendUp size={20} color="var(--color-primary)" variant="Linear" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-muted-foreground">Meta do mês</p>
+              <p className="mt-0.5 font-display text-xl font-bold tabular-nums tracking-tight sm:text-2xl">{metaPct.toFixed(0)}%</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-medium text-muted-foreground">Meta do mês</p>
-            <p className="mt-0.5 font-display text-2xl font-bold tabular-nums tracking-tight">{metaPct.toFixed(0)}%</p>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-700"
+              style={{ width: `${Math.min(100, metaPct)}%`, boxShadow: "0 0 8px var(--primary)" }}
+            />
           </div>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            {brl(p.realizado)} · meta {brl(p.atingiuMeta ? p.superMeta : p.meta)}
+          </p>
         </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-          <div
-            className="h-full rounded-full bg-primary transition-[width] duration-700"
-            style={{ width: `${Math.min(100, metaPct)}%`, boxShadow: "0 0 8px var(--primary)" }}
-          />
-        </div>
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          {brl(p.realizado)} · meta {brl(p.atingiuMeta ? p.superMeta : p.meta)}
-        </p>
-      </div>
+      )}
     </div>
   );
 }
@@ -253,78 +308,6 @@ function KpiStrip() {
 // ---------------------------------------------------------------------------
 // Analytic Chart
 // ---------------------------------------------------------------------------
-
-function AnalyticChart() {
-  const { lancamentos } = useFinanceiroSupa();
-  const hoje = new Date();
-  const [offset, setOffset] = useState(0);
-  const refMes = subMonths(hoje, offset);
-
-  const meses = Array.from({ length: 6 }, (_, i) => startOfMonth(subMonths(refMes, 5 - i)));
-  const data = meses.map(mes => ({
-    mes: format(mes, "MMM", { locale: ptBR }),
-    receita: lancamentos
-      .filter(l => l.tipo === "receita" && l.pagamentoEm && isSameMonth(new Date(l.pagamentoEm), mes))
-      .reduce((s, l) => s + l.valor, 0),
-    custo: lancamentos
-      .filter(l => l.tipo === "despesa" && l.pagamentoEm && isSameMonth(new Date(l.pagamentoEm), mes))
-      .reduce((s, l) => s + l.valor, 0),
-  }));
-
-  return (
-    <div className="rounded-2xl border border-white/[0.06] bg-surface-1/70 p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="font-display text-sm font-semibold tracking-tight">Faturamento × Custos</p>
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-surface-2/60 px-1">
-          <button onClick={() => setOffset(v => v + 1)} className="rounded p-1 text-muted-foreground hover:text-foreground">
-            <ArrowLeft2 size={14} color="currentColor" variant="Linear" />
-          </button>
-          <span className="min-w-[80px] text-center text-xs text-muted-foreground">
-            {format(refMes, "MMM yyyy", { locale: ptBR })}
-          </span>
-          <button onClick={() => setOffset(v => Math.max(0, v - 1))} className="rounded p-1 text-muted-foreground hover:text-foreground">
-            <ArrowRight2 size={14} color="currentColor" variant="Linear" />
-          </button>
-        </div>
-      </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-          <defs>
-            <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-          <XAxis dataKey="mes" axisLine={false} tickLine={false}
-            tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} />
-          <YAxis hide />
-          <Tooltip
-            contentStyle={{
-              background: "var(--color-surface-2)",
-              border: "1px solid var(--color-border)",
-              borderRadius: 8, fontSize: 12,
-            }}
-            formatter={(v: number) => [brl(v)]}
-          />
-          <Area type="monotone" dataKey="receita" stroke="var(--color-primary)"
-            strokeWidth={2} fill="url(#gradReceita)" dot={false}
-            activeDot={{ r: 4, fill: "var(--color-primary)", strokeWidth: 0 }} />
-          <Area type="monotone" dataKey="custo" stroke="var(--color-muted-foreground)"
-            strokeWidth={1.5} fill="transparent" strokeDasharray="4 4" dot={false} strokeOpacity={0.5} />
-        </AreaChart>
-      </ResponsiveContainer>
-      <div className="mt-3 flex items-center gap-4">
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="inline-block h-0.5 w-3 rounded-full bg-primary" /> Receita
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="inline-block h-0.5 w-3 rounded-full bg-muted-foreground opacity-50" /> Custos
-        </span>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Calendar Panel

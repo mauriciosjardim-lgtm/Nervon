@@ -1,7 +1,8 @@
-import { isSameMonth, subMonths } from "date-fns";
+import { format, subMonths } from "date-fns";
 import type { Lancamento } from "./financeiro";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 
 const LS_KEY = "frameos:metas:v1";
 
@@ -21,6 +22,10 @@ function loadFromLS(): MetasConfig | null {
 }
 
 let cached: MetasConfig | null = loadFromLS();
+registerSessionDisposer(() => {
+  cached = null;
+  try { localStorage.removeItem(LS_KEY); } catch { /* indisponível */ }
+});
 
 // Carrega do Supabase na primeira autenticação
 supabase.auth.onAuthStateChange((_event, session) => {
@@ -53,13 +58,16 @@ export async function saveMetas(m: MetasConfig) {
 export function progressoMes(config: MetasConfig, lancamentos: Lancamento[]) {
   const hoje = new Date();
   const mesPassado = subMonths(hoje, 1);
+  // Competência = vencimento (mesmo critério da página Financeiro), não data de pagamento.
+  const chaveAtual = format(hoje, "yyyy-MM");
+  const chaveAnterior = format(mesPassado, "yyyy-MM");
 
   const realizado = lancamentos
-    .filter(l => l.tipo === "receita" && l.pagamentoEm && isSameMonth(new Date(l.pagamentoEm), hoje))
+    .filter(l => l.tipo === "receita" && l.status === "recebido" && l.vencimento.slice(0, 7) === chaveAtual)
     .reduce((s, l) => s + l.valor, 0);
 
   const mesAnterior = lancamentos
-    .filter(l => l.tipo === "receita" && l.pagamentoEm && isSameMonth(new Date(l.pagamentoEm), mesPassado))
+    .filter(l => l.tipo === "receita" && l.status === "recebido" && l.vencimento.slice(0, 7) === chaveAnterior)
     .reduce((s, l) => s + l.valor, 0);
 
   const restanteMeta = Math.max(0, config.meta - realizado);

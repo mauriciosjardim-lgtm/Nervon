@@ -23,12 +23,42 @@ function Onboarding() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [verificandoConvite, setVerificandoConvite] = useState(true);
+
+  // REDE DE SEGURANÇA: antes de deixar criar uma empresa nova, tenta aceitar um
+  // convite pendente para este e-mail. Assim um convidado NUNCA vira empresa nova
+  // (mesmo que o redirect do e-mail não preserve /aceitar-convite?token=...).
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    (async () => {
+      try {
+        const nomePref = localStorage.getItem("mh_invite_nome") ?? undefined;
+        const { data } = await (supabase as any).rpc("aceitar_convite_por_email", { p_nome: nomePref });
+        if (data?.ok) {
+          localStorage.removeItem("mh_invite_nome");
+          window.location.href = "/"; // recarrega já vinculado como membro
+          return;
+        }
+      } catch { /* sem convite → onboarding normal */ }
+      if (alive) setVerificandoConvite(false);
+    })();
+    return () => { alive = false; };
+  }, [user]);
 
   // Se já tem empresa (criada pelo trigger), vai direto pro dashboard
   useEffect(() => {
     if (usuario) navigate({ to: "/" });
   }, [usuario]);
   if (usuario) return null;
+
+  if (verificandoConvite) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,17 +105,15 @@ function Onboarding() {
         empresa_id: empresaData.id,
         nome: user.user_metadata?.nome ?? "Você",
         email: user.email ?? "",
+        role: "admin",
       });
     if (usuarioErr) {
       setErro(`Erro ao criar usuário: ${usuarioErr.message}`);
       setLoading(false); return;
     }
 
-    // Aplica a cor escolhida imediatamente
     applyBrandColor(cor);
-
-    await refreshEmpresa();
-    navigate({ to: "/" });
+    window.location.href = "/";
   };
 
   return (
@@ -118,7 +146,7 @@ function Onboarding() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Nome da produtora</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Rastro Visual" autoFocus
+                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Aurora Filmes" autoFocus
                   onKeyDown={e => e.key === "Enter" && nome.trim() && setStep(2)} />
               </div>
 

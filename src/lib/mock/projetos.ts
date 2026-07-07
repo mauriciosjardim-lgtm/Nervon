@@ -48,6 +48,7 @@ export interface Tarefa {
   responsavel: string;
   prazo?: string;
   prioridade: Prioridade;
+  link?: string;        // URL de referência (Drive, Frame.io, Vimeo, doc…)
   criadoEm: string;
 }
 

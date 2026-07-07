@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
+import { registerSessionDisposer } from "./sessionScope";
 
 let cached: string | null = null;
+registerSessionDisposer(() => { cached = null; });
 
 export async function getEmpresaId(): Promise<string> {
   if (cached) return cached;

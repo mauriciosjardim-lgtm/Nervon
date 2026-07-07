@@ -9,40 +9,62 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as PropostasRouteImport } from './routes/propostas'
 import { Route as ProjetosRouteImport } from './routes/projetos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LpRouteImport } from './routes/lp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
+import { Route as DashboardV3RouteImport } from './routes/dashboard-v3'
 import { Route as CrmRouteImport } from './routes/crm'
+import { Route as ConviteRouteImport } from './routes/convite'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComercialRouteImport } from './routes/comercial'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as AceitarConviteRouteImport } from './routes/aceitar-convite'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PropostasIndexRouteImport } from './routes/propostas.index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
 import { Route as OrcamentosIndexRouteImport } from './routes/orcamentos.index'
 import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
+import { Route as ContratosIndexRouteImport } from './routes/contratos.index'
 import { Route as ComercialIndexRouteImport } from './routes/comercial.index'
 import { Route as BibliotecaIndexRouteImport } from './routes/biblioteca.index'
+import { Route as PropostasNovaRouteImport } from './routes/propostas.nova'
+import { Route as PropostasIdRouteImport } from './routes/propostas.$id'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as OrcamentosNovoRouteImport } from './routes/orcamentos.novo'
 import { Route as OrcamentosIdRouteImport } from './routes/orcamentos.$id'
 import { Route as FinanceiroProjetosRouteImport } from './routes/financeiro.projetos'
 import { Route as FinanceiroLancamentosRouteImport } from './routes/financeiro.lancamentos'
 import { Route as FinanceiroContasRouteImport } from './routes/financeiro.contas'
+import { Route as ContratosVaultIdRouteImport } from './routes/contratos.$vaultId'
 import { Route as ComercialLeadsRouteImport } from './routes/comercial.leads'
 import { Route as ComercialFollowupsRouteImport } from './routes/comercial.followups'
 import { Route as ComercialEmpresasRouteImport } from './routes/comercial.empresas'
 import { Route as ComercialContatosRouteImport } from './routes/comercial.contatos'
 import { Route as ComercialAgendaRouteImport } from './routes/comercial.agenda'
 import { Route as BibliotecaCategoriaRouteImport } from './routes/biblioteca.$categoria'
+import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ContratosVaultIdIndexRouteImport } from './routes/contratos.$vaultId.index'
+import { Route as ContratosVaultIdNovoRouteImport } from './routes/contratos.$vaultId.novo'
+import { Route as ContratosVaultIdContratoContractIdRouteImport } from './routes/contratos.$vaultId.contrato.$contractId'
 
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PropostasRoute = PropostasRouteImport.update({
   id: '/propostas',
   path: '/propostas',
@@ -51,6 +73,11 @@ const PropostasRoute = PropostasRouteImport.update({
 const ProjetosRoute = ProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerformanceRoute = PerformanceRouteImport.update({
@@ -68,6 +95,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LpRoute = LpRouteImport.update({
+  id: '/lp',
+  path: '/lp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -83,9 +115,19 @@ const FinanceiroRoute = FinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardV3Route = DashboardV3RouteImport.update({
+  id: '/dashboard-v3',
+  path: '/dashboard-v3',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmRoute = CrmRouteImport.update({
   id: '/crm',
   path: '/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteRoute = ConviteRouteImport.update({
+  id: '/convite',
+  path: '/convite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosRoute = ContratosRouteImport.update({
@@ -103,6 +145,11 @@ const ComercialRoute = ComercialRouteImport.update({
   path: '/comercial',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BibliotecaRoute = BibliotecaRouteImport.update({
   id: '/biblioteca',
   path: '/biblioteca',
@@ -113,10 +160,20 @@ const AgendaRoute = AgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AceitarConviteRoute = AceitarConviteRouteImport.update({
+  id: '/aceitar-convite',
+  path: '/aceitar-convite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PropostasIndexRoute = PropostasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PropostasRoute,
 } as any)
 const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
   id: '/',
@@ -133,6 +190,11 @@ const FinanceiroIndexRoute = FinanceiroIndexRouteImport.update({
   path: '/',
   getParentRoute: () => FinanceiroRoute,
 } as any)
+const ContratosIndexRoute = ContratosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContratosRoute,
+} as any)
 const ComercialIndexRoute = ComercialIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -143,10 +205,25 @@ const BibliotecaIndexRoute = BibliotecaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BibliotecaRoute,
 } as any)
+const PropostasNovaRoute = PropostasNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => PropostasRoute,
+} as any)
+const PropostasIdRoute = PropostasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PropostasRoute,
+} as any)
 const ProjetosIdRoute = ProjetosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ProjetosRoute,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const OrcamentosNovoRoute = OrcamentosNovoRouteImport.update({
   id: '/novo',
@@ -172,6 +249,11 @@ const FinanceiroContasRoute = FinanceiroContasRouteImport.update({
   id: '/contas',
   path: '/contas',
   getParentRoute: () => FinanceiroRoute,
+} as any)
+const ContratosVaultIdRoute = ContratosVaultIdRouteImport.update({
+  id: '/$vaultId',
+  path: '/$vaultId',
+  getParentRoute: () => ContratosRoute,
 } as any)
 const ComercialLeadsRoute = ComercialLeadsRouteImport.update({
   id: '/leads',
@@ -203,59 +285,103 @@ const BibliotecaCategoriaRoute = BibliotecaCategoriaRouteImport.update({
   path: '/$categoria',
   getParentRoute: () => BibliotecaRoute,
 } as any)
+const AuthResetRoute = AuthResetRouteImport.update({
+  id: '/auth/reset',
+  path: '/auth/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContratosVaultIdIndexRoute = ContratosVaultIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContratosVaultIdRoute,
+} as any)
+const ContratosVaultIdNovoRoute = ContratosVaultIdNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => ContratosVaultIdRoute,
+} as any)
+const ContratosVaultIdContratoContractIdRoute =
+  ContratosVaultIdContratoContractIdRouteImport.update({
+    id: '/contrato/$contractId',
+    path: '/contrato/$contractId',
+    getParentRoute: () => ContratosVaultIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
+  '/checkout': typeof CheckoutRoute
   '/comercial': typeof ComercialRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
-  '/contratos': typeof ContratosRoute
+  '/contratos': typeof ContratosRouteWithChildren
+  '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
+  '/dashboard-v3': typeof DashboardV3Route
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/lp': typeof LpRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
   '/performance': typeof PerformanceRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/projetos': typeof ProjetosRouteWithChildren
-  '/propostas': typeof PropostasRoute
+  '/propostas': typeof PropostasRouteWithChildren
+  '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset': typeof AuthResetRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
   '/comercial/empresas': typeof ComercialEmpresasRoute
   '/comercial/followups': typeof ComercialFollowupsRoute
   '/comercial/leads': typeof ComercialLeadsRoute
+  '/contratos/$vaultId': typeof ContratosVaultIdRouteWithChildren
   '/financeiro/contas': typeof FinanceiroContasRoute
   '/financeiro/lancamentos': typeof FinanceiroLancamentosRoute
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
+  '/p/$slug': typeof PSlugRoute
   '/projetos/$id': typeof ProjetosIdRoute
+  '/propostas/$id': typeof PropostasIdRoute
+  '/propostas/nova': typeof PropostasNovaRoute
   '/biblioteca/': typeof BibliotecaIndexRoute
   '/comercial/': typeof ComercialIndexRoute
+  '/contratos/': typeof ContratosIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/orcamentos/': typeof OrcamentosIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
+  '/propostas/': typeof PropostasIndexRoute
+  '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
+  '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
+  '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/checkout': typeof CheckoutRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/contratos': typeof ContratosRoute
+  '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
+  '/dashboard-v3': typeof DashboardV3Route
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/lp': typeof LpRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
-  '/propostas': typeof PropostasRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset': typeof AuthResetRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
@@ -267,98 +393,146 @@ export interface FileRoutesByTo {
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
+  '/p/$slug': typeof PSlugRoute
   '/projetos/$id': typeof ProjetosIdRoute
+  '/propostas/$id': typeof PropostasIdRoute
+  '/propostas/nova': typeof PropostasNovaRoute
   '/biblioteca': typeof BibliotecaIndexRoute
   '/comercial': typeof ComercialIndexRoute
+  '/contratos': typeof ContratosIndexRoute
   '/financeiro': typeof FinanceiroIndexRoute
   '/orcamentos': typeof OrcamentosIndexRoute
   '/projetos': typeof ProjetosIndexRoute
+  '/propostas': typeof PropostasIndexRoute
+  '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
+  '/contratos/$vaultId': typeof ContratosVaultIdIndexRoute
+  '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
+  '/checkout': typeof CheckoutRoute
   '/comercial': typeof ComercialRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
-  '/contratos': typeof ContratosRoute
+  '/contratos': typeof ContratosRouteWithChildren
+  '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
+  '/dashboard-v3': typeof DashboardV3Route
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/lp': typeof LpRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
   '/performance': typeof PerformanceRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/projetos': typeof ProjetosRouteWithChildren
-  '/propostas': typeof PropostasRoute
+  '/propostas': typeof PropostasRouteWithChildren
+  '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset': typeof AuthResetRoute
   '/biblioteca/$categoria': typeof BibliotecaCategoriaRoute
   '/comercial/agenda': typeof ComercialAgendaRoute
   '/comercial/contatos': typeof ComercialContatosRoute
   '/comercial/empresas': typeof ComercialEmpresasRoute
   '/comercial/followups': typeof ComercialFollowupsRoute
   '/comercial/leads': typeof ComercialLeadsRoute
+  '/contratos/$vaultId': typeof ContratosVaultIdRouteWithChildren
   '/financeiro/contas': typeof FinanceiroContasRoute
   '/financeiro/lancamentos': typeof FinanceiroLancamentosRoute
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
+  '/p/$slug': typeof PSlugRoute
   '/projetos/$id': typeof ProjetosIdRoute
+  '/propostas/$id': typeof PropostasIdRoute
+  '/propostas/nova': typeof PropostasNovaRoute
   '/biblioteca/': typeof BibliotecaIndexRoute
   '/comercial/': typeof ComercialIndexRoute
+  '/contratos/': typeof ContratosIndexRoute
   '/financeiro/': typeof FinanceiroIndexRoute
   '/orcamentos/': typeof OrcamentosIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
+  '/propostas/': typeof PropostasIndexRoute
+  '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
+  '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
+  '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aceitar-convite'
     | '/agenda'
     | '/biblioteca'
+    | '/checkout'
     | '/comercial'
     | '/configuracoes'
     | '/contratos'
+    | '/convite'
     | '/crm'
+    | '/dashboard-v3'
     | '/financeiro'
     | '/home'
     | '/login'
+    | '/lp'
     | '/onboarding'
     | '/orcamentos'
     | '/performance'
+    | '/privacidade'
     | '/projetos'
     | '/propostas'
+    | '/termos'
     | '/auth/callback'
+    | '/auth/reset'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
     | '/comercial/empresas'
     | '/comercial/followups'
     | '/comercial/leads'
+    | '/contratos/$vaultId'
     | '/financeiro/contas'
     | '/financeiro/lancamentos'
     | '/financeiro/projetos'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
+    | '/p/$slug'
     | '/projetos/$id'
+    | '/propostas/$id'
+    | '/propostas/nova'
     | '/biblioteca/'
     | '/comercial/'
+    | '/contratos/'
     | '/financeiro/'
     | '/orcamentos/'
     | '/projetos/'
+    | '/propostas/'
+    | '/contratos/$vaultId/novo'
+    | '/contratos/$vaultId/'
+    | '/contratos/$vaultId/contrato/$contractId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aceitar-convite'
     | '/agenda'
+    | '/checkout'
     | '/configuracoes'
-    | '/contratos'
+    | '/convite'
     | '/crm'
+    | '/dashboard-v3'
     | '/home'
     | '/login'
+    | '/lp'
     | '/onboarding'
     | '/performance'
-    | '/propostas'
+    | '/privacidade'
+    | '/termos'
     | '/auth/callback'
+    | '/auth/reset'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
@@ -370,70 +544,111 @@ export interface FileRouteTypes {
     | '/financeiro/projetos'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
+    | '/p/$slug'
     | '/projetos/$id'
+    | '/propostas/$id'
+    | '/propostas/nova'
     | '/biblioteca'
     | '/comercial'
+    | '/contratos'
     | '/financeiro'
     | '/orcamentos'
     | '/projetos'
+    | '/propostas'
+    | '/contratos/$vaultId/novo'
+    | '/contratos/$vaultId'
+    | '/contratos/$vaultId/contrato/$contractId'
   id:
     | '__root__'
     | '/'
+    | '/aceitar-convite'
     | '/agenda'
     | '/biblioteca'
+    | '/checkout'
     | '/comercial'
     | '/configuracoes'
     | '/contratos'
+    | '/convite'
     | '/crm'
+    | '/dashboard-v3'
     | '/financeiro'
     | '/home'
     | '/login'
+    | '/lp'
     | '/onboarding'
     | '/orcamentos'
     | '/performance'
+    | '/privacidade'
     | '/projetos'
     | '/propostas'
+    | '/termos'
     | '/auth/callback'
+    | '/auth/reset'
     | '/biblioteca/$categoria'
     | '/comercial/agenda'
     | '/comercial/contatos'
     | '/comercial/empresas'
     | '/comercial/followups'
     | '/comercial/leads'
+    | '/contratos/$vaultId'
     | '/financeiro/contas'
     | '/financeiro/lancamentos'
     | '/financeiro/projetos'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
+    | '/p/$slug'
     | '/projetos/$id'
+    | '/propostas/$id'
+    | '/propostas/nova'
     | '/biblioteca/'
     | '/comercial/'
+    | '/contratos/'
     | '/financeiro/'
     | '/orcamentos/'
     | '/projetos/'
+    | '/propostas/'
+    | '/contratos/$vaultId/novo'
+    | '/contratos/$vaultId/'
+    | '/contratos/$vaultId/contrato/$contractId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AceitarConviteRoute: typeof AceitarConviteRoute
   AgendaRoute: typeof AgendaRoute
   BibliotecaRoute: typeof BibliotecaRouteWithChildren
+  CheckoutRoute: typeof CheckoutRoute
   ComercialRoute: typeof ComercialRouteWithChildren
   ConfiguracoesRoute: typeof ConfiguracoesRoute
-  ContratosRoute: typeof ContratosRoute
+  ContratosRoute: typeof ContratosRouteWithChildren
+  ConviteRoute: typeof ConviteRoute
   CrmRoute: typeof CrmRoute
+  DashboardV3Route: typeof DashboardV3Route
   FinanceiroRoute: typeof FinanceiroRouteWithChildren
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
+  LpRoute: typeof LpRoute
   OnboardingRoute: typeof OnboardingRoute
   OrcamentosRoute: typeof OrcamentosRouteWithChildren
   PerformanceRoute: typeof PerformanceRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   ProjetosRoute: typeof ProjetosRouteWithChildren
-  PropostasRoute: typeof PropostasRoute
+  PropostasRoute: typeof PropostasRouteWithChildren
+  TermosRoute: typeof TermosRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthResetRoute: typeof AuthResetRoute
+  PSlugRoute: typeof PSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/propostas': {
       id: '/propostas'
       path: '/propostas'
@@ -446,6 +661,13 @@ declare module '@tanstack/react-router' {
       path: '/projetos'
       fullPath: '/projetos'
       preLoaderRoute: typeof ProjetosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/performance': {
@@ -469,6 +691,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lp': {
+      id: '/lp'
+      path: '/lp'
+      fullPath: '/lp'
+      preLoaderRoute: typeof LpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -490,11 +719,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard-v3': {
+      id: '/dashboard-v3'
+      path: '/dashboard-v3'
+      fullPath: '/dashboard-v3'
+      preLoaderRoute: typeof DashboardV3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm': {
       id: '/crm'
       path: '/crm'
       fullPath: '/crm'
       preLoaderRoute: typeof CrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contratos': {
@@ -518,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComercialRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/biblioteca': {
       id: '/biblioteca'
       path: '/biblioteca'
@@ -532,12 +782,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aceitar-convite': {
+      id: '/aceitar-convite'
+      path: '/aceitar-convite'
+      fullPath: '/aceitar-convite'
+      preLoaderRoute: typeof AceitarConviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/propostas/': {
+      id: '/propostas/'
+      path: '/'
+      fullPath: '/propostas/'
+      preLoaderRoute: typeof PropostasIndexRouteImport
+      parentRoute: typeof PropostasRoute
     }
     '/projetos/': {
       id: '/projetos/'
@@ -560,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroIndexRouteImport
       parentRoute: typeof FinanceiroRoute
     }
+    '/contratos/': {
+      id: '/contratos/'
+      path: '/'
+      fullPath: '/contratos/'
+      preLoaderRoute: typeof ContratosIndexRouteImport
+      parentRoute: typeof ContratosRoute
+    }
     '/comercial/': {
       id: '/comercial/'
       path: '/'
@@ -574,12 +845,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibliotecaIndexRouteImport
       parentRoute: typeof BibliotecaRoute
     }
+    '/propostas/nova': {
+      id: '/propostas/nova'
+      path: '/nova'
+      fullPath: '/propostas/nova'
+      preLoaderRoute: typeof PropostasNovaRouteImport
+      parentRoute: typeof PropostasRoute
+    }
+    '/propostas/$id': {
+      id: '/propostas/$id'
+      path: '/$id'
+      fullPath: '/propostas/$id'
+      preLoaderRoute: typeof PropostasIdRouteImport
+      parentRoute: typeof PropostasRoute
+    }
     '/projetos/$id': {
       id: '/projetos/$id'
       path: '/$id'
       fullPath: '/projetos/$id'
       preLoaderRoute: typeof ProjetosIdRouteImport
       parentRoute: typeof ProjetosRoute
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/orcamentos/novo': {
       id: '/orcamentos/novo'
@@ -615,6 +907,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/financeiro/contas'
       preLoaderRoute: typeof FinanceiroContasRouteImport
       parentRoute: typeof FinanceiroRoute
+    }
+    '/contratos/$vaultId': {
+      id: '/contratos/$vaultId'
+      path: '/$vaultId'
+      fullPath: '/contratos/$vaultId'
+      preLoaderRoute: typeof ContratosVaultIdRouteImport
+      parentRoute: typeof ContratosRoute
     }
     '/comercial/leads': {
       id: '/comercial/leads'
@@ -658,12 +957,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibliotecaCategoriaRouteImport
       parentRoute: typeof BibliotecaRoute
     }
+    '/auth/reset': {
+      id: '/auth/reset'
+      path: '/auth/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof AuthResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/contratos/$vaultId/': {
+      id: '/contratos/$vaultId/'
+      path: '/'
+      fullPath: '/contratos/$vaultId/'
+      preLoaderRoute: typeof ContratosVaultIdIndexRouteImport
+      parentRoute: typeof ContratosVaultIdRoute
+    }
+    '/contratos/$vaultId/novo': {
+      id: '/contratos/$vaultId/novo'
+      path: '/novo'
+      fullPath: '/contratos/$vaultId/novo'
+      preLoaderRoute: typeof ContratosVaultIdNovoRouteImport
+      parentRoute: typeof ContratosVaultIdRoute
+    }
+    '/contratos/$vaultId/contrato/$contractId': {
+      id: '/contratos/$vaultId/contrato/$contractId'
+      path: '/contrato/$contractId'
+      fullPath: '/contratos/$vaultId/contrato/$contractId'
+      preLoaderRoute: typeof ContratosVaultIdContratoContractIdRouteImport
+      parentRoute: typeof ContratosVaultIdRoute
     }
   }
 }
@@ -702,6 +1029,36 @@ const ComercialRouteChildren: ComercialRouteChildren = {
 
 const ComercialRouteWithChildren = ComercialRoute._addFileChildren(
   ComercialRouteChildren,
+)
+
+interface ContratosVaultIdRouteChildren {
+  ContratosVaultIdNovoRoute: typeof ContratosVaultIdNovoRoute
+  ContratosVaultIdIndexRoute: typeof ContratosVaultIdIndexRoute
+  ContratosVaultIdContratoContractIdRoute: typeof ContratosVaultIdContratoContractIdRoute
+}
+
+const ContratosVaultIdRouteChildren: ContratosVaultIdRouteChildren = {
+  ContratosVaultIdNovoRoute: ContratosVaultIdNovoRoute,
+  ContratosVaultIdIndexRoute: ContratosVaultIdIndexRoute,
+  ContratosVaultIdContratoContractIdRoute:
+    ContratosVaultIdContratoContractIdRoute,
+}
+
+const ContratosVaultIdRouteWithChildren =
+  ContratosVaultIdRoute._addFileChildren(ContratosVaultIdRouteChildren)
+
+interface ContratosRouteChildren {
+  ContratosVaultIdRoute: typeof ContratosVaultIdRouteWithChildren
+  ContratosIndexRoute: typeof ContratosIndexRoute
+}
+
+const ContratosRouteChildren: ContratosRouteChildren = {
+  ContratosVaultIdRoute: ContratosVaultIdRouteWithChildren,
+  ContratosIndexRoute: ContratosIndexRoute,
+}
+
+const ContratosRouteWithChildren = ContratosRoute._addFileChildren(
+  ContratosRouteChildren,
 )
 
 interface FinanceiroRouteChildren {
@@ -752,23 +1109,48 @@ const ProjetosRouteWithChildren = ProjetosRoute._addFileChildren(
   ProjetosRouteChildren,
 )
 
+interface PropostasRouteChildren {
+  PropostasIdRoute: typeof PropostasIdRoute
+  PropostasNovaRoute: typeof PropostasNovaRoute
+  PropostasIndexRoute: typeof PropostasIndexRoute
+}
+
+const PropostasRouteChildren: PropostasRouteChildren = {
+  PropostasIdRoute: PropostasIdRoute,
+  PropostasNovaRoute: PropostasNovaRoute,
+  PropostasIndexRoute: PropostasIndexRoute,
+}
+
+const PropostasRouteWithChildren = PropostasRoute._addFileChildren(
+  PropostasRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AceitarConviteRoute: AceitarConviteRoute,
   AgendaRoute: AgendaRoute,
   BibliotecaRoute: BibliotecaRouteWithChildren,
+  CheckoutRoute: CheckoutRoute,
   ComercialRoute: ComercialRouteWithChildren,
   ConfiguracoesRoute: ConfiguracoesRoute,
-  ContratosRoute: ContratosRoute,
+  ContratosRoute: ContratosRouteWithChildren,
+  ConviteRoute: ConviteRoute,
   CrmRoute: CrmRoute,
+  DashboardV3Route: DashboardV3Route,
   FinanceiroRoute: FinanceiroRouteWithChildren,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
+  LpRoute: LpRoute,
   OnboardingRoute: OnboardingRoute,
   OrcamentosRoute: OrcamentosRouteWithChildren,
   PerformanceRoute: PerformanceRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   ProjetosRoute: ProjetosRouteWithChildren,
-  PropostasRoute: PropostasRoute,
+  PropostasRoute: PropostasRouteWithChildren,
+  TermosRoute: TermosRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthResetRoute: AuthResetRoute,
+  PSlugRoute: PSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

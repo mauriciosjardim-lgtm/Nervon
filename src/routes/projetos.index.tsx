@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { Add, SearchNormal, Profile2User, Calendar, DollarCircle, TickSquare, Flag, CloseCircle } from "iconsax-react";
+import { Add, SearchNormal, Profile2User, Calendar, Flag, CloseCircle } from "iconsax-react";
 import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { FASES, type FaseProjeto } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
+import { calcularResumoProgresso, SAUDE_ESTILO } from "@/lib/projetos/progresso";
 import { ProjetoModal } from "@/components/projetos/projeto-modal";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -69,9 +70,9 @@ function ProjetosPage() {
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtrados.map(p => {
-            const ts = tarefas.filter(t => t.projetoId === p.id);
             const ms = marcos.filter(m => m.projetoId === p.id);
-            const fase = FASES[p.fase];
+            const resumo = calcularResumoProgresso(p, tarefas);
+            const saude = SAUDE_ESTILO[resumo.saude];
             return (
               <div key={p.id}
                 role="link" tabIndex={0}
@@ -86,39 +87,47 @@ function ProjetosPage() {
                   <CloseCircle size={12} color="currentColor" variant="Linear" />
                 </button>
 
-                <div className="flex items-start justify-between gap-2 pr-6">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-display text-base font-semibold group-hover:text-primary">{p.nome}</h3>
-                    <p className="truncate text-xs text-muted-foreground">{p.cliente}</p>
-                  </div>
-                  <span className={cn("shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium", fase.classe)}>{fase.label}</span>
+                <div className="pr-6">
+                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary">{p.nome}</h3>
+                  <p className="truncate text-xs text-muted-foreground">{p.cliente}</p>
+                  {p.descricao && (
+                    <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/80">{p.descricao}</p>
+                  )}
                 </div>
 
-                <div className="mt-3 space-y-1">
+                <div className="mt-3 space-y-1.5">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>Progresso</span><span className="tabular-nums">{p.progresso}%</span>
+                    <span>Progresso</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-medium", saude.badge)}>{resumo.label}</span>
+                      <span className="tabular-nums">{resumo.percentual}%</span>
+                    </div>
                   </div>
-                  <Progress value={p.progresso} className="h-1.5" />
+                  <Progress value={resumo.percentual} indicatorClassName={saude.barra} className="h-1.5" />
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>{resumo.concluidas} de {resumo.total} tarefas</span>
+                    {resumo.atrasadas > 0 && <span className="font-medium text-destructive">{resumo.atrasadas} atrasada{resumo.atrasadas > 1 ? "s" : ""}</span>}
+                  </div>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                  <Stat icon={TickSquare} label={`${ts.filter(t => t.concluida).length}/${ts.length} tarefas`} />
                   <Stat icon={Flag} label={`${ms.length} marcos`} />
                   <Stat icon={Profile2User} label={`${p.equipe.length} pessoas`} />
                   <Stat icon={Calendar} label={format(new Date(p.dataEntrega), "dd MMM", { locale: ptBR })} />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-3">
-                  <div className="flex -space-x-1.5">
-                    {p.equipe.slice(0, 4).map((m, i) => (
-                      <div key={i} className="grid size-6 place-items-center rounded-full border-2 border-card bg-gradient-to-br from-primary to-primary-glow text-[9px] font-bold text-primary-foreground">
-                        {m.split(" ").map(w => w[0]).slice(0, 2).join("")}
-                      </div>
-                    ))}
-                    {p.equipe.length > 4 && <div className="grid size-6 place-items-center rounded-full border-2 border-card bg-surface-2 text-[9px] text-muted-foreground">+{p.equipe.length - 4}</div>}
+                {p.equipe.length > 0 && (
+                  <div className="mt-3 flex items-center border-t border-border/40 pt-3">
+                    <div className="flex -space-x-1.5">
+                      {p.equipe.slice(0, 5).map((m, i) => (
+                        <div key={i} className="grid size-6 place-items-center rounded-full border-2 border-card bg-gradient-to-br from-primary to-primary-glow text-[9px] font-bold text-primary-foreground">
+                          {m.split(" ").map(w => w[0]).slice(0, 2).join("")}
+                        </div>
+                      ))}
+                      {p.equipe.length > 5 && <div className="grid size-6 place-items-center rounded-full border-2 border-card bg-surface-2 text-[9px] text-muted-foreground">+{p.equipe.length - 5}</div>}
+                    </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground"><DollarCircle size={12} color="currentColor" variant="Linear" className="text-primary" />{(p.valor / 1000).toFixed(1)}k</span>
-                </div>
+                )}
               </div>
             );
           })}

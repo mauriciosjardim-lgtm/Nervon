@@ -16,6 +16,8 @@ import {
 } from "@/lib/mock/orcamentos";
 import { orcamentosActions, getTemplate } from "@/lib/hooks/useOrcamentos";
 import { useCustos } from "@/lib/mock/custos";
+import { criarPropostaDeOrcamento } from "@/lib/propostas";
+import { toast } from "sonner";
 
 const searchSchema = z.object({
   tipo: z.enum(["institucional", "mensal", "podcast", "captacao", "edicao", "fotografia", "custom"]).optional(),
@@ -74,6 +76,7 @@ function NovoOrcamento() {
   };
 
   const [salvando, setSalvando] = useState(false);
+  const [gerandoProposta, setGerandoProposta] = useState(false);
   const salvarEAvancar = async () => {
     setSalvando(true);
     try {
@@ -81,6 +84,24 @@ function NovoOrcamento() {
       navigate({ to: "/orcamentos/$id", params: { id: orc.id } });
     } finally {
       setSalvando(false);
+    }
+  };
+  const salvarEGerarProposta = async () => {
+    if (gerandoProposta) return;
+    setGerandoProposta(true);
+    try {
+      const orcamento = await orcamentosActions.salvar(payload);
+      const proposta = await criarPropostaDeOrcamento(orcamento);
+      toast.success("Proposta criada a partir do orçamento");
+      navigate({
+        to: "/propostas/$id",
+        params: { id: proposta.id },
+        search: { tipo: payload.tipo } as never,
+      });
+    } catch (e: any) {
+      toast.error(e.message ?? "Não foi possível gerar a proposta");
+    } finally {
+      setGerandoProposta(false);
     }
   };
 
@@ -105,7 +126,15 @@ function NovoOrcamento() {
           {step === 1 && <StepProducao payload={payload} setPart={setPart} />}
           {step === 2 && <StepPos payload={payload} setPart={setPart} />}
           {step === 3 && <StepExtras payload={payload} setPart={setPart} />}
-          {step === 4 && <StepResultado payload={payload} onSalvar={salvarEAvancar} salvando={salvando} />}
+          {step === 4 && (
+            <StepResultado
+              payload={payload}
+              onSalvar={salvarEAvancar}
+              onGerarProposta={salvarEGerarProposta}
+              salvando={salvando}
+              gerandoProposta={gerandoProposta}
+            />
+          )}
 
           {step < 4 && (
             <footer className="flex items-center justify-between pt-2">
@@ -269,7 +298,19 @@ function StepExtras({ payload, setPart }: { payload: OrcamentoPayload; setPart: 
   );
 }
 
-function StepResultado({ payload, onSalvar, salvando }: { payload: OrcamentoPayload; onSalvar: () => void; salvando?: boolean }) {
+function StepResultado({
+  payload,
+  onSalvar,
+  onGerarProposta,
+  salvando,
+  gerandoProposta,
+}: {
+  payload: OrcamentoPayload;
+  onSalvar: () => void;
+  onGerarProposta: () => void;
+  salvando?: boolean;
+  gerandoProposta?: boolean;
+}) {
   const custos = useCustos();
   const calc = useMemo(() => calcular(payload, custos), [payload, custos]);
 
@@ -297,8 +338,12 @@ function StepResultado({ payload, onSalvar, salvando }: { payload: OrcamentoPayl
         <button onClick={onSalvar} disabled={salvando} className="rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-[0_0_24px_-8px_var(--primary)] transition hover:bg-primary-glow disabled:opacity-60">
           {salvando ? "Salvando..." : "Salvar orçamento"}
         </button>
-        <button onClick={onSalvar} className="rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition hover:border-primary/30">
-          Gerar proposta
+        <button
+          onClick={onGerarProposta}
+          disabled={gerandoProposta}
+          className="rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {gerandoProposta ? "Gerando proposta..." : "Gerar proposta"}
         </button>
         <button onClick={onSalvar} className="rounded-xl border border-border/60 bg-surface-1/60 px-4 py-3 text-sm transition hover:border-primary/30">
           Criar projeto

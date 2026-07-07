@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { dbErro } from "@/lib/dbError";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 import type {
   EtapaJornada, Temperatura, TimelineTipo,
   Empresa, Contato, Lead, TimelineEvent, Tarefa, ProximaAcao,
@@ -97,6 +99,7 @@ const emit = () => listeners.forEach(fn => fn());
 const setStore = (patch: Partial<Store>) => { store = { ...store, ...patch }; emit(); };
 
 let initialized = false;
+let channel: ReturnType<typeof supabase.channel> | null = null;
 
 async function init() {
   if (initialized) return;
@@ -119,7 +122,7 @@ async function init() {
     loading: false,
   });
 
-  supabase.channel("comercial_realtime")
+  channel = supabase.channel("comercial_realtime")
     .on("postgres_changes", { event: "*", schema: "public", table: "clientes_comercial" }, refresh)
     .on("postgres_changes", { event: "*", schema: "public", table: "contatos_comercial" }, refresh)
     .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, refresh)
@@ -146,9 +149,12 @@ async function refresh() {
 }
 
 export function resetComercialStore() {
+  if (channel) { void supabase.removeChannel(channel); channel = null; }
   initialized = false;
   store = { empresas: [], contatos: [], leads: [], timeline: [], tarefas: [], loading: true };
+  emit();
 }
+registerSessionDisposer(resetComercialStore);
 
 // ─── hook ────────────────────────────────────────────────────────────────────
 
@@ -189,7 +195,7 @@ export const comercial = {
     if (!lead || lead.etapa === etapa) return;
     const anterior = lead.etapa;
     const empresa_id = await getEmpresaId();
-    await Promise.all([
+    const [upd, ins] = await Promise.all([
       supabase.from("leads").update({ etapa }).eq("id", leadId),
       supabase.from("timeline_lead").insert({
         empresa_id, lead_id: leadId, tipo: "etapa_mudou",
@@ -197,6 +203,7 @@ export const comercial = {
         quando: new Date().toISOString(), autor: "Você",
       }),
     ]);
+    if (dbErro(upd.error ?? ins.error, "mover etapa do lead")) return;
     setStore({
       leads: store.leads.map(l => l.id === leadId ? { ...l, etapa } : l),
       timeline: [
@@ -210,9 +217,10 @@ export const comercial = {
     const quando = ev.quando ?? new Date().toISOString();
     const autor = ev.autor ?? "Você";
     const empresa_id = await getEmpresaId();
-    const { data } = await supabase.from("timeline_lead").insert({
+    const { data, error } = await supabase.from("timeline_lead").insert({
       empresa_id, lead_id: leadId, tipo: ev.tipo, titulo: ev.titulo, descricao: ev.descricao ?? null, quando, autor,
     }).select().single();
+    if (dbErro(error, "registrar evento")) return;
     if (data) {
       setStore({ timeline: [rowToTimeline(data), ...store.timeline] });
     }
@@ -220,9 +228,10 @@ export const comercial = {
 
   async addTarefa(leadId: string, titulo: string, prazo: string, responsavel = "Você") {
     const empresa_id = await getEmpresaId();
-    const { data } = await supabase.from("tarefas_lead").insert({
+    const { data, error } = await supabase.from("tarefas_lead").insert({
       empresa_id, lead_id: leadId, titulo, responsavel, prazo, feita: false,
     }).select().single();
+    if (dbErro(error, "criar tarefa do lead")) return;
     if (data) setStore({ tarefas: [...store.tarefas, rowToTarefa(data)] });
   },
 
@@ -283,10 +292,11 @@ export const comercial = {
 
   async addContato(clienteId: string, dados: Omit<Contato, "id" | "empresaId">) {
     const empresa_id = await getEmpresaId();
-    const { data } = await supabase.from("contatos_comercial").insert({
+    const { data, error } = await supabase.from("contatos_comercial").insert({
       empresa_id, cliente_id: clienteId, nome: dados.nome, cargo: dados.cargo,
       email: dados.email, telefone: dados.telefone, principal: dados.principal ?? false,
     }).select().single();
+    if (dbErro(error, "adicionar contato")) return;
     if (data) setStore({ contatos: [...store.contatos, rowToContato(data)] });
     return data?.id;
   },
@@ -299,26 +309,26 @@ export const comercial = {
     const empresa_id = await getEmpresaId();
 
     // 1. criar cliente
-    const { data: clienteData } = await supabase.from("clientes_comercial").insert({
+    const { data: clienteData, error: e1 } = await supabase.from("clientes_comercial").insert({
       empresa_id, nome: input.empresaNome, segmento: input.segmento || "Não informado",
       cidade: input.cidade || "Não informado",
     }).select().single();
-    if (!clienteData) return null;
+    if (dbErro(e1, "criar cliente") || !clienteData) return null;
 
     // 2. criar contato
-    const { data: contatoData } = await supabase.from("contatos_comercial").insert({
+    const { data: contatoData, error: e2 } = await supabase.from("contatos_comercial").insert({
       empresa_id, cliente_id: clienteData.id, nome: input.contatoNome, cargo: "—",
       email: input.contatoEmail || "—", telefone: input.contatoTelefone || "—", principal: true,
     }).select().single();
-    if (!contatoData) return null;
+    if (dbErro(e2, "criar contato") || !contatoData) return null;
 
     // 3. criar lead
-    const { data: leadData } = await supabase.from("leads").insert({
+    const { data: leadData, error: e3 } = await supabase.from("leads").insert({
       empresa_id, cliente_id: clienteData.id, contato_id: contatoData.id, etapa: "novo",
       valor: input.valor, responsavel: input.responsavel,
       temperatura: input.temperatura, origem: input.origem,
     }).select().single();
-    if (!leadData) return null;
+    if (dbErro(e3, "criar lead") || !leadData) return null;
 
     // 4. criar evento de timeline
     await supabase.from("timeline_lead").insert({
@@ -336,7 +346,8 @@ export const comercial = {
   },
 
   async removerLead(leadId: string) {
-    await supabase.from("leads").delete().eq("id", leadId);
+    const { error } = await supabase.from("leads").delete().eq("id", leadId);
+    if (dbErro(error, "remover lead")) return;
     setStore({ leads: store.leads.filter(l => l.id !== leadId) });
   },
 };

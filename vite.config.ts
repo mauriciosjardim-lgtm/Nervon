@@ -18,5 +18,22 @@ export default defineConfig({
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
       "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // Vendors estáveis em chunks próprios → ficam em cache entre deploys
+          // (o usuário não re-baixa React/router/supabase a cada publicação).
+          // Só agrupamos o core que TODA página precisa (fica estável em cache).
+          // NÃO agrupamos recharts/d3/radix — senão qualquer uso pequeno arrasta
+          // o chunk inteiro pro caminho crítico (ex: recharts caía no /login).
+          manualChunks(id: string) {
+            if (!id.includes("node_modules")) return;
+            if (/[\\/]react(-dom)?[\\/]|[\\/]scheduler[\\/]/.test(id)) return "vendor-react";
+            if (id.includes("@tanstack"))  return "vendor-tanstack";
+            if (id.includes("@supabase"))  return "vendor-supabase";
+          },
+        },
+      },
+    },
   },
 });

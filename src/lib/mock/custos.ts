@@ -4,6 +4,7 @@
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { registerSessionDisposer } from "@/lib/sessionScope";
 
 export interface TabelaCustos {
   diariaVideomaker: number;
@@ -92,6 +93,11 @@ const listeners = new Set<() => void>();
 const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
 const emit = () => listeners.forEach(l => l());
 const snapshot = () => state;
+registerSessionDisposer(() => {
+  state = CUSTOS_DEFAULT;
+  try { localStorage.removeItem(LS_KEY); } catch { /* indisponível */ }
+  emit();
+});
 
 // Carrega do Supabase na primeira autenticação (sobrescreve localStorage se há dados no servidor)
 supabase.auth.onAuthStateChange((_event, session) => {

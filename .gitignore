@@ -24,6 +24,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Package manager local store
+.pnpm-store/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

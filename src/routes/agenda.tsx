@@ -15,7 +15,8 @@ import { TIPOS, type Evento } from "@/lib/mock/agenda";
 import { EventoModal } from "@/components/agenda/evento-modal";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/agenda")({ component: AgendaPage });
+// ssr:false — módulo privado, dados 100% client-side (mesmo padrão de /financeiro)
+export const Route = createFileRoute("/agenda")({ ssr: false, component: AgendaPage });
 
 type Visao = "mes" | "semana" | "dia";
 

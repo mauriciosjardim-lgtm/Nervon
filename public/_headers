@@ -1,0 +1,4 @@
+# Assets com hash no nome são imutáveis: cachear por 1 ano, sem revalidar.
+# Corrige lentidão no mobile (Safari revalidava cada chunk a cada abertura).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

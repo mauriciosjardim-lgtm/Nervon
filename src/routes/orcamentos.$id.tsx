@@ -1,8 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { FolderPlus, FileText, Save, Copy } from "lucide-react";
 import { ArrowLeft2 } from "iconsax-react";
+import { toast } from "sonner";
 import { TIPOS_ORCAMENTO, TIPO_ICONS, fmtBRL } from "@/lib/mock/orcamentos";
 import { useOrcamento, orcamentosActions } from "@/lib/hooks/useOrcamentos";
+import { criarPropostaDeOrcamento } from "@/lib/propostas";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/orcamentos/$id")({
@@ -13,6 +16,22 @@ export const Route = createFileRoute("/orcamentos/$id")({
 function OrcamentoView() {
   const { id } = Route.useParams();
   const { orcamento: o, loading } = useOrcamento(id);
+  const navigate = useNavigate();
+  const [gerandoProposta, setGerandoProposta] = useState(false);
+
+  const gerarProposta = async () => {
+    if (!o || gerandoProposta) return;
+    setGerandoProposta(true);
+    try {
+      const p = await criarPropostaDeOrcamento(o);
+      toast.success("Proposta criada a partir do orçamento");
+      navigate({ to: "/propostas/$id", params: { id: p.id }, search: { tipo: o.tipo } as never });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setGerandoProposta(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -59,7 +78,11 @@ function OrcamentoView() {
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 md:grid-cols-4">
-        <Action icon={FileText} label="Gerar proposta" soon />
+        <Action
+          icon={FileText}
+          label={gerandoProposta ? "Gerando…" : "Gerar proposta"}
+          onClick={gerarProposta}
+        />
         <Action icon={Save} label="Salvar template" onClick={() => orcamentosActions.salvarTemplate(o.geral.nomeProjeto || "Sem nome", o)} />
         <Action icon={FolderPlus} label="Criar projeto" soon />
         <Action icon={Copy} label="Duplicar" soon />
