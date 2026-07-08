@@ -283,15 +283,40 @@ export const checarPix = createServerFn({ method: "POST" })
     return { status: p.status as string };
   });
 
+// Rede de segurança: se o webhook da Asaas atrasar, falhar ou ficar
+// "interrompido" (a Asaas pausa entrega após falhas repetidas), o cliente
+// pagou mas nunca teria a conta criada — o polling do checkout ficaria
+// preso em "pending" pra sempre. Aqui, a cada consulta de um pedido ainda
+// pendente, confere o status direto na Asaas; se já estiver pago,
+// processa na hora (processarPagamento é idempotente).
 export const checarPedido = createServerFn({ method: "POST" })
   .inputValidator(z.object({ paymentId: z.string() }))
   .handler(async ({ data }) => {
     const sb = admin();
     const { data: order } = await sb
       .from("pending_orders")
-      .select("status, error_msg")
+      .select("*")
       .eq("asaas_payment_id", data.paymentId)
       .single();
+
+    if (order && order.status === "pending") {
+      try {
+        const cobranca = await asaas(`/payments/${data.paymentId}`, { method: "GET" });
+        if (PAGO.has(cobranca.status)) {
+          await processarPagamento({
+            paymentId: order.asaas_payment_id,
+            nome:      order.nome,
+            email:     order.email,
+            empresa:   order.empresa_nome,
+            senha:     order.senha ?? "",
+          });
+          return { status: "completed" as const, error: null };
+        }
+      } catch (err) {
+        console.error("[checarPedido] falha ao reconferir na Asaas:", err instanceof Error ? err.message : err);
+      }
+    }
+
     return {
       status: (order?.status ?? "pending") as "pending" | "completed" | "failed",
       error:  order?.error_msg ?? null,
