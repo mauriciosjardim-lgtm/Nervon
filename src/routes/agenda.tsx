@@ -39,6 +39,13 @@ function AgendaPage() {
     return `${format(ini, "dd MMM", { locale: ptBR })} — ${format(fim, "dd MMM", { locale: ptBR })}`;
   }, [cursor, visao]);
 
+  const eventosNoPeriodo = useMemo(() => {
+    if (visao === "dia") return eventos.filter(e => isSameDay(new Date(e.inicio), cursor)).length;
+    const ini = visao === "mes" ? startOfMonth(cursor) : startOfWeek(cursor, { weekStartsOn: 1 });
+    const fim = visao === "mes" ? endOfMonth(cursor) : endOfWeek(cursor, { weekStartsOn: 1 });
+    return eventos.filter(e => { const d = new Date(e.inicio); return d >= ini && d <= fim; }).length;
+  }, [eventos, cursor, visao]);
+
   const navegar = (dir: 1 | -1) => {
     if (visao === "mes") setCursor(dir > 0 ? addMonths(cursor, 1) : subMonths(cursor, 1));
     else if (visao === "semana") setCursor(addDays(cursor, dir * 7));
@@ -50,7 +57,9 @@ function AgendaPage() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold capitalize">{tituloPeriodo}</h1>
-          <p className="text-xs text-muted-foreground">{eventos.length} eventos no total</p>
+          <p className="text-xs text-muted-foreground">
+            {eventosNoPeriodo} evento{eventosNoPeriodo === 1 ? "" : "s"} neste período
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}>

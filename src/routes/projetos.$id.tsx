@@ -135,7 +135,10 @@ function ProjetoDetalhe() {
                   <div className="flex-1">
                     <p className="text-sm font-medium">{m}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {minhasTarefas.filter(t => t.responsavel === m && t.status !== "concluida").length} tarefas abertas
+                      {(() => {
+                        const n = minhasTarefas.filter(t => t.responsavel === m && t.status !== "concluida").length;
+                        return `${n} tarefa${n === 1 ? "" : "s"} aberta${n === 1 ? "" : "s"}`;
+                      })()}
                     </p>
                   </div>
                 </div>

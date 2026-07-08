@@ -1823,7 +1823,15 @@ function Editor() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => baixarHtmlProposta(snapshotPublico)}
+                  onClick={() => {
+                    if (!p.cliente_nome || !p.titulo_projeto) {
+                      return toast.error("Informe cliente e título antes de baixar");
+                    }
+                    if (!itens.length) {
+                      return toast.error("Adicione itens ao escopo antes de baixar");
+                    }
+                    baixarHtmlProposta(snapshotPublico);
+                  }}
                 >
                   <Download className="mr-2 size-4" />
                   Baixar offline

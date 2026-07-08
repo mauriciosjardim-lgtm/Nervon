@@ -3,12 +3,13 @@ import {
   Calendar as CalendarIcon, Video, FileText, Users, CheckCircle2, Clock,
   ArrowDownCircle, ArrowUpCircle, Sparkles, Activity, Repeat, Trophy, Bell,
 } from "lucide-react";
-import { lazy } from "react";
+import { lazy, useEffect, useState } from "react";
 import { useProjetos } from "@/lib/hooks/useProjetos";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
 import { resumoFinanceiroMes } from "@/lib/mock/financeiro";
 import { useComercial } from "@/lib/hooks/useComercial";
 import { useAgendaSupa } from "@/lib/hooks/useAgenda";
+import { listarPropostas, type Proposta } from "@/lib/propostas";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
@@ -266,14 +267,31 @@ const ProximasGravacoes = () => {
   );
 };
 
-const PropostasAguardando = () => (
-  <div className="flex h-full flex-col gap-3">
-    <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      <span>Propostas aguardando</span><FileText className="size-3.5 opacity-60" />
+const PropostasAguardando = () => {
+  const [propostas, setPropostas] = useState<Proposta[] | null>(null);
+  useEffect(() => { listarPropostas().then(setPropostas).catch(() => setPropostas([])); }, []);
+  const aguardando = (propostas ?? []).filter(p => p.status === "enviada");
+  return (
+    <div className="flex h-full flex-col gap-3">
+      <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <span>Propostas aguardando</span><FileText className="size-3.5 opacity-60" />
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto">
+        {propostas === null ? null : aguardando.length === 0 ? (
+          <Empty msg="Nenhuma proposta aguardando resposta." />
+        ) : aguardando.map(p => (
+          <ListRow key={p.id}>
+            <FileText className="size-3.5 text-primary" />
+            <div className="min-w-0 flex-1 truncate text-sm">{p.cliente_nome || p.titulo_projeto}</div>
+            <span className="text-[11px] text-muted-foreground">
+              {p.enviada_em ? new Date(p.enviada_em).toLocaleDateString("pt-BR") : "—"}
+            </span>
+          </ListRow>
+        ))}
+      </div>
     </div>
-    <Empty msg="Módulo em breve." />
-  </div>
-);
+  );
+};
 
 const ClientesAtivos = () => {
   const empresas = useComercial(s => s.empresas);
