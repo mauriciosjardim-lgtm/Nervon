@@ -147,10 +147,12 @@ export async function processarPagamento({
     .single();
   if (existing?.status === "completed") return;
 
+  const senhaParaCriacao = senha?.trim() ? senha : senhaAleatoria();
+
   // Cria auth user
   const { data: created, error: authErr } = await sb.auth.admin.createUser({
     email,
-    password: senha ?? senhaAleatoria(),
+    password: senhaParaCriacao,
     email_confirm: true,
     user_metadata: { nome },
   });
@@ -308,7 +310,7 @@ export const checarPedido = createServerFn({ method: "POST" })
             nome:      order.nome,
             email:     order.email,
             empresa:   order.empresa_nome,
-            senha:     order.senha ?? "",
+            senha:     order.senha ?? undefined,
           });
           return { status: "completed" as const, error: null };
         }

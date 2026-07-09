@@ -62,7 +62,7 @@ export const APIRoute = createAPIFileRoute("/api/asaas/webhook")({
         nome:       order.nome,
         email:      order.email,
         empresa:    order.empresa_nome,
-        senha:      order.senha ?? "",
+        senha:      order.senha ?? undefined,
       });
     } catch (err) {
       // Retorna 500 para Asaas retentar o webhook

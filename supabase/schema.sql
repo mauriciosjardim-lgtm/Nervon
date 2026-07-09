@@ -14,7 +14,8 @@ create table empresas (
   nome          text not null,
   logo_url      text,
   accent_color  text default 'oklch(0.88 0.22 130)',
-  criado_em     timestamptz default now()
+  criado_em     timestamptz default now(),
+  trial_expires_at timestamptz default (now() + interval '7 days')
 );
 
 -- ============================================================

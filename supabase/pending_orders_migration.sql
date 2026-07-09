@@ -48,8 +48,20 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Idempotência: usuário já criado (webhook duplicado ou card já processou)
-  IF EXISTS (SELECT 1 FROM usuarios WHERE id = p_auth_user_id) THEN
+  -- Idempotência: usuário já criado pelo trigger auth.users.
+  -- Isso acontece no checkout porque admin.createUser dispara handle_new_user()
+  -- antes desta função. Neste caso, reaproveita a empresa existente, corrige o
+  -- nome informado no checkout e promove para conta paga (trial_expires_at null).
+  SELECT empresa_id INTO v_empresa_id
+  FROM usuarios
+  WHERE id = p_auth_user_id;
+
+  IF v_empresa_id IS NOT NULL THEN
+    UPDATE empresas
+    SET nome = p_empresa_nome,
+        trial_expires_at = NULL
+    WHERE id = v_empresa_id;
+
     UPDATE pending_orders
     SET status = 'completed', completed_at = now(), senha = NULL
     WHERE asaas_payment_id = p_payment_id;

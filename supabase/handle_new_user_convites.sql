@@ -9,6 +9,9 @@
 -- Agora: se existe convite pendente para o e-mail, o trigger vincula o novo
 -- usuário à empresa que convidou (role/permissões do convite) e marca o
 -- convite como aceito. Só cria empresa própria quando NÃO há convite.
+--
+-- Importante: cadastro normal nasce em trial de 7 dias. trial_expires_at NULL
+-- significa conta paga/vitalícia e só deve ser gravado pelo fluxo de pagamento.
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
@@ -48,10 +51,11 @@ BEGIN
   END IF;
 
   -- Sem convite: fluxo normal — cria empresa própria como admin.
-  INSERT INTO empresas (nome, accent_color)
+  INSERT INTO empresas (nome, accent_color, trial_expires_at)
   VALUES (
     COALESCE(NEW.raw_user_meta_data->>'nome', split_part(NEW.email, '@', 1)),
-    'oklch(0.88 0.22 130)'
+    'oklch(0.88 0.22 130)',
+    now() + interval '7 days'
   )
   RETURNING id INTO v_empresa_id;
 
