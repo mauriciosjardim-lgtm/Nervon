@@ -295,6 +295,17 @@ export const comercial = {
     return rowToEmpresa(data);
   },
 
+  // Digitar o nome do cliente continua sendo o fluxo normal (Projetos);
+  // por trás dos panos reaproveita ou cria o cadastro em clientes_comercial,
+  // sem exigir nenhuma tela extra do usuário.
+  async encontrarOuCriarCliente(nome: string) {
+    const alvo = nome.trim();
+    if (!alvo) return null;
+    const existente = store.empresas.find(e => e.nome.toLowerCase() === alvo.toLowerCase());
+    if (existente) return existente;
+    return comercial.criarCliente({ nome: alvo });
+  },
+
   async updateContato(contatoId: string, patch: Partial<Omit<Contato, "id" | "empresaId">>) {
     const payload: any = {};
     if (patch.nome !== undefined) payload.nome = patch.nome;

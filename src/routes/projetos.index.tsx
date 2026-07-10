@@ -8,10 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjetoModal } from "@/components/projetos/projeto-modal";
-import { ClienteModal } from "@/components/projetos/cliente-modal";
 import { FASES, type FaseProjeto, type Projeto, type Tarefa } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
-import { useComercial } from "@/lib/hooks/useComercial";
 import { calcularResumoProgresso, SAUDE_ESTILO } from "@/lib/projetos/progresso";
 import { consumeCreate } from "@/lib/pendingCreate";
 import { cn } from "@/lib/utils";
@@ -34,14 +32,12 @@ function iniciais(nome: string) {
 
 function ProjetosPage() {
   const { projetos, tarefas, marcos } = useProjetos();
-  const clientesComerciais = useComercial(s => s.empresas);
   const navigate = useNavigate();
-  const [visao, setVisao] = useState<Visao>("pipeline");
+  const [visao, setVisao] = useState<Visao>("semana");
   const [cliente, setCliente] = useState("todos");
   const [responsavel, setResponsavel] = useState("todos");
   const [busca, setBusca] = useState("");
   const [modal, setModal] = useState(false);
-  const [modalCliente, setModalCliente] = useState(false);
 
   useEffect(() => {
     if (consumeCreate("projeto")) { setModal(true); return; }
@@ -67,10 +63,7 @@ function ProjetosPage() {
     <div className="space-y-5 px-4 py-5 md:px-8 md:py-7">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div><span className="text-[10px] font-semibold uppercase tracking-[.18em] text-primary">Operação</span><h1 className="mt-1 font-display text-2xl font-semibold">Projetos</h1><p className="text-xs text-muted-foreground">Clientes, produções e próximos passos no mesmo lugar.</p></div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => setModalCliente(true)}><Add size={16} color="currentColor" /> Novo cliente</Button>
-          <Button size="sm" onClick={() => setModal(true)} disabled={!clientesComerciais.length}><Add size={16} color="currentColor" /> Novo projeto</Button>
-        </div>
+        <Button size="sm" onClick={() => setModal(true)}><Add size={16} color="currentColor" /> Novo projeto</Button>
       </header>
 
       <section className="grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -86,8 +79,7 @@ function ProjetosPage() {
           {clientes.map(nome => {
             const ps = projetos.filter(p => p.cliente === nome);
             const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
-            const registro = clientesComerciais.find(c => c.nome.toLowerCase() === nome.toLowerCase());
-            const cor = registro?.accentColor || corCliente(nome);
+            const cor = corCliente(nome);
             return <button key={nome} onClick={() => setCliente(nome)} style={{ "--cliente": cor } as React.CSSProperties} className={cn("min-w-[220px] rounded-xl border bg-surface-1/40 p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border")}>
               <div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-[10px] font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0"><p className="truncate text-xs font-semibold">{nome}</p><p className="text-[9px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
               <div className="mt-3 flex justify-between border-t border-border/40 pt-2 text-[9px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
@@ -108,7 +100,6 @@ function ProjetosPage() {
         {visao === "lista" && <Lista projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
       </section>
       <ProjetoModal open={modal} onClose={() => setModal(false)} />
-      <ClienteModal open={modalCliente} onClose={() => setModalCliente(false)} />
     </div>
   );
 }
