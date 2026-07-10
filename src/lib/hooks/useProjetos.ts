@@ -270,6 +270,18 @@ export const projetosActions = {
     setStore({ projetos: store.projetos.map(p => p.id === id ? { ...p, ...input } : p) });
   },
 
+  // Renomeia um cliente em todos os projetos que o referenciam (campo texto
+  // livre). Usado no cabeçalho do workspace do cliente ("Editar cliente").
+  async renomearCliente(nomeAntigo: string, nomeNovo: string) {
+    const novo = nomeNovo.trim();
+    if (!novo || novo === nomeAntigo) return;
+    const alvos = store.projetos.filter(p => p.cliente.toLowerCase() === nomeAntigo.toLowerCase());
+    const empresa_id = await getEmpresaId();
+    const { error } = await supabase.from("projetos").update({ cliente: novo }).eq("empresa_id", empresa_id).ilike("cliente", nomeAntigo);
+    if (dbErro(error, "renomear cliente")) return;
+    setStore({ projetos: store.projetos.map(p => alvos.some(a => a.id === p.id) ? { ...p, cliente: novo } : p) });
+  },
+
   async removerProjeto(id: string) {
     const { error } = await supabase.from("projetos").delete().eq("id", id);
     if (dbErro(error, "remover projeto")) return;

@@ -15,7 +15,7 @@ import { Trash } from "iconsax-react";
 const toDate = (iso: string) => iso.slice(0, 10);
 const fromDate = (s: string) => { const d = new Date(s); d.setHours(10, 0, 0, 0); return d.toISOString(); };
 
-export function ProjetoModal({ open, onClose, projeto }: { open: boolean; onClose: () => void; projeto?: Projeto | null }) {
+export function ProjetoModal({ open, onClose, projeto, clienteInicial }: { open: boolean; onClose: () => void; projeto?: Projeto | null; clienteInicial?: string }) {
   const editando = !!projeto;
   const [nome, setNome] = useState(""); const [cliente, setCliente] = useState(""); const [descricao, setDescricao] = useState("");
   const [fase, setFase] = useState<FaseProjeto>("briefing"); const [equipe, setEquipe] = useState<string[]>([]); const [valor, setValor] = useState(0);
@@ -30,10 +30,10 @@ export function ProjetoModal({ open, onClose, projeto }: { open: boolean; onClos
       setDataInicio(toDate(projeto.dataInicio)); setDataEntrega(toDate(projeto.dataEntrega));
     } else {
       const hoje = new Date(); const entrega = new Date(); entrega.setDate(entrega.getDate() + 30);
-      setNome(""); setCliente(""); setDescricao(""); setFase("briefing"); setEquipe([]); setValor(0);
+      setNome(""); setCliente(clienteInicial ?? ""); setDescricao(""); setFase("briefing"); setEquipe([]); setValor(0);
       setDataInicio(toDate(hoje.toISOString())); setDataEntrega(toDate(entrega.toISOString()));
     }
-  }, [open, projeto]);
+  }, [open, projeto, clienteInicial]);
 
   const salvar = async () => {
     if (!nome.trim() || !cliente.trim()) return;

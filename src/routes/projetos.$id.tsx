@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Circle } from "lucide-react";
 import { ArrowLeft2, Add, Edit2, Calendar, Profile2User, DollarCircle, TickCircle, Flag, Export, Link2, Trash, DocumentText1, DocumentDownload, ArrowRight2, CloseCircle } from "iconsax-react";
 import type { Icon as IconsaxIcon } from "iconsax-react";
@@ -20,17 +20,30 @@ import { TarefaModal } from "@/components/projetos/tarefa-modal";
 import { MarcoModal } from "@/components/projetos/marco-modal";
 import { EntregavelModal } from "@/components/projetos/entregavel-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/projetos/$id")({ component: ProjetoDetalhe });
 
+const CORES_CLIENTE = ["#90F826", "#66B8FF", "#BD8CFF", "#F0B34B", "#FF737A", "#46D6B1", "#FF8FD1", "#8AA2FF"];
+function corCliente(nome: string) {
+  let hash = 0;
+  for (const c of nome) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+  return CORES_CLIENTE[hash % CORES_CLIENTE.length];
+}
+function iniciais(nome: string) {
+  return nome.split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+}
+
 function ProjetoDetalhe() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { projetos, tarefas, marcos, entregaveis } = useProjetos();
   const projeto = projetos.find(p => p.id === id);
+  const [novoProjeto, setNovoProjeto] = useState(false);
+  const [editandoCliente, setEditandoCliente] = useState(false);
 
   if (!projeto) {
     return (
@@ -46,39 +59,80 @@ function ProjetoDetalhe() {
   const projetosDoCliente = projetos
     .filter(p => p.cliente.toLowerCase() === projeto.cliente.toLowerCase())
     .sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm));
+  const cor = corCliente(projeto.cliente);
 
   return (
     <div className="space-y-4">
       <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Todos os projetos</Link>
 
-      <div className={cn("grid grid-cols-1 gap-4", projetosDoCliente.length > 1 && "lg:grid-cols-[220px_minmax(0,1fr)]")}>
-        {projetosDoCliente.length > 1 && (
-          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
-            <div className="rounded-xl border border-border bg-surface-1/40 p-3">
-              <p className="truncate text-xs font-semibold">{projeto.cliente}</p>
-              <p className="text-[10px] text-muted-foreground">{projetosDoCliente.length} projetos</p>
-            </div>
-            <div className="space-y-1.5">
-              {projetosDoCliente.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => navigate({ to: "/projetos/$id", params: { id: p.id } })}
-                  className={cn(
-                    "w-full rounded-lg border p-2.5 text-left text-xs transition",
-                    p.id === projeto.id ? "border-primary/50 bg-primary/5" : "border-border/60 bg-surface-1/30 hover:border-border",
-                  )}
-                >
-                  <p className="truncate font-medium">{p.nome}</p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">{FASES[p.fase].label}</p>
-                </button>
-              ))}
-            </div>
-          </aside>
-        )}
+      {/* Cabeçalho do workspace do cliente */}
+      <header style={{ "--cliente": cor } as React.CSSProperties} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface-1/40 p-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-sm font-bold text-[var(--cliente)]">{iniciais(projeto.cliente)}</span>
+          <div className="min-w-0">
+            <h2 className="truncate font-display text-lg font-semibold">{projeto.cliente}</h2>
+            <p className="text-[11px] text-muted-foreground">{projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"} ativo{projetosDoCliente.length === 1 ? "" : "s"}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setEditandoCliente(true)}><Edit2 size={14} color="currentColor" variant="Linear" /> Editar cliente</Button>
+          <Button size="sm" onClick={() => setNovoProjeto(true)}><Add size={14} color="currentColor" variant="Linear" /> Novo projeto</Button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+          <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Projetos do cliente</p>
+          <div className="space-y-1.5">
+            {projetosDoCliente.map(p => (
+              <button
+                key={p.id}
+                onClick={() => navigate({ to: "/projetos/$id", params: { id: p.id } })}
+                className={cn(
+                  "w-full rounded-lg border p-2.5 text-left text-xs transition",
+                  p.id === projeto.id ? "border-primary/50 bg-primary/5" : "border-border/60 bg-surface-1/30 hover:border-border",
+                )}
+              >
+                <p className="truncate font-medium">{p.nome}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">{FASES[p.fase].label}</p>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setNovoProjeto(true)} className="flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border/60 p-2 text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary">
+            <Add size={12} color="currentColor" variant="Linear" /> Criar outro projeto
+          </button>
+        </aside>
 
         <ProjetoConteudo projeto={projeto} tarefas={tarefas} marcos={marcos} entregaveis={entregaveis} />
       </div>
+
+      <ProjetoModal open={novoProjeto} onClose={() => setNovoProjeto(false)} clienteInicial={projeto.cliente} />
+      <EditarClienteDialog open={editandoCliente} onClose={() => setEditandoCliente(false)} nomeAtual={projeto.cliente} />
     </div>
+  );
+}
+
+function EditarClienteDialog({ open, onClose, nomeAtual }: { open: boolean; onClose: () => void; nomeAtual: string }) {
+  const [nome, setNome] = useState(nomeAtual);
+  useEffect(() => { if (open) setNome(nomeAtual); }, [open, nomeAtual]);
+  const salvar = async () => {
+    await projetosActions.renomearCliente(nomeAtual, nome);
+    onClose();
+  };
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">Editar cliente</DialogTitle></DialogHeader>
+        <div className="space-y-1.5">
+          <p className="text-[11px] text-muted-foreground">Renomeia este cliente em todos os projetos vinculados a ele.</p>
+          <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome do cliente" autoFocus />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={salvar} disabled={!nome.trim() || nome.trim() === nomeAtual}>Salvar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
