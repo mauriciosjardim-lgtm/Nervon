@@ -14,7 +14,7 @@ import { agendaActions } from "./useAgenda";
 
 function rowToProjeto(r: any): Projeto {
   return {
-    id: r.id, nome: r.nome, cliente: r.cliente, descricao: r.descricao ?? undefined,
+    id: r.id, nome: r.nome, cliente: r.cliente, clienteId: r.cliente_id ?? undefined, descricao: r.descricao ?? undefined,
     fase: r.fase as FaseProjeto, progresso: r.progresso,
     fases: r.fases ?? [...FASES_PADRAO], equipe: r.equipe ?? [],
     dataInicio: r.data_inicio, dataEntrega: r.data_entrega,
@@ -239,7 +239,7 @@ export const projetosActions = {
   async criarProjeto(input: Omit<Projeto, "id" | "criadoEm" | "progresso">) {
     const empresa_id = await getEmpresaId();
     const { data, error } = await supabase.from("projetos").insert({
-      empresa_id, nome: input.nome, cliente: input.cliente, descricao: input.descricao,
+      empresa_id, nome: input.nome, cliente: input.cliente, cliente_id: input.clienteId ?? null, descricao: input.descricao,
       fase: input.fase, fases: input.fases ?? [...FASES_PADRAO],
       equipe: input.equipe, data_inicio: input.dataInicio,
       data_entrega: input.dataEntrega, valor: input.valor,
@@ -254,6 +254,7 @@ export const projetosActions = {
     const payload: any = {};
     if (input.nome !== undefined) payload.nome = input.nome;
     if (input.cliente !== undefined) payload.cliente = input.cliente;
+    if (input.clienteId !== undefined) payload.cliente_id = input.clienteId;
     if (input.descricao !== undefined) payload.descricao = input.descricao;
     if (input.fase !== undefined) payload.fase = input.fase;
     if (input.fases !== undefined) payload.fases = input.fases;

@@ -46,6 +46,7 @@ function rowToEmpresa(r: any): Empresa {
   return {
     id: r.id, nome: r.nome, segmento: r.segmento, cidade: r.cidade,
     site: r.site ?? undefined, instagram: r.instagram ?? undefined, observacoes: r.observacoes ?? undefined,
+    accentColor: r.accent_color ?? undefined,
   };
 }
 
@@ -275,8 +276,23 @@ export const comercial = {
     if (patch.site !== undefined) payload.site = patch.site;
     if (patch.instagram !== undefined) payload.instagram = patch.instagram;
     if (patch.observacoes !== undefined) payload.observacoes = patch.observacoes;
+    if (patch.accentColor !== undefined) payload.accent_color = patch.accentColor;
     await supabase.from("clientes_comercial").update(payload).eq("id", empresaId);
     setStore({ empresas: store.empresas.map(e => e.id === empresaId ? { ...e, ...patch } : e) });
+  },
+
+  // Cria um cliente direto (sem lead/contato) — usado pelo módulo Projetos,
+  // onde o cliente já é conhecido e vira produção logo de cara.
+  async criarCliente(input: { nome: string; accentColor?: string }) {
+    const empresa_id = await getEmpresaId();
+    const { data, error } = await supabase.from("clientes_comercial").insert({
+      empresa_id, nome: input.nome.trim(),
+      segmento: "Não informado", cidade: "Não informado",
+      accent_color: input.accentColor ?? null,
+    }).select().single();
+    if (dbErro(error, "criar cliente") || !data) return null;
+    setStore({ empresas: [...store.empresas, rowToEmpresa(data)] });
+    return rowToEmpresa(data);
   },
 
   async updateContato(contatoId: string, patch: Partial<Omit<Contato, "id" | "empresaId">>) {

@@ -24,6 +24,7 @@ export interface Projeto {
   id: string;
   nome: string;
   cliente: string;
+  clienteId?: string;
   descricao?: string;
   fase: FaseProjeto;
   progresso: number;
