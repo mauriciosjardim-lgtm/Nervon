@@ -77,13 +77,14 @@ function ProjetosPage() {
           </section>
 
           <section>
-            <div className="mb-2 flex items-end justify-between"><div><h2 className="font-display text-sm font-semibold">Clientes ativos</h2><p className="text-[10px] text-muted-foreground">Clique para filtrar as produções.</p></div><button className="text-[10px] font-medium text-primary" onClick={() => setCliente("todos")}>Mostrar todos</button></div>
+            <div className="mb-2 flex items-end justify-between"><div><h2 className="font-display text-sm font-semibold">Clientes ativos</h2><p className="text-[10px] text-muted-foreground">Clique para abrir o workspace do cliente.</p></div><button className="text-[10px] font-medium text-primary" onClick={() => setCliente("todos")}>Limpar filtro</button></div>
             <div className="flex gap-2 overflow-x-auto pb-2">
               {clientes.map(nome => {
                 const ps = projetos.filter(p => p.cliente === nome);
                 const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
                 const cor = corCliente(nome);
-                return <button key={nome} onClick={() => setCliente(nome)} style={{ "--cliente": cor } as React.CSSProperties} className={cn("min-w-[220px] rounded-xl border bg-surface-1/40 p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border")}>
+                const maisRecente = [...ps].sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm))[0];
+                return <button key={nome} onClick={() => maisRecente && navigate({ to: "/projetos/$id", params: { id: maisRecente.id } })} style={{ "--cliente": cor } as React.CSSProperties} className={cn("min-w-[220px] rounded-xl border bg-surface-1/40 p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border")}>
                   <div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-[10px] font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0"><p className="truncate text-xs font-semibold">{nome}</p><p className="text-[9px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
                   <div className="mt-3 flex justify-between border-t border-border/40 pt-2 text-[9px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
                 </button>;
