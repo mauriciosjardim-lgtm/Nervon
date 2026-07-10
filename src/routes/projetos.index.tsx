@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjetoModal } from "@/components/projetos/projeto-modal";
+import { CentralAtencao } from "@/components/projetos/central-atencao";
 import { FASES, type FaseProjeto, type Projeto, type Tarefa } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
 import { calcularResumoProgresso, SAUDE_ESTILO } from "@/lib/projetos/progresso";
@@ -31,7 +32,7 @@ function iniciais(nome: string) {
 }
 
 function ProjetosPage() {
-  const { projetos, tarefas, marcos } = useProjetos();
+  const { projetos, tarefas, marcos, entregaveis } = useProjetos();
   const navigate = useNavigate();
   const [visao, setVisao] = useState<Visao>("semana");
   const [cliente, setCliente] = useState("todos");
@@ -66,39 +67,50 @@ function ProjetosPage() {
         <Button size="sm" onClick={() => setModal(true)}><Add size={16} color="currentColor" /> Novo projeto</Button>
       </header>
 
-      <section className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <Metrica label="Produções ativas" valor={ativos.length} />
-        <Metrica label="Tarefas atrasadas" valor={atrasadas} danger={atrasadas > 0} />
-        <Metrica label="Em aprovação" valor={emAprovacao} />
-        <Metrica label="Entregas próximas" valor={marcos.filter(m => m.status === "pendente").length} />
-      </section>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="min-w-0 space-y-5">
+          <section className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+            <Metrica label="Produções ativas" valor={ativos.length} />
+            <Metrica label="Tarefas atrasadas" valor={atrasadas} danger={atrasadas > 0} />
+            <Metrica label="Em aprovação" valor={emAprovacao} />
+            <Metrica label="Entregas próximas" valor={marcos.filter(m => m.status === "pendente").length} />
+          </section>
 
-      <section>
-        <div className="mb-2 flex items-end justify-between"><div><h2 className="font-display text-sm font-semibold">Clientes ativos</h2><p className="text-[10px] text-muted-foreground">Clique para filtrar as produções.</p></div><button className="text-[10px] font-medium text-primary" onClick={() => setCliente("todos")}>Mostrar todos</button></div>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {clientes.map(nome => {
-            const ps = projetos.filter(p => p.cliente === nome);
-            const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
-            const cor = corCliente(nome);
-            return <button key={nome} onClick={() => setCliente(nome)} style={{ "--cliente": cor } as React.CSSProperties} className={cn("min-w-[220px] rounded-xl border bg-surface-1/40 p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border")}>
-              <div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-[10px] font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0"><p className="truncate text-xs font-semibold">{nome}</p><p className="text-[9px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
-              <div className="mt-3 flex justify-between border-t border-border/40 pt-2 text-[9px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
-            </button>;
-          })}
-        </div>
-      </section>
+          <section>
+            <div className="mb-2 flex items-end justify-between"><div><h2 className="font-display text-sm font-semibold">Clientes ativos</h2><p className="text-[10px] text-muted-foreground">Clique para filtrar as produções.</p></div><button className="text-[10px] font-medium text-primary" onClick={() => setCliente("todos")}>Mostrar todos</button></div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {clientes.map(nome => {
+                const ps = projetos.filter(p => p.cliente === nome);
+                const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
+                const cor = corCliente(nome);
+                return <button key={nome} onClick={() => setCliente(nome)} style={{ "--cliente": cor } as React.CSSProperties} className={cn("min-w-[220px] rounded-xl border bg-surface-1/40 p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border")}>
+                  <div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-[10px] font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0"><p className="truncate text-xs font-semibold">{nome}</p><p className="text-[9px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
+                  <div className="mt-3 flex justify-between border-t border-border/40 pt-2 text-[9px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
+                </button>;
+              })}
+            </div>
+          </section>
 
-      <section className="rounded-xl border border-border bg-surface-1/25">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border p-2">
-          <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}><TabsList className="h-8"><TabsTrigger value="pipeline" className="text-xs">Pipeline</TabsTrigger><TabsTrigger value="semana" className="text-xs">Semana</TabsTrigger><TabsTrigger value="lista" className="text-xs">Lista</TabsTrigger></TabsList></Tabs>
-          <div className="relative min-w-[180px] flex-1"><SearchNormal size={13} color="currentColor" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-8 pl-8 text-xs" /></div>
-          <Select value={responsavel} onValueChange={setResponsavel}><SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Toda a equipe</SelectItem>{equipe.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-          <Select value={cliente} onValueChange={setCliente}><SelectTrigger className="h-8 w-[170px] text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos os clientes</SelectItem>{clientes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
+          <section className="rounded-xl border border-border bg-surface-1/25">
+            <div className="flex flex-wrap items-center gap-2 border-b border-border p-2">
+              <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}><TabsList className="h-8"><TabsTrigger value="pipeline" className="text-xs">Pipeline</TabsTrigger><TabsTrigger value="semana" className="text-xs">Semana</TabsTrigger><TabsTrigger value="lista" className="text-xs">Lista</TabsTrigger></TabsList></Tabs>
+              <div className="relative min-w-[180px] flex-1"><SearchNormal size={13} color="currentColor" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-8 pl-8 text-xs" /></div>
+              <Select value={responsavel} onValueChange={setResponsavel}><SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Toda a equipe</SelectItem>{equipe.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+              <Select value={cliente} onValueChange={setCliente}><SelectTrigger className="h-8 w-[170px] text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos os clientes</SelectItem>{clientes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
+            </div>
+            {visao === "pipeline" && <Pipeline projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
+            {visao === "semana" && <Semana projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
+            {visao === "lista" && <Lista projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
+          </section>
         </div>
-        {visao === "pipeline" && <Pipeline projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
-        {visao === "semana" && <Semana projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
-        {visao === "lista" && <Lista projetos={filtrados} tarefas={tarefas} onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })} />}
-      </section>
+
+        <CentralAtencao
+          projetos={projetos}
+          tarefas={tarefas}
+          entregaveis={entregaveis}
+          onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })}
+        />
+      </div>
       <ProjetoModal open={modal} onClose={() => setModal(false)} />
     </div>
   );

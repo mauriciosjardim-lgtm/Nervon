@@ -32,11 +32,6 @@ function ProjetoDetalhe() {
   const { projetos, tarefas, marcos, entregaveis } = useProjetos();
   const projeto = projetos.find(p => p.id === id);
 
-  const [editandoProjeto, setEditandoProjeto] = useState(false);
-  const [tarefaModal, setTarefaModal] = useState<{ open: boolean; tarefa?: Tarefa | null }>({ open: false });
-  const [marcoModal, setMarcoModal] = useState<{ open: boolean; marco?: Marco | null }>({ open: false });
-  const [entregavelModal, setEntregavelModal] = useState<{ open: boolean; entregavel?: Entregavel | null }>({ open: false });
-
   if (!projeto) {
     return (
       <div className="space-y-3">
@@ -46,15 +41,63 @@ function ProjetoDetalhe() {
     );
   }
 
+  // Workspace do cliente: todos os projetos com o mesmo nome de cliente,
+  // pra trocar de produção sem sair da tela (mesmo cliente, vários projetos).
+  const projetosDoCliente = projetos
+    .filter(p => p.cliente.toLowerCase() === projeto.cliente.toLowerCase())
+    .sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm));
+
+  return (
+    <div className="space-y-4">
+      <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Todos os projetos</Link>
+
+      <div className={cn("grid grid-cols-1 gap-4", projetosDoCliente.length > 1 && "lg:grid-cols-[220px_minmax(0,1fr)]")}>
+        {projetosDoCliente.length > 1 && (
+          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+            <div className="rounded-xl border border-border bg-surface-1/40 p-3">
+              <p className="truncate text-xs font-semibold">{projeto.cliente}</p>
+              <p className="text-[10px] text-muted-foreground">{projetosDoCliente.length} projetos</p>
+            </div>
+            <div className="space-y-1.5">
+              {projetosDoCliente.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => navigate({ to: "/projetos/$id", params: { id: p.id } })}
+                  className={cn(
+                    "w-full rounded-lg border p-2.5 text-left text-xs transition",
+                    p.id === projeto.id ? "border-primary/50 bg-primary/5" : "border-border/60 bg-surface-1/30 hover:border-border",
+                  )}
+                >
+                  <p className="truncate font-medium">{p.nome}</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">{FASES[p.fase].label}</p>
+                </button>
+              ))}
+            </div>
+          </aside>
+        )}
+
+        <ProjetoConteudo projeto={projeto} tarefas={tarefas} marcos={marcos} entregaveis={entregaveis} />
+      </div>
+    </div>
+  );
+}
+
+function ProjetoConteudo({ projeto, tarefas, marcos, entregaveis }: {
+  projeto: Projeto; tarefas: Tarefa[]; marcos: Marco[]; entregaveis: Entregavel[];
+}) {
+  const id = projeto.id;
+  const [editandoProjeto, setEditandoProjeto] = useState(false);
+  const [tarefaModal, setTarefaModal] = useState<{ open: boolean; tarefa?: Tarefa | null }>({ open: false });
+  const [marcoModal, setMarcoModal] = useState<{ open: boolean; marco?: Marco | null }>({ open: false });
+  const [entregavelModal, setEntregavelModal] = useState<{ open: boolean; entregavel?: Entregavel | null }>({ open: false });
+
   const minhasTarefas = tarefas.filter(t => t.projetoId === id);
   const meusMarcos = marcos.filter(m => m.projetoId === id);
   const meusEntregaveis = entregaveis.filter(e => e.projetoId === id);
   const fase = FASES[projeto.fase];
 
   return (
-    <div className="space-y-4">
-      <Link to="/projetos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"><ArrowLeft2 size={12} color="currentColor" variant="Linear" /> Todos os projetos</Link>
-
+    <div className="min-w-0 space-y-4">
       <header className="rounded-xl border border-border bg-surface-1/40 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -152,8 +195,6 @@ function ProjetoDetalhe() {
       <TarefaModal open={tarefaModal.open} onClose={() => setTarefaModal({ open: false })} projetoId={projeto.id} tarefa={tarefaModal.tarefa} fases={projeto.fases ?? []} />
       <MarcoModal open={marcoModal.open} onClose={() => setMarcoModal({ open: false })} projetoId={projeto.id} marco={marcoModal.marco} />
       <EntregavelModal open={entregavelModal.open} onClose={() => setEntregavelModal({ open: false })} projetoId={projeto.id} entregavel={entregavelModal.entregavel} />
-      {/* exemplo: navigate seria útil em delete – evita warning */}
-      <span className="hidden">{String(typeof navigate)}</span>
     </div>
   );
 }
