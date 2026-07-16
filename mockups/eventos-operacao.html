@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MakersHub — Eventos</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #111214;
+        color: #f4f4f2;
+        font:
+          13px Inter,
+          system-ui,
+          sans-serif;
+      }
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 72px 1fr;
+      }
+      .rail {
+        border-right: 1px solid #292b2e;
+        background: #0d0e0f;
+        padding: 18px 12px;
+      }
+      .logo {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        background: #90f826;
+        color: #10130d;
+        font-weight: 800;
+      }
+      .nav {
+        display: grid;
+        gap: 10px;
+        margin-top: 28px;
+      }
+      .nav button {
+        height: 38px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #777b80;
+        cursor: pointer;
+      }
+      .nav button.active {
+        background: #202327;
+        color: #90f826;
+      }
+      .main {
+        padding: 24px 28px;
+      }
+      .top,
+      .section-head,
+      .event-head,
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .eyebrow {
+        color: #90f826;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 4px 0 3px;
+      }
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      .muted {
+        color: #858990;
+      }
+      .btn {
+        border: 1px solid #34373b;
+        border-radius: 9px;
+        background: #202327;
+        color: #f4f4f2;
+        padding: 9px 13px;
+        cursor: pointer;
+      }
+      .btn.primary {
+        border-color: #90f826;
+        background: #90f826;
+        color: #111;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 22px 0;
+      }
+      .metric {
+        border: 1px solid #2a2d30;
+        border-radius: 12px;
+        background: #191b1e;
+        padding: 14px;
+      }
+      .metric span {
+        display: block;
+        color: #81858a;
+        font-size: 9px;
+        text-transform: uppercase;
+      }
+      .metric b {
+        display: block;
+        margin-top: 7px;
+        font-size: 19px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        gap: 16px;
+      }
+      .panel {
+        border: 1px solid #2b2e31;
+        border-radius: 14px;
+        background: #17191c;
+        overflow: hidden;
+      }
+      .panel-head {
+        padding: 14px 15px;
+        border-bottom: 1px solid #292c30;
+      }
+      .event-list {
+        padding: 8px;
+      }
+      .event {
+        width: 100%;
+        margin-bottom: 7px;
+        padding: 12px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        background: #1e2024;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .event.active {
+        border-color: #90f82655;
+        background: #90f8260c;
+      }
+      .event b {
+        display: block;
+      }
+      .event small {
+        display: block;
+        margin-top: 5px;
+        color: #858990;
+      }
+      .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 6px;
+        background: #90f826;
+      }
+      .workspace {
+        padding: 16px;
+      }
+      .event-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .datebox {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: #26292d;
+        color: #90f826;
+        font-weight: 800;
+      }
+      .status {
+        border: 1px solid #90f82655;
+        border-radius: 999px;
+        background: #90f82610;
+        padding: 6px 9px;
+        color: #90f826;
+        font-size: 9px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        margin: 17px 0;
+        padding: 4px;
+        border-radius: 10px;
+        background: #202327;
+      }
+      .tab {
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #8c9096;
+        padding: 8px 11px;
+        cursor: pointer;
+      }
+      .tab.active {
+        background: #30343a;
+        color: #fff;
+      }
+      .view {
+        display: none;
+      }
+      .view.active {
+        display: block;
+      }
+      .integration-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+      }
+      .integration {
+        border: 1px solid #2c2f33;
+        border-radius: 11px;
+        background: #1d1f23;
+        padding: 12px;
+      }
+      .integration .label {
+        color: #858990;
+        font-size: 9px;
+        text-transform: uppercase;
+      }
+      .integration strong {
+        display: block;
+        margin: 7px 0 4px;
+      }
+      .ok {
+        color: #90f826;
+      }
+      .warn {
+        color: #f4b64f;
+      }
+      .timeline {
+        margin-top: 14px;
+      }
+      .slot {
+        display: grid;
+        grid-template-columns: 62px 4px 1fr;
+        gap: 10px;
+        min-height: 60px;
+      }
+      .time {
+        color: #9da1a7;
+        font-weight: 700;
+      }
+      .line {
+        border-radius: 9px;
+        background: #35383d;
+      }
+      .slot.current .line {
+        background: #90f826;
+      }
+      .slot-card {
+        padding-bottom: 12px;
+      }
+      .slot-card b {
+        display: block;
+      }
+      .slot-card small {
+        color: #858990;
+      }
+      .check-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid #2b2e32;
+        border-radius: 10px;
+        background: #1d1f23;
+        padding: 11px;
+      }
+      .check input {
+        accent-color: #90f826;
+      }
+      .live-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .role-switch {
+        display: flex;
+        padding: 3px;
+        border-radius: 9px;
+        background: #202327;
+      }
+      .role-switch button {
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #858990;
+        padding: 7px 10px;
+        cursor: pointer;
+      }
+      .role-switch button.active {
+        background: #34383d;
+        color: #fff;
+      }
+      .live {
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        gap: 12px;
+      }
+      .now {
+        border: 1px solid #90f82655;
+        border-radius: 14px;
+        background: #90f8260b;
+        padding: 18px;
+      }
+      .now-label {
+        color: #90f826;
+        font-size: 9px;
+        text-transform: uppercase;
+      }
+      .now h2 {
+        margin: 8px 0 5px;
+        font-size: 23px;
+      }
+      .progressline {
+        height: 4px;
+        margin: 14px 0;
+        border-radius: 5px;
+        background: #34373b;
+        overflow: hidden;
+      }
+      .progressline i {
+        display: block;
+        height: 100%;
+        width: 45%;
+        background: #90f826;
+      }
+      .capture {
+        display: grid;
+        gap: 7px;
+        margin-top: 14px;
+      }
+      .capture label {
+        display: flex;
+        gap: 8px;
+      }
+      .capture input {
+        accent-color: #90f826;
+      }
+      .alerts {
+        border: 1px solid #2b2e32;
+        border-radius: 14px;
+        background: #1d1f23;
+        padding: 14px;
+      }
+      .alerts h3 {
+        margin-bottom: 12px;
+      }
+      .alert {
+        padding: 9px 0;
+        border-top: 1px solid #2c2f33;
+      }
+      .alert:first-of-type {
+        border: 0;
+      }
+      .team-live {
+        display: grid;
+        gap: 7px;
+      }
+      .member {
+        display: grid;
+        grid-template-columns: 28px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        border-top: 1px solid #2c2f33;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #30343a;
+        font-size: 9px;
+      }
+      .member small {
+        display: block;
+        color: #858990;
+      }
+      .signal {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #90f826;
+      }
+      .signal.warn {
+        background: #f4b64f;
+      }
+      .occurrence {
+        display: none;
+        margin-top: 10px;
+        border-top: 1px solid #2d3034;
+        padding-top: 10px;
+      }
+      .occurrence.open {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+      .occurrence select {
+        border: 1px solid #34373b;
+        border-radius: 8px;
+        background: #202327;
+        color: #fff;
+        padding: 8px;
+      }
+      .toast {
+        display: none;
+        margin-top: 10px;
+        border-radius: 8px;
+        background: #90f82614;
+        color: #90f826;
+        padding: 9px;
+      }
+      .toast.show {
+        display: block;
+      }
+      .individual-only {
+        display: none;
+      }
+      .individual .producer-only {
+        display: none;
+      }
+      .individual .individual-only {
+        display: block;
+      }
+      .mobilebar {
+        display: none;
+      }
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .rail {
+          display: none;
+        }
+        .main {
+          padding: 15px;
+        }
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .event-list {
+          display: flex;
+          overflow: auto;
+        }
+        .event {
+          min-width: 220px;
+        }
+        .integration-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .live {
+          grid-template-columns: 1fr;
+        }
+        .mobilebar {
+          display: flex;
+          position: sticky;
+          bottom: 0;
+          justify-content: space-around;
+          background: #111214ee;
+          border-top: 1px solid #292c30;
+          padding: 10px;
+        }
+        .tabs {
+          overflow: auto;
+        }
+        .event-head {
+          align-items: flex-start;
+        }
+        .event-head .row {
+          flex-direction: column;
+          align-items: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <div class="logo">MH</div>
+        <div class="nav">
+          <button>⌂</button><button>▣</button><button class="active">◉</button><button>✓</button
+          ><button>⚙</button>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="top">
+          <div>
+            <div class="eyebrow">Operação ao vivo</div>
+            <h1>Eventos</h1>
+            <p class="muted">Do contrato à entrega, com a equipe sincronizada no dia.</p>
+          </div>
+          <button class="btn primary">+ Novo evento</button>
+        </header>
+        <section class="metrics">
+          <div class="metric"><span>Próximos 30 dias</span><b>6</b></div>
+          <div class="metric"><span>Equipe a confirmar</span><b class="warn">2</b></div>
+          <div class="metric"><span>Contratos pendentes</span><b>1</b></div>
+          <div class="metric"><span>Em pós-produção</span><b>4</b></div>
+        </section>
+        <div class="layout">
+          <aside class="panel">
+            <div class="panel-head">
+              <h3>Próximos eventos</h3>
+              <p class="muted">Ordenados pela operação</p>
+            </div>
+            <div class="event-list">
+              <button class="event active">
+                <b><span class="dot"></span>Summit Vértice 2026</b
+                ><small>12 jul · CentroSul · Corporativo</small></button
+              ><button class="event">
+                <b><span class="dot" style="background: #66b8ff"></span>Casamento Laura + Bruno</b
+                ><small>19 jul · Quinta das Flores</small></button
+              ><button class="event">
+                <b><span class="dot" style="background: #bd8cff"></span>Festival Norte Criativo</b
+                ><small>02 ago · 3 palcos · 2 dias</small>
+              </button>
+            </div>
+          </aside>
+          <section class="panel workspace">
+            <div class="event-head">
+              <div class="event-title">
+                <div class="datebox">12<br /><small>JUL</small></div>
+                <div>
+                  <h2>Summit Vértice 2026</h2>
+                  <p class="muted">CentroSul · Florianópolis · 07:00–21:30</p>
+                </div>
+              </div>
+              <div class="row">
+                <span class="status">Operação pronta 82%</span
+                ><button class="btn" id="liveBtn">Modo evento →</button>
+              </div>
+            </div>
+            <nav class="tabs" id="tabs">
+              <button class="tab active" data-tab="visao">Visão geral</button
+              ><button class="tab" data-tab="programacao">Programação</button
+              ><button class="tab" data-tab="checklist">Checklist</button
+              ><button class="tab" data-tab="captacao">Modo evento</button>
+            </nav>
+            <div class="view active" data-view="visao">
+              <div class="integration-grid">
+                <article class="integration">
+                  <span class="label">Cliente</span><strong>Grupo Vértice</strong
+                  ><span class="ok">Cadastro conectado</span>
+                </article>
+                <article class="integration">
+                  <span class="label">Contrato</span><strong>EVT-2026-041</strong
+                  ><span class="ok">Assinado em 02 jul</span>
+                </article>
+                <article class="integration">
+                  <span class="label">Financeiro</span><strong>R$ 18.500</strong
+                  ><span class="warn">50% a receber</span>
+                </article>
+                <article class="integration">
+                  <span class="label">Equipe</span><strong>8 profissionais</strong
+                  ><span class="warn">1 confirmação pendente</span>
+                </article>
+                <article class="integration">
+                  <span class="label">Agenda</span><strong>4 compromissos</strong
+                  ><span class="ok">Sincronizados</span>
+                </article>
+                <article class="integration">
+                  <span class="label">Pós-produção</span><strong>Projeto criado</strong
+                  ><span class="ok">Entrega em 18 jul</span>
+                </article>
+              </div>
+              <div class="timeline">
+                <div class="section-head">
+                  <h3>Próximos momentos críticos</h3>
+                  <span class="muted">Hoje</span>
+                </div>
+                <div class="slot current">
+                  <span class="time">08:00</span><i class="line"></i>
+                  <div class="slot-card">
+                    <b>Credenciamento e imagens de chegada</b
+                    ><small>Pedro · câmera B · hall principal</small>
+                  </div>
+                </div>
+                <div class="slot">
+                  <span class="time">09:15</span><i class="line"></i>
+                  <div class="slot-card">
+                    <b>Abertura oficial no palco principal</b
+                    ><small>Maurício + Lucas · plano aberto e reações</small>
+                  </div>
+                </div>
+                <div class="slot">
+                  <span class="time">10:30</span><i class="line"></i>
+                  <div class="slot-card">
+                    <b>Entrevista com CEO</b><small>Ana · sala imprensa · lapela 01</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="view" data-view="programacao">
+              <div class="timeline">
+                <div class="slot current">
+                  <span class="time">07:00</span><i class="line"></i>
+                  <div class="slot-card">
+                    <b>Chegada e montagem da equipe</b><small>Todos · doca lateral</small>
+                  </div>
+                </div>
+                <div class="slot">
+                  <span class="time">08:00</span><i class="line"></i>
+                  <div class="slot-card"><b>Credenciamento</b><small>Pedro + Ana</small></div>
+                </div>
+                <div class="slot">
+                  <span class="time">09:15</span><i class="line"></i>
+                  <div class="slot-card"><b>Abertura oficial</b><small>Palco principal</small></div>
+                </div>
+                <div class="slot">
+                  <span class="time">12:30</span><i class="line"></i>
+                  <div class="slot-card">
+                    <b>Almoço e backup parcial</b><small>Lucas responsável pelos cartões</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="view" data-view="checklist">
+              <div class="check-grid">
+                <label class="check"><input type="checkbox" checked />Contrato assinado</label
+                ><label class="check"><input type="checkbox" checked />Equipe confirmada</label
+                ><label class="check"><input type="checkbox" checked />Credenciais emitidas</label
+                ><label class="check"
+                  ><input type="checkbox" />Roteiro final do mestre de cerimônias</label
+                ><label class="check"><input type="checkbox" checked />Cartões formatados</label
+                ><label class="check"><input type="checkbox" />Contato do técnico de som</label>
+              </div>
+            </div>
+            <div class="view" data-view="captacao" id="liveMode">
+              <div class="live-toolbar">
+                <div>
+                  <div class="eyebrow">Modo evento ativo</div>
+                  <span class="muted" id="liveClock">09:22 · operação sincronizada</span>
+                </div>
+                <div class="role-switch">
+                  <button class="active" data-role="producer">Produtor</button
+                  ><button data-role="individual">Minha operação</button>
+                </div>
+              </div>
+              <div class="live">
+                <section class="now">
+                  <span class="now-label" id="momentLabel">Agora · 09:15–09:35</span>
+                  <h2 id="momentTitle">Abertura oficial</h2>
+                  <p class="muted" id="momentMeta">Palco principal · Maurício + Lucas</p>
+                  <div class="progressline"><i id="momentProgress"></i></div>
+                  <div class="individual-only">
+                    <p class="muted">Sua função: câmera A · plano aberto e entradas</p>
+                  </div>
+                  <div class="capture" id="captureList">
+                    <label><input type="checkbox" /> Plano geral do palco</label>
+                    <label><input type="checkbox" /> Entrada do CEO</label>
+                    <label><input type="checkbox" /> Reação da plateia</label>
+                    <label><input type="checkbox" /> Trecho completo do discurso</label>
+                  </div>
+                  <div class="row" style="margin-top: 18px">
+                    <button class="btn" id="reportBtn">Reportar ocorrência</button
+                    ><button class="btn primary" id="completeBtn">Concluir momento</button>
+                  </div>
+                  <div class="occurrence" id="occurrence">
+                    <select id="occurrenceType">
+                      <option>Atraso na programação</option>
+                      <option>Problema de áudio</option>
+                      <option>Equipamento</option>
+                      <option>Mudança de local</option>
+                      <option>Solicitação do cliente</option></select
+                    ><button class="btn" id="sendOccurrence">Enviar alerta</button>
+                  </div>
+                  <div class="toast" id="liveToast">Equipe atualizada.</div>
+                </section>
+                <aside class="alerts producer-only">
+                  <h3>Central do produtor</h3>
+                  <div class="team-live">
+                    <div class="member">
+                      <span class="avatar">MJ</span>
+                      <div><b>Maurício</b><small>Palco · câmera A</small></div>
+                      <i class="signal"></i>
+                    </div>
+                    <div class="member">
+                      <span class="avatar">LU</span>
+                      <div><b>Lucas</b><small>Palco · câmera B</small></div>
+                      <i class="signal warn"></i>
+                    </div>
+                    <div class="member">
+                      <span class="avatar">AN</span>
+                      <div><b>Ana</b><small>Preparando entrevista</small></div>
+                      <i class="signal"></i>
+                    </div>
+                  </div>
+                  <div class="alert">
+                    <b>Próximo: entrevista CEO</b>
+                    <p class="muted">10:30 · sala imprensa</p>
+                  </div>
+                  <div class="alert">
+                    <b class="warn">Bateria câmera B em 28%</b>
+                    <p class="muted">Troca sugerida no intervalo</p>
+                  </div>
+                  <button class="btn" style="width: 100%; margin-top: 9px" id="broadcastBtn">
+                    Avisar toda a equipe
+                  </button>
+                </aside>
+                <aside class="alerts individual-only">
+                  <h3>Depois disso</h3>
+                  <div class="alert">
+                    <b>Entrevista com CEO</b>
+                    <p class="muted">10:30 · sala imprensa</p>
+                  </div>
+                  <div class="alert">
+                    <b>Seu contato</b>
+                    <p class="muted">Maurício · produtor · ligar</p>
+                  </div>
+                  <div class="alert">
+                    <b>Equipamento</b>
+                    <p class="muted">Trocar bateria antes da entrevista</p>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="mobilebar">
+          <span>Visão</span><span>Agenda</span><span>Checklist</span><span class="ok">Ao vivo</span>
+        </div>
+      </main>
+    </div>
+    <script>
+      const tabs = document.querySelectorAll(".tab"),
+        views = document.querySelectorAll(".view");
+      function openTab(id) {
+        tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === id));
+        views.forEach((v) => v.classList.toggle("active", v.dataset.view === id));
+      }
+      tabs.forEach((t) => (t.onclick = () => openTab(t.dataset.tab)));
+      document.querySelector("#liveBtn").onclick = () => openTab("captacao");
+      const liveMode = document.querySelector("#liveMode");
+      document.querySelectorAll("[data-role]").forEach((button) => {
+        button.onclick = () => {
+          document
+            .querySelectorAll("[data-role]")
+            .forEach((item) => item.classList.toggle("active", item === button));
+          liveMode.classList.toggle("individual", button.dataset.role === "individual");
+        };
+      });
+      const toast = document.querySelector("#liveToast");
+      function notify(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+      document.querySelector("#reportBtn").onclick = () =>
+        document.querySelector("#occurrence").classList.toggle("open");
+      document.querySelector("#sendOccurrence").onclick = () => {
+        const type = document.querySelector("#occurrenceType").value;
+        document.querySelector("#occurrence").classList.remove("open");
+        notify(`${type} registrado e enviado ao produtor.`);
+      };
+      document.querySelector("#broadcastBtn").onclick = () =>
+        notify("Aviso enviado para os 8 integrantes da equipe.");
+      document.querySelectorAll("#captureList input").forEach((input) => {
+        input.onchange = () => {
+          const all = [...document.querySelectorAll("#captureList input")];
+          const done = all.filter((item) => item.checked).length;
+          document.querySelector("#momentProgress").style.width = `${45 + done * 13}%`;
+        };
+      });
+      document.querySelector("#completeBtn").onclick = () => {
+        document.querySelector("#momentLabel").textContent = "Agora · 10:30–10:50";
+        document.querySelector("#momentTitle").textContent = "Entrevista com CEO";
+        document.querySelector("#momentMeta").textContent = "Sala imprensa · Ana + Maurício";
+        document.querySelector("#captureList").innerHTML =
+          '<label><input type="checkbox"> Plano médio com lapela</label><label><input type="checkbox"> Resposta sobre expansão</label><label><input type="checkbox"> Retrato vertical do CEO</label>';
+        document.querySelector("#momentProgress").style.width = "8%";
+        notify("Abertura concluída. A equipe recebeu o próximo momento.");
+      };
+    </script>
+  </body>
+</html>

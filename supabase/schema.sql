@@ -61,10 +61,12 @@ create table projetos (
   fases         text[] not null default array['briefing','pre_producao','captacao','edicao','revisao','entrega','concluida'],
   equipe        text[] not null default '{}',
   data_inicio   date not null,
-  data_entrega  date not null,
+  data_entrega  date,
+  arquivado     boolean not null default false,
   valor         numeric(12,2) not null default 0,
   cor           text not null default 'primary',
   notas         text,
+  links         jsonb not null default '[]'::jsonb,
   criado_em     timestamptz default now()
 );
 
@@ -81,6 +83,8 @@ create table tarefas (
   concluida   boolean not null default false,
   responsavel text not null default 'Você',
   prazo       timestamptz,
+  prazo_fim   timestamptz,
+  dia_todo    boolean not null default false,
   prioridade  text not null default 'media'
               check (prioridade in ('baixa','media','alta','urgente')),
   criado_em   timestamptz default now()

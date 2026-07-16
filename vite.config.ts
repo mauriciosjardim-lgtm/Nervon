@@ -8,6 +8,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
+    autoCodeSplitting: true,
     server: { entry: "server" },
   },
   vite: {
@@ -26,6 +27,7 @@ export default defineConfig({
           // Só agrupamos o core que TODA página precisa (fica estável em cache).
           // NÃO agrupamos recharts/d3/radix — senão qualquer uso pequeno arrasta
           // o chunk inteiro pro caminho crítico (ex: recharts caía no /login).
+          // Supabase fica separado para manter o entry menor e o SDK em cache.
           manualChunks(id: string) {
             if (!id.includes("node_modules")) return;
             if (/[\\/]react(-dom)?[\\/]|[\\/]scheduler[\\/]/.test(id)) return "vendor-react";

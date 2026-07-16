@@ -1,31 +1,23 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
   HeadContent,
   Scripts,
-  Navigate,
-  useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, useState, lazy, Suspense, type ReactNode } from "react";
+import { useEffect, lazy, Suspense, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { applyBrandColor } from "@/lib/brandColor";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider, useAuth } from "@/lib/auth";
 import { getSessionHint } from "@/lib/sessionHint";
-import { MODULO_ROTA, temAcesso, type Permissoes } from "@/lib/permissoes";
+import { LandingPage } from "@/components/landing/landing-page";
+import { MakersHubUpdatedScreen } from "@/components/makershub-updated-screen";
 
-const LandingPage = lazy(() =>
-  import("@/components/landing/landing-page").then((m) => ({ default: m.LandingPage })),
-);
-
-const AuthShell = lazy(() =>
-  import("@/components/auth-shell").then((m) => ({ default: m.AuthShell })),
+const AppRuntimeShell = lazy(() =>
+  import("@/components/app-runtime-shell").then((m) => ({ default: m.AppRuntimeShell })),
 );
 
 function NotFoundComponent() {
@@ -60,39 +52,6 @@ function isChunkLoadError(error: Error): boolean {
     m.includes("error loading dynamically imported") ||
     m.includes("chunkloaderror") ||
     m.includes("'text/html' is not a valid javascript")
-  );
-}
-
-function MakersHubUpdatedScreen({ manualReload = false }: { manualReload?: boolean }) {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center bg-background px-4"
-      role="status"
-      aria-live="polite"
-    >
-      <div className="w-full max-w-md rounded-2xl border border-primary/20 bg-surface-1/80 p-7 text-center shadow-[0_0_60px_-28px_var(--primary)]">
-        <div className="mx-auto grid size-12 place-items-center rounded-2xl border border-primary/25 bg-primary/10">
-          <div className="size-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-        </div>
-        <h1 className="mt-5 font-display text-2xl font-semibold tracking-tight">
-          Atualizamos o MakersHub
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Uma nova versão está pronta. Estamos carregando as melhorias para você.
-        </p>
-
-        {manualReload ? (
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:bg-primary-glow"
-          >
-            Carregar nova versão
-          </button>
-        ) : (
-          <p className="mt-5 text-xs font-medium text-primary">Carregando nova versão…</p>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -206,6 +165,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       {
+        // Meta Pixel (dataset "Makers Hub" — 1576110244237458). Dispara PageView
+        // em todas as rotas para alimentar a campanha de aquisição.
+        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1576110244237458');fbq('track','PageView');`,
+      },
+      {
         // Carrega Google Fonts de forma não-bloqueante — não trava o primeiro paint
         children: `(function(){var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..700&family=Inter+Tight:ital,wght@0,300..800;1,300..700&display=swap';document.head.appendChild(l);})();`,
       },
@@ -246,147 +210,27 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { sessionHint } = Route.useLoaderData();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Caminho crítico do anúncio: visitante na home não precisa inicializar
+  // Supabase/Auth nem esperar chunk lazy da landing. Isso evita a tela escura
+  // em Safari/rede móvel antes do primeiro conteúdo útil.
+  if (!sessionHint && pathname === "/") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <LandingPage />
+        <Toaster />
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
+      <Suspense fallback={<MakersHubUpdatedScreen />}>
+        <AppRuntimeShell sessionHint={sessionHint} />
+      </Suspense>
       <Toaster />
     </QueryClientProvider>
   );
-}
-
-const PUBLIC_PATHS = ["/login", "/onboarding", "/convite", "/checkout"];
-const ALWAYS_PUBLIC = ["/home", "/lp", "/aceitar-convite", "/auth/callback", "/auth/reset", "/termos", "/privacidade"]; // acessível com ou sem login
-
-function AppShell() {
-  const { session, usuario, loading, empresa } = useAuth();
-  const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [preloadRecovery, setPreloadRecovery] = useState<"auto" | "manual" | null>(null);
-  const isPublic = PUBLIC_PATHS.includes(pathname);
-  const isAlwaysPublic = ALWAYS_PUBLIC.includes(pathname) || pathname.startsWith("/p/");
-  // dica de sessão lida no servidor (cookie mh_s) e serializada no loader —
-  // idêntica no SSR e na primeira renderização do cliente (sem hidratação divergente)
-  const { sessionHint } = Route.useLoaderData();
-
-  // Recarrega automaticamente quando um chunk fica desatualizado após deploy.
-  // Mantém a trava por alguns segundos após a recarga para evitar loop caso o
-  // asset novo ainda não tenha propagado. Depois disso, uma atualização futura
-  // volta a poder acionar a recuperação automática.
-  useEffect(() => {
-    let reloadTimer: number | undefined;
-    const clearReloadLock = window.setTimeout(() => {
-      sessionStorage.removeItem("mh_chunk_reload");
-    }, 15_000);
-    const onPreloadError = (event: Event) => {
-      event.preventDefault();
-      if (sessionStorage.getItem("mh_chunk_reload")) {
-        setPreloadRecovery("manual");
-        return;
-      }
-      sessionStorage.setItem("mh_chunk_reload", String(Date.now()));
-      setPreloadRecovery("auto");
-      reloadTimer = window.setTimeout(() => window.location.reload(), 1400);
-    };
-    window.addEventListener("vite:preloadError", onPreloadError);
-    return () => {
-      if (reloadTimer) window.clearTimeout(reloadTimer);
-      window.clearTimeout(clearReloadLock);
-      window.removeEventListener("vite:preloadError", onPreloadError);
-    };
-  }, []);
-
-  // Aplica accent color da empresa ao carregar
-  useEffect(() => {
-    if (empresa?.accent_color) applyBrandColor(empresa.accent_color);
-  }, [empresa?.accent_color]);
-
-  // CTA da landing ("Entrar" / "Começar grátis") → tela de login
-  useEffect(() => {
-    const open = () => navigate({ to: "/login" });
-    window.addEventListener("makershub:open-auth", open);
-    return () => window.removeEventListener("makershub:open-auth", open);
-  }, []);
-
-  const trialExpirado = (() => {
-    if (!empresa?.trial_expires_at) return false;
-    const d = new Date(empresa.trial_expires_at);
-    return !isNaN(d.getTime()) && d < new Date();
-  })();
-
-  const sidebarStyle = {
-    "--sidebar-width": "15rem",
-    "--sidebar-width-icon": "3.25rem",
-  } as React.CSSProperties;
-  const Spinner = (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-    </div>
-  );
-
-  if (preloadRecovery) {
-    return <MakersHubUpdatedScreen manualReload={preloadRecovery === "manual"} />;
-  }
-
-  // Rotas sempre públicas (landing pages, convites, callback OAuth) renderizam
-  // direto, com ou sem sessão — /auth/callback precisa funcionar sem sessão.
-  if (isAlwaysPublic) return <Outlet />;
-
-  // Auth ainda resolvendo (SSR e primeira renderização do cliente caem aqui):
-  if (loading) {
-    // dica de sessão presente → shell neutro em QUALQUER rota (inclusive /login):
-    // nada de landing, Dashboard vazia ou flash de formulário antes da confirmação
-    if (sessionHint) return Spinner;
-    // sem dica → visitante: rotas públicas e landing saem já no SSR
-    if (isPublic) return <Outlet />;
-    if (pathname === "/")
-      return (
-        <Suspense fallback={Spinner}>
-          <LandingPage />
-        </Suspense>
-      );
-    // rota privada sem dica: shell neutro até resolver (nunca conteúdo privado)
-    return Spinner;
-  }
-
-  // ── Sessão resolvida: guards declarativos em render-time (sem useEffect) ──
-
-  // Autenticado sem perfil → onboarding (a própria /onboarding renderiza direto)
-  if (session && !usuario) {
-    if (pathname !== "/onboarding") return <Navigate to="/onboarding" replace />;
-    return <Outlet />;
-  }
-
-  if (session && usuario) {
-    // autenticado em rota pública (login/onboarding/convite/checkout) → app
-    if (isPublic) return <Navigate to="/" replace />;
-
-    // Guard de permissões para membros (declarativo, sem flash do módulo)
-    const role = (usuario as any).role ?? "admin";
-    if (role !== "admin") {
-      const permissoes = (usuario as any).permissoes as Partial<Permissoes> | null;
-      for (const [modulo, rota] of Object.entries(MODULO_ROTA)) {
-        if (pathname.startsWith(rota) && !temAcesso(permissoes, modulo as keyof Permissoes)) {
-          return <Navigate to="/" replace />;
-        }
-      }
-    }
-
-    return (
-      <Suspense fallback={Spinner}>
-        <AuthShell trialExpirado={trialExpirado} sidebarStyle={sidebarStyle} />
-      </Suspense>
-    );
-  }
-
-  // Sem sessão: landing na raiz, rotas públicas direto, resto → login
-  if (pathname === "/")
-    return (
-      <Suspense fallback={Spinner}>
-        <LandingPage />
-      </Suspense>
-    );
-  if (isPublic) return <Outlet />;
-  return <Navigate to="/login" replace />;
 }

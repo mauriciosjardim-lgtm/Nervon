@@ -1,6 +1,6 @@
 {
   "name": "nervon",
-  "version": "0.2.0",
+  "version": "0.7.3",
   "private": true,
   "sideEffects": false,
   "type": "module",

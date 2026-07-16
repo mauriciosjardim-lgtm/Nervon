@@ -73,7 +73,7 @@ export const FAQ: FaqItem[] = [
     id: "fase-kanban", categoria: "Projetos",
     pergunta: "Como mudo a fase de um projeto?",
     palavras: "fase etapa kanban mover card briefing edição entrega status",
-    resposta: "Abra o projeto e arraste os cards entre as colunas do kanban. O progresso é calculado automaticamente conforme as tarefas são concluídas.",
+    resposta: "Abra o projeto e arraste os cards entre as colunas do kanban. O progresso acompanha a posição das tarefas no fluxo e chega a 100% quando elas são concluídas.",
     rota: "/projetos", rotaLabel: "Abrir Projetos",
   },
 

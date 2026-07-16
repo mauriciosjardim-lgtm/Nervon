@@ -20,7 +20,6 @@ import { setPendingCreate } from "@/lib/pendingCreate";
 
 const titles: Record<string, { title: string; subtitle: string }> = {
   "/": { title: "Cockpit", subtitle: "Visão geral da operação" },
-  "/dashboard-v3": { title: "Cockpit", subtitle: "Preview local da nova Dashboard" },
   "/comercial": {
     title: "Comercial",
     subtitle: "Jornada Comercial — do primeiro contato ao fechamento",
@@ -28,7 +27,11 @@ const titles: Record<string, { title: string; subtitle: string }> = {
   "/propostas": { title: "Propostas", subtitle: "Criadas, enviadas e aprovadas" },
   "/contratos": { title: "Contratos", subtitle: "Documentos e assinaturas" },
   "/projetos": { title: "Projetos", subtitle: "Operação em andamento" },
+  "/eventos": { title: "Eventos", subtitle: "Produções e operações em campo" },
+  "/novo-evento": { title: "Novo evento", subtitle: "Estrutura inicial da operação" },
+  "/operacao-evento": { title: "Operação do evento", subtitle: "Centro de comando" },
   "/agenda": { title: "Agenda", subtitle: "Reuniões, gravações e entregas" },
+  "/assistant": { title: "MakersHub Assistant", subtitle: "Inteligência aplicada à sua operação" },
   "/financeiro": { title: "Financeiro", subtitle: "Faturamento, lucro e fluxo" },
   "/calculadoras": { title: "Calculadoras", subtitle: "Orçamento, margem e mais" },
   "/biblioteca": { title: "Biblioteca", subtitle: "Templates e modelos" },
@@ -49,7 +52,6 @@ export function Topbar() {
     .sort((a, b) => b.length - a.length)
     .find((k) => (k === "/" ? pathname === "/" : pathname.startsWith(k)));
   const info = match ? titles[match] : { title: "MakersHub", subtitle: "" };
-  const previewV3 = import.meta.env.DEV && pathname.startsWith("/dashboard-v3");
 
   const handleNovo = (tipo: string, to: string) => {
     setPendingCreate(tipo);
@@ -60,11 +62,8 @@ export function Topbar() {
   return (
     <header
       className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl md:px-6"
-      style={
-        previewV3 ? { fontFamily: '"IBM Plex Sans", Inter, system-ui, sans-serif' } : undefined
-      }
     >
-      <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground" />
+      <SidebarTrigger className="size-10 rounded-xl border border-border/50 bg-surface-1/40 text-muted-foreground transition hover:border-primary/30 hover:bg-surface-2 hover:text-primary [&>svg]:!size-5 [&>svg]:transition-transform hover:[&>svg]:scale-110" />
 
       <div className="hidden min-w-0 flex-col leading-tight md:flex">
         <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">
@@ -79,7 +78,7 @@ export function Topbar() {
             MakersHub
           </span>
           <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-            v0.6.0
+            v0.7.3
           </span>
         </div>
 

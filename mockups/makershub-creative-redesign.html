@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MakersHub — Cockpit (Finpath Ref Mockup)</title>
+  
+  <!-- Fontes Premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icones Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-canvas: #060606;
+      --bg-console: #0a0a0a;
+      --bg-card: #121212;
+      --bg-card-hover: #151515;
+      --border-color: #1a1a1a;
+      --border-color-hover: #262626;
+      
+      --neon-lime: #c5ff45;
+      --neon-lime-glow: rgba(197, 255, 69, 0.3);
+      --text-main: #ffffff;
+      --text-muted: #6e6e6e;
+      --text-soft: #a3a3a3;
+      
+      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Console Shell (Border Frame) */
+    .console-shell {
+      width: min(1280px, 100%);
+      background-color: var(--bg-console);
+      border: 1px solid var(--border-color);
+      border-radius: 32px;
+      padding: 24px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Topbar Navigation (Finpath style) */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-mark {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--neon-lime), #a6d82e);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 10px var(--neon-lime-glow);
+    }
+    
+    .brand-mark-inner {
+      width: 8px;
+      height: 8px;
+      background-color: #000;
+      border-radius: 1px;
+      transform: rotate(45deg);
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.04em;
+    }
+    
+    .brand-name span {
+      font-weight: 300;
+      color: var(--text-soft);
+    }
+
+    /* Pill-shaped navigation */
+    .navigation-pills {
+      display: flex;
+      background-color: #101010;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 4px;
+      gap: 2px;
+    }
+
+    .nav-pill {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-pill:hover {
+      color: var(--text-main);
+    }
+
+    .nav-pill.active {
+      color: var(--text-main);
+      background-color: #1c1c1c;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    /* Right-side user controls */
+    .user-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-selector {
+      display: flex;
+      background-color: #101010;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 3px;
+    }
+
+    .theme-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .theme-btn.active {
+      background-color: #1c1c1c;
+      color: var(--text-main);
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      display: grid;
+      place-items: center;
+      color: var(--text-soft);
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--border-color-hover);
+      color: var(--text-main);
+    }
+
+    .avatar-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Sub-header (Title + Filter tools) */
+    .subheader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .subheader-title-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      display: grid;
+      place-items: center;
+      color: var(--text-soft);
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .subheader-title-group h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown-selector {
+      background-color: #101010;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    /* Main Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 360px 1fr 340px;
+      }
+    }
+
+    /* Dashboard Columns */
+    .grid-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Card Frame Styles */
+    .dashboard-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.25s ease;
+      position: relative;
+    }
+
+    .dashboard-card:hover {
+      border-color: var(--border-color-hover);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-soft);
+      letter-spacing: -0.01em;
+    }
+
+    .card-icon-action {
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+
+    .card-icon-action:hover {
+      color: var(--text-main);
+    }
+
+    /* -- Chart elements -- */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* KPI Value Displays */
+    .kpi-amount {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .kpi-trend {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .kpi-trend.negative { color: #f43f5e; }
+    .kpi-trend.positive { color: var(--neon-lime); }
+
+    /* Pill badge styles */
+    .pill-badge-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .pill-badge {
+      background-color: #181818;
+      border: 1px solid #222;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    /* 1. Category Ring Chart (Custom Styled segments) */
+    .ring-chart-overlay {
+      position: absolute;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .ring-chart-overlay .amount {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .ring-chart-overlay .label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.02);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .legend-dot.lime { background-color: var(--neon-lime); }
+    .legend-dot.white { background-color: #ffffff; }
+    .legend-dot.striped {
+      background: repeating-linear-gradient(
+        45deg,
+        #444,
+        #444 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      border: 1px solid #444;
+    }
+
+    /* Ring chart pointer popup */
+    .ring-tooltip-pointer {
+      position: absolute;
+      top: 20px;
+      right: 75px;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      z-index: 2;
+    }
+
+    .ring-tooltip-pointer::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 15px;
+      width: 6px;
+      height: 6px;
+      background-color: #1a1a1a;
+      border-right: 1px solid #333;
+      border-bottom: 1px solid #333;
+      transform: rotate(45deg);
+    }
+
+    /* 2. Custom Progress Bar (Budget style) */
+    .progress-bar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      position: relative;
+    }
+
+    .custom-progress-bar {
+      position: relative;
+      height: 14px;
+      background-color: #161616;
+      border-radius: 999px;
+      display: flex;
+      overflow: visible;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      background-color: var(--neon-lime);
+      border-radius: 999px 0 0 999px;
+      height: 100%;
+    }
+
+    .progress-pattern {
+      background: repeating-linear-gradient(
+        -45deg,
+        #2a2a2a,
+        #2a2a2a 2px,
+        #141414 2px,
+        #141414 8px
+      );
+      border-radius: 0 999px 999px 0;
+      height: 100%;
+      border-left: 1px solid #141414;
+    }
+
+    .progress-bubble {
+      position: absolute;
+      top: -24px;
+      background-color: #0c0c0c;
+      border: 1px solid var(--neon-lime);
+      color: var(--neon-lime);
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      box-shadow: 0 0 10px rgba(197, 255, 69, 0.25);
+    }
+
+    .budget-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .budget-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .budget-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .budget-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #161616;
+      border: 1px solid var(--border-color);
+      display: grid;
+      place-items: center;
+      color: var(--text-soft);
+    }
+
+    .budget-name {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    
+    .budget-meta {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .budget-item-right {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    
+    .budget-item-right span {
+      color: var(--text-muted);
+    }
+
+    /* 3. AI Insights Banner (Solid Lime green card) */
+    .ai-insight-banner {
+      background-color: var(--neon-lime);
+      color: #000000;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(197, 255, 69, 0.15);
+      transition: transform 0.2s ease;
+    }
+
+    .ai-insight-banner:hover {
+      transform: scale(1.015);
+    }
+
+    .ai-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ai-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.08);
+      display: grid;
+      place-items: center;
+    }
+
+    .ai-banner-content h4 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    
+    .ai-banner-content p {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    /* 4. Financial Health (thin vertical glowing bars) */
+    .health-bar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 60px;
+      padding: 4px 10px;
+      background-color: #0e0e0e;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.01);
+    }
+
+    .health-bar {
+      width: 4px;
+      background-color: #222;
+      border-radius: 99px;
+      transition: height 0.3s ease;
+    }
+
+    .health-bar.active-lime {
+      background-color: var(--neon-lime);
+      box-shadow: 0 0 8px var(--neon-lime-glow);
+    }
+
+    .health-bar.active-white {
+      background-color: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Chart tooltips */
+    .chart-value-tag {
+      background-color: var(--neon-lime);
+      color: #000000;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      position: absolute;
+      z-index: 5;
+    }
+
+    .chart-value-tag::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      margin-left: -4px;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid var(--neon-lime);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Dashboard Console Box -->
+  <div class="console-shell">
+    
+    <!-- Topbar Navigation -->
+    <header class="topbar">
+      <!-- Brand -->
+      <a href="#" class="brand-group">
+        <div class="brand-mark">
+          <div class="brand-mark-inner"></div>
+        </div>
+        <div class="brand-name">Makers<span>Hub</span></div>
+      </a>
+
+      <!-- Menu Pills -->
+      <nav class="navigation-pills">
+        <a href="#" class="nav-pill active">Dashboard</a>
+        <a href="#" class="nav-pill">Comercial</a>
+        <a href="#" class="nav-pill">Projetos</a>
+        <a href="#" class="nav-pill">Financeiro</a>
+        <a href="#" class="nav-pill">MakersHub AI</a>
+        <a href="#" class="nav-pill">Ajuda</a>
+      </nav>
+
+      <!-- User Controls -->
+      <div class="user-controls">
+        <div class="theme-selector">
+          <button class="theme-btn"><i data-lucide="sun" style="width: 10px;"></i> Light</button>
+          <button class="theme-btn active"><i data-lucide="moon" style="width: 10px;"></i> Dark</button>
+        </div>
+        <button class="icon-btn"><i data-lucide="bell" style="width: 14px;"></i></button>
+        <button class="icon-btn"><i data-lucide="settings" style="width: 14px;"></i></button>
+        <img class="avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="avatar" />
+      </div>
+    </header>
+
+    <!-- Sub-header (Controls) -->
+    <section class="subheader">
+      <div class="subheader-title-group">
+        <button class="back-btn"><i data-lucide="arrow-left" style="width: 14px;"></i></button>
+        <h2>Cockpit</h2>
+      </div>
+      <div class="toolbar-group">
+        <button class="icon-btn"><i data-lucide="search" style="width: 14px;"></i></button>
+        <button class="icon-btn"><i data-lucide="sliders-horizontal" style="width: 14px;"></i></button>
+        <button class="icon-btn"><i data-lucide="calendar" style="width: 14px;"></i></button>
+        
+        <div class="dropdown-selector">
+          <i data-lucide="layout" style="width: 12px; color: var(--neon-lime)"></i>
+          <span>WORKSPACE 01</span>
+          <i data-lucide="chevron-down" style="width: 12px;"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Dashboard Content Grid -->
+    <main class="dashboard-grid">
+      
+      <!-- Column 1 -->
+      <div class="grid-column">
+        
+        <!-- Card 1: Expense Breakdown Ring Chart -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Despesas por Categoria</span>
+            <i data-lucide="maximize-2" class="card-icon-action" style="width: 12px;"></i>
+          </div>
+          
+          <div class="chart-container">
+            <!-- Segment pointer tooltip -->
+            <div class="ring-tooltip-pointer">
+              Produção: R$ 3.289
+            </div>
+
+            <!-- SVG Ring Chart with segmented tracks -->
+            <svg width="140" height="140" viewBox="0 0 36 36">
+              <defs>
+                <pattern id="segment-stripes" width="4" height="4" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="4" stroke="#444444" stroke-width="1.2" />
+                </pattern>
+              </defs>
+              
+              <!-- Background gray track -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#161616" stroke-width="3" />
+              
+              <!-- Striped segment -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="url(#segment-stripes)" stroke-width="3.2" 
+                      stroke-dasharray="25 75" stroke-dashoffset="100" />
+              
+              <!-- White segment -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#ffffff" stroke-width="3" 
+                      stroke-dasharray="30 70" stroke-dashoffset="75" />
+
+              <!-- Lime green segment -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--neon-lime)" stroke-width="3" 
+                      stroke-dasharray="45 55" stroke-dashoffset="45" />
+            </svg>
+            
+            <div class="ring-chart-overlay">
+              <span class="amount">R$ 5.080</span>
+              <span class="label">Total Pago</span>
+            </div>
+          </div>
+
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-dot lime"></span>
+              <span>Produção</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot white"></span>
+              <span>Equipe</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot striped"></span>
+              <span>Outros</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Spending Trend Line Chart -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Média de Custo Semanal</span>
+            <i data-lucide="maximize-2" class="card-icon-action" style="width: 12px;"></i>
+          </div>
+          
+          <div class="kpi-amount">
+            R$ 820,00 <span style="font-size: 12px; color: var(--text-muted); font-weight: 500; font-family: var(--font-mono)">/ dia</span>
+          </div>
+          
+          <div class="pill-badge-group">
+            <span class="pill-badge">4 Contas</span>
+            <span class="pill-badge">8 Projetos</span>
+          </div>
+
+          <div class="chart-container" style="height: 100px; margin-top: 10px;">
+            <!-- Tooltip dynamic value -->
+            <div class="chart-value-tag" style="left: 45%; top: 10px;">R$ 920</div>
+
+            <svg viewBox="0 0 300 100" width="100%" height="100%">
+              <defs>
+                <linearGradient id="smoothglow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--neon-lime)" stop-opacity="0.1" />
+                  <stop offset="100%" stop-color="var(--neon-lime)" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <!-- Chart line area -->
+              <path d="M 0 70 Q 50 60 100 45 T 200 75 T 300 35 L 300 100 L 0 100 Z" fill="url(#smoothglow)" />
+              <!-- Highlighted marker column -->
+              <line x1="150" y1="15" x2="150" y2="90" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-dasharray="3,3" />
+              <circle cx="150" cy="50" r="3" fill="var(--neon-lime)" />
+              <!-- Main Curve -->
+              <path d="M 0 70 Q 50 60 100 45 T 200 75 T 300 35" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" />
+            </svg>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Column 2 -->
+      <div class="grid-column">
+        
+        <!-- Card 3: Financial Activity (dashed area fill line chart) -->
+        <div class="dashboard-card" style="flex: 1;">
+          <div class="card-header">
+            <span class="card-title">Atividade Financeira</span>
+            <div class="pill-badge-group">
+              <span class="pill-badge" style="background-color: #1a1a1a; color: #fff;">Entradas</span>
+              <span class="pill-badge">Saídas</span>
+            </div>
+          </div>
+
+          <div class="kpi-amount">
+            R$ 5.080,00 
+            <span class="kpi-trend negative">
+              <i data-lucide="arrow-down-right" style="width: 10px; display: inline-block;"></i> 8% vs mês anterior
+            </span>
+          </div>
+
+          <!-- Line Chart with vertical dashed stripe fill -->
+          <div class="chart-container" style="flex: 1; min-height: 180px;">
+            <!-- Tooltip -->
+            <div class="chart-value-tag" style="left: 45%; top: 40px;">R$ 1.289</div>
+
+            <svg viewBox="0 0 500 180" width="100%" height="100%" preserveAspectRatio="none">
+              <defs>
+                <!-- Pattern for vertical dashed lines -->
+                <pattern id="chart-vertical-stripes" width="10" height="180" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="180" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" stroke-dasharray="2,5" />
+                </pattern>
+              </defs>
+
+              <!-- Grid -->
+              <line x1="0" y1="90" x2="500" y2="90" stroke="rgba(255,255,255,0.02)" />
+
+              <!-- Striped fill layer -->
+              <path d="M 0 140 Q 100 120 200 80 T 400 130 T 500 60 L 500 180 L 0 180 Z" fill="url(#chart-vertical-stripes)" />
+              
+              <!-- Dashed vertical indicator line -->
+              <line x1="250" y1="10" x2="250" y2="180" stroke="var(--neon-lime)" stroke-width="1.2" stroke-dasharray="2,3" />
+              <circle cx="250" cy="98" r="4" fill="var(--neon-lime)" />
+
+              <!-- Main curve -->
+              <path d="M 0 140 Q 100 120 200 80 T 400 130 T 500 60" fill="none" stroke="#ffffff" stroke-width="2.2" />
+            </svg>
+          </div>
+          
+          <div class="chart-legend" style="border: none; padding: 0;">
+            <span>Dom</span>
+            <span>Seg</span>
+            <span>Ter</span>
+            <span>Qua</span>
+            <span>Qui</span>
+            <span>Sex</span>
+            <span>Sáb</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Column 3 -->
+      <div class="grid-column">
+        
+        <!-- Card 4: Budget progress with custom stripes -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Orçamento de Projetos</span>
+            <span class="pill-badge" style="color: var(--neon-lime); border-color: rgba(197, 255, 69, 0.2); background-color: rgba(197, 255, 69, 0.05);">No prazo</span>
+          </div>
+
+          <div class="progress-bar-container">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
+              <span>R$ 5.080 / R$ 7.000</span>
+              <span style="color: var(--text-muted); font-size: 10px;">10 Jul - 10 Ago</span>
+            </div>
+
+            <div class="custom-progress-bar" style="margin-top: 14px;">
+              <div class="progress-fill" style="width: 73%;"></div>
+              <div class="progress-pattern" style="width: 27%;"></div>
+              <div class="progress-bubble" style="left: 73%;">73%</div>
+            </div>
+          </div>
+
+          <!-- Project Budget breakdown list -->
+          <div class="budget-items-list">
+            <!-- Item 1 -->
+            <div class="budget-item">
+              <div class="budget-item-left">
+                <div class="budget-icon"><i data-lucide="video" style="width: 12px;"></i></div>
+                <div>
+                  <div class="budget-name">Diárias / Equipamento</div>
+                  <div class="budget-meta">4 captações</div>
+                </div>
+              </div>
+              <div class="budget-item-right">
+                -R$ 2.040 <span>/ R$ 2.000</span>
+              </div>
+            </div>
+            <!-- Item 2 -->
+            <div class="budget-item">
+              <div class="budget-item-left">
+                <div class="budget-icon"><i data-lucide="coffee" style="width: 12px;"></i></div>
+                <div>
+                  <div class="budget-name">Logística / Catering</div>
+                  <div class="budget-meta">Alimentação set</div>
+                </div>
+              </div>
+              <div class="budget-item-right">
+                -R$ 1.220 <span>/ R$ 1.500</span>
+              </div>
+            </div>
+            <!-- Item 3 -->
+            <div class="budget-item">
+              <div class="budget-item-left">
+                <div class="budget-icon"><i data-lucide="clapperboard" style="width: 12px;"></i></div>
+                <div>
+                  <div class="budget-name">Pós-Produção / Edição</div>
+                  <div class="budget-meta">Montagem & Cor</div>
+                </div>
+              </div>
+              <div class="budget-item-right">
+                -R$ 820 <span>/ R$ 900</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Solid Lime Insight Banner -->
+        <a href="#" class="ai-insight-banner">
+          <div class="ai-banner-left">
+            <div class="ai-icon-box">
+              <i data-lucide="sparkles" style="width: 16px; color: #000;"></i>
+            </div>
+            <div class="ai-banner-content">
+              <h4>MakersHub AI Insights</h4>
+              <p>Faturamento estimado 12k acima da meta</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" style="width: 16px; color: #000;"></i>
+        </a>
+
+        <!-- Card 6: Operating Health style bars -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Saúde Financeira da Produtora</span>
+            <i data-lucide="more-horizontal" class="card-icon-action" style="width: 14px;"></i>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <p style="font-size: 10px; color: var(--text-muted);">Acumulado líquido</p>
+              <h3 class="kpi-amount" style="font-size: 20px; margin-top: 2px;">
+                R$ 3.120,34
+              </h3>
+              <span class="kpi-trend negative" style="font-size: 9px;">
+                <i data-lucide="arrow-down-right" style="width: 9px; display: inline-block;"></i> 6% vs anterior
+              </span>
+            </div>
+
+            <!-- Health Bars graphical widget -->
+            <div class="health-bar-chart" style="width: 160px;">
+              <span class="health-bar active-lime" style="height: 40%;"></span>
+              <span class="health-bar active-white" style="height: 60%;"></span>
+              <span class="health-bar active-lime" style="height: 35%;"></span>
+              <span class="health-bar active-lime" style="height: 85%;"></span>
+              <span class="health-bar active-white" style="height: 45%;"></span>
+              <span class="health-bar active-white" style="height: 65%;"></span>
+              <span class="health-bar active-lime" style="height: 70%;"></span>
+              <span class="health-bar active-lime" style="height: 90%;"></span>
+              <span class="health-bar active-white" style="height: 55%;"></span>
+              <span class="health-bar active-white" style="height: 40%;"></span>
+              <span class="health-bar active-lime" style="height: 75%;"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    // Inicialização do Lucide
+    lucide.createIcons();
+  </script>
+</body>
+</html>

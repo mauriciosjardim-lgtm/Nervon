@@ -4,8 +4,8 @@
 export function DashboardMock() {
   return (
     <div className="relative mx-auto mt-16 max-w-6xl md:mt-20">
-      <div className="absolute inset-x-10 -top-10 h-40 rounded-full bg-[#90F826]/25 blur-[100px]" />
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+      <div className="dashboard-mock-glow absolute inset-x-10 -top-10 h-40 rounded-full" aria-hidden="true" />
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#202027] p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
         <div className="overflow-hidden rounded-xl bg-[#101015]">
           {/* fake window chrome */}
           <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3">

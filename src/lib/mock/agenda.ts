@@ -3,7 +3,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type TipoEvento = "reuniao" | "gravacao" | "entrega" | "tarefa" | "outro";
+export type TipoEvento = "reuniao" | "gravacao" | "edicao" | "entrega" | "tarefa" | "outro";
 export type RefTipo = "projeto" | "tarefa" | "marco";
 
 export interface Evento {
@@ -24,6 +24,7 @@ export interface Evento {
 export const TIPOS: Record<TipoEvento, { label: string; classe: string; dot: string }> = {
   reuniao:  { label: "Reunião",  classe: "border-info/40 bg-info/10 text-info",                   dot: "bg-info" },
   gravacao: { label: "Gravação", classe: "border-primary/40 bg-primary/10 text-primary",          dot: "bg-primary" },
+  edicao:    { label: "Edição",   classe: "border-purple-400/40 bg-purple-400/10 text-purple-300", dot: "bg-purple-400" },
   entrega:  { label: "Entrega",  classe: "border-success/40 bg-success/10 text-success",          dot: "bg-success" },
   tarefa:   { label: "Tarefa",   classe: "border-warning/40 bg-warning/10 text-warning",          dot: "bg-warning" },
   outro:    { label: "Outro",    classe: "border-border bg-surface-2 text-foreground/80",         dot: "bg-muted-foreground" },
@@ -87,4 +88,3 @@ export const agendaActions = {
     return eventos.filter(e => e.refTipo === refTipo && e.refId === refId);
   },
 };
-

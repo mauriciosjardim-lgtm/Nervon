@@ -20,6 +20,20 @@ export interface ProjetoLink {
 
 export const FASES_PADRAO = ["briefing", "pre_producao", "captacao", "edicao", "revisao", "entrega", "concluida"];
 
+export const CORES_PROJETO = ["#90F826", "#66B8FF", "#BD8CFF", "#F0B34B", "#FF737A", "#46D6B1", "#FF8FD1", "#8AA2FF", "#F58B4C", "#B6D94C"];
+const CORES_LEGADAS: Record<string, string> = { primary: "#90F826", info: "#66B8FF", warning: "#F0B34B", success: "#46D6B1" };
+export const resolverCorProjeto = (cor?: string, identidade = "") => {
+  if (cor?.startsWith("#")) return cor;
+  // "primary" era o valor padrão de todos os projetos antigos. Enquanto o
+  // usuário não escolhe uma cor, distribuímos uma identidade estável por ID.
+  if (!cor || cor === "primary") {
+    let hash = 0;
+    for (const c of identidade) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+    return CORES_PROJETO[hash % CORES_PROJETO.length];
+  }
+  return CORES_LEGADAS[cor] ?? CORES_PROJETO[0];
+};
+
 export interface Projeto {
   id: string;
   nome: string;
@@ -31,7 +45,8 @@ export interface Projeto {
   fases?: string[]; // colunas do kanban — ordenadas, editáveis por projeto
   equipe: string[];
   dataInicio: string;
-  dataEntrega: string;
+  dataEntrega?: string | null;
+  arquivado?: boolean;
   valor: number;
   cor: string;
   criadoEm: string;
@@ -48,6 +63,8 @@ export interface Tarefa {
   concluida: boolean;   // toggle independente da fase
   responsavel: string;
   prazo?: string;
+  prazoFim?: string;
+  diaTodo?: boolean;
   prioridade: Prioridade;
   link?: string;        // URL de referência (Drive, Frame.io, Vimeo, doc…)
   criadoEm: string;

@@ -59,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // timers pendentes agendados pelo onAuthStateChange (cancelados no cleanup)
   const pendingTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  // Supabase pode emitir SIGNED_IN novamente ao retomar uma aba suspensa
+  // (especialmente no Safari). Mantém a identidade corrente fora do closure
+  // inicial do effect para distinguir retomada de uma troca real de sessão.
+  const activeUserIdRef = useRef<string | null>(null);
 
   const loadPerfil = async (userId: string) => {
     const { data: usuario } = await supabase
@@ -92,9 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (!mountedRef.current || epoch !== epochRef.current) return; // resposta antiga/unmount
       setSessionHintCookie(); // sessão confirmada → cria/renova a dica pro SSR
+      activeUserIdRef.current = session.user.id;
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
       setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
     } else {
+      activeUserIdRef.current = null;
       clearSessionHintCookie(); // sem sessão (logout/expirada) → remove a dica
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
       setState({ session: null, user: null, usuario: null, empresa: null, loading: false });
@@ -135,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // refresh de token: só atualiza o token, mantém o perfil já carregado
       if (event === "TOKEN_REFRESHED") {
         if (session) {
+          activeUserIdRef.current = session.user.id;
           setSessionHintCookie(); // renova a dica (escrita síncrona, sem await)
           setState(s => ({ ...s, session, user: session.user }));
         }
@@ -142,6 +149,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       // ignora eventos sem mudança real de usuário
       if (event === "INITIAL_SESSION") return; // já tratado pelo bootstrapSession
+
+      // Ao voltar para uma aba, o Supabase pode repetir SIGNED_IN para o mesmo
+      // usuário. Isso é retomada, não login: atualiza apenas o token e preserva
+      // stores/canais já carregados. Antes, disposeSessionScope zerava o cockpit.
+      if (event === "SIGNED_IN" && session?.user.id === activeUserIdRef.current) {
+        setSessionHintCookie();
+        setState(s => ({ ...s, session, user: session.user }));
+        return;
+      }
 
       // Troca de sessão (login/logout/recovery): derruba TODOS os stores,
       // caches e canais Realtime da sessão anterior — síncrono, sem await
@@ -168,6 +184,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // O evento onAuthStateChange aplica a sessão de forma assíncrona. Gravar a
+    // dica já no retorno do login garante que uma navegação/reload imediato da
+    // raiz seja renderizado como dashboard, não como landing pública.
+    if (!error) setSessionHintCookie();
     return { error: error?.message ?? null };
   };
 
@@ -194,6 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // em voo, o cache do bootstrap, a dica de sessão, derruba a sessão local
       // e descarta TODOS os stores/caches/canais da sessão anterior.
       clearSessionHintCookie();
+      activeUserIdRef.current = null;
       persistedSessionPromise = null;
       epochRef.current++;
       disposeSessionScope();

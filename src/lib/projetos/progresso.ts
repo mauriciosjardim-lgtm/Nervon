@@ -1,6 +1,7 @@
 // Fonte ÚNICA de cálculo de progresso e saúde de projeto.
 // A UI (listagem e tela interna) deve consumir daqui — nunca duplicar as regras.
 import type { Projeto, Tarefa } from "@/lib/mock/projetos";
+import { FASES_PADRAO } from "@/lib/mock/projetos";
 
 export type SaudeProjeto = "saudavel" | "atencao" | "atrasado" | "pausado";
 
@@ -28,9 +29,24 @@ export const SAUDE_ESTILO: Record<SaudeProjeto, { barra: string; badge: string }
   pausado: { barra: "bg-muted-foreground", badge: "border-muted-foreground/30 bg-muted/20 text-muted-foreground" },
 };
 
+// Progresso operacional: cada tarefa avança proporcionalmente conforme percorre
+// as colunas do fluxo. Conclusão vale 100%, independentemente da coluna.
+export function calcularPercentualFluxo(projeto: Projeto, tarefas: Tarefa[]): number {
+  const ts = tarefas.filter(t => t.projetoId === projeto.id);
+  if (!ts.length) return 0;
+  const fases = projeto.fases?.length ? projeto.fases : FASES_PADRAO;
+  const ultimo = Math.max(1, fases.length - 1);
+  const soma = ts.reduce((total, tarefa) => {
+    if (tarefa.concluida || tarefa.status === "concluida") return total + 1;
+    const indice = fases.indexOf(tarefa.status);
+    return total + (indice < 0 ? 0 : Math.min(1, Math.max(0, indice / ultimo)));
+  }, 0);
+  return Math.round((soma / ts.length) * 100);
+}
+
 // Datas date-only (YYYY-MM-DD) devem ser lidas ao meio-dia local para não
 // escorregar de dia por causa do fuso/UTC.
-function parseDataLocal(valor?: string): Date | null {
+function parseDataLocal(valor?: string | null): Date | null {
   if (!valor) return null;
   const d = new Date(valor.slice(0, 10) + "T12:00:00");
   return isNaN(d.getTime()) ? null : d;
@@ -44,7 +60,7 @@ export function calcularResumoProgresso(
   const ts = tarefas.filter(t => t.projetoId === projeto.id);
   const total = ts.length;
   const concluidas = ts.filter(t => t.concluida).length;
-  const percentual = total === 0 ? 0 : Math.round((concluidas / total) * 100);
+  const percentual = calcularPercentualFluxo(projeto, tarefas);
 
   const inicioHoje = new Date(hoje);
   inicioHoje.setHours(0, 0, 0, 0);

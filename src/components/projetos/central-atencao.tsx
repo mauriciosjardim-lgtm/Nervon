@@ -31,7 +31,7 @@ export function CentralAtencao({
 }) {
   const agora = new Date();
   const amanha = addDays(agora, 1);
-  const ativos = new Set(projetos.filter(p => !["concluido", "pausado"].includes(p.fase)).map(p => p.id));
+  const ativos = new Set(projetos.filter(p => !p.arquivado && !["concluido", "pausado"].includes(p.fase)).map(p => p.id));
 
   const pendencias: Pendencia[] = [];
 
@@ -51,7 +51,7 @@ export function CentralAtencao({
   }
 
   for (const p of projetos) {
-    if (!ativos.has(p.id) || !isSameDay(new Date(p.dataEntrega), amanha)) continue;
+    if (!p.dataEntrega || !ativos.has(p.id) || !isSameDay(new Date(p.dataEntrega), amanha)) continue;
     pendencias.push({ id: `p-${p.id}`, tipo: "entrega_amanha", titulo: `Entrega — ${p.nome}`, projeto: p });
   }
 

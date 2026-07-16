@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Sms, Eye, EyeSlash, Gift } from "iconsax-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { verifyTurnstile } from "@/lib/api/turnstile.functions";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
@@ -33,28 +33,52 @@ function Convite() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileRef = useRef<{ reset: () => void } | null>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
-    if (TURNSTILE_SITE_KEY && !turnstileToken) { setErro("Confirme que você é humano."); return; }
-    if (!nome.trim()) { setErro("Informe seu nome completo."); return; }
-    if (!tipo) { setErro("Selecione o tipo de operação."); return; }
-    if (senha.length < 6) { setErro("A senha precisa ter pelo menos 6 caracteres."); return; }
-    if (senha !== confirmarSenha) { setErro("As senhas não coincidem."); return; }
-    if (!termos) { setErro("Aceite os termos para continuar."); return; }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErro("Confirme que você é humano.");
+      return;
+    }
+    if (!nome.trim()) {
+      setErro("Informe seu nome completo.");
+      return;
+    }
+    if (!tipo) {
+      setErro("Selecione o tipo de operação.");
+      return;
+    }
+    if (senha.length < 6) {
+      setErro("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (senha !== confirmarSenha) {
+      setErro("As senhas não coincidem.");
+      return;
+    }
+    if (!termos) {
+      setErro("Aceite os termos para continuar.");
+      return;
+    }
     setLoading(true);
     if (TURNSTILE_SITE_KEY && turnstileToken) {
       const verified = await verifyTurnstile({ data: { token: turnstileToken } });
       if (!verified.success) {
         setErro("Validação de segurança falhou. Tente novamente.");
-        setTurnstileToken(null); turnstileRef.current?.reset();
-        setLoading(false); return;
+        setTurnstileToken(null);
+        turnstileRef.current?.reset();
+        setLoading(false);
+        return;
       }
     }
     const { error } = await signUp(email, senha, nome, { whatsapp, tipo });
-    if (error) { setErro(traduzirErro(error)); setLoading(false); return; }
+    if (error) {
+      setErro(traduzirErro(error));
+      setLoading(false);
+      return;
+    }
     setEmailEnviado(email);
     setAguardandoEmail(true);
     setLoading(false);
@@ -67,7 +91,8 @@ function Convite() {
       <div className="absolute left-8 top-8 z-10 flex items-center gap-3">
         <LogoMakersHub className="h-9 w-9" />
         <span className="font-display text-lg font-semibold">
-          <span className="text-foreground">Makers</span><span className="text-primary">Hub</span>
+          <span className="text-foreground">Makers</span>
+          <span className="text-primary">Hub</span>
         </span>
       </div>
 
@@ -80,7 +105,8 @@ function Convite() {
             <h2 className="font-display text-2xl font-bold">Confirme seu e-mail</h2>
             <p className="text-sm text-muted-foreground">
               Link enviado para <strong className="text-foreground">{emailEnviado}</strong>.<br />
-              Clique no link para ativar seu teste grátis.<br />
+              Clique no link para ativar seu teste grátis.
+              <br />
               Verifique também a pasta de spam.
             </p>
           </div>
@@ -100,25 +126,41 @@ function Convite() {
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs">Nome completo</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="João Silva" autoFocus />
+                <Input
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="João Silva"
+                  autoFocus
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">WhatsApp</Label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">🇧🇷</span>
-                    <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="(11) 99999-9999" className="pl-8" />
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                      🇧🇷
+                    </span>
+                    <Input
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                      className="pl-8"
+                    />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Tipo de operação <span className="text-destructive">*</span></Label>
+                  <Label className="text-xs">
+                    Tipo de operação <span className="text-destructive">*</span>
+                  </Label>
                   <select
                     value={tipo}
-                    onChange={e => setTipo(e.target.value)}
+                    onChange={(e) => setTipo(e.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-input px-3 text-sm text-foreground transition focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="" disabled>Selecione…</option>
+                    <option value="" disabled>
+                      Selecione…
+                    </option>
                     <option value="produtora">Produtora</option>
                     <option value="videomaker">Videomaker</option>
                     <option value="estudio">Estúdio</option>
@@ -131,7 +173,12 @@ function Convite() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs">E-mail</Label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -140,14 +187,21 @@ function Convite() {
                   <Input
                     type={mostrarSenha ? "text" : "password"}
                     value={senha}
-                    onChange={e => setSenha(e.target.value)}
+                    onChange={(e) => setSenha(e.target.value)}
                     placeholder="••••••••"
                     minLength={6}
                     className="pr-10"
                   />
-                  <button type="button" onClick={() => setMostrarSenha(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground">
-                    {mostrarSenha ? <EyeSlash size={16} color="currentColor" variant="Linear" /> : <Eye size={16} color="currentColor" variant="Linear" />}
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSenha((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                  >
+                    {mostrarSenha ? (
+                      <EyeSlash size={16} color="currentColor" variant="Linear" />
+                    ) : (
+                      <Eye size={16} color="currentColor" variant="Linear" />
+                    )}
                   </button>
                 </div>
                 {senha.length > 0 && <PasswordStrength senha={senha} />}
@@ -155,22 +209,49 @@ function Convite() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Confirmar senha</Label>
-                <Input type="password" value={confirmarSenha}
-                  onChange={e => setConfirmarSenha(e.target.value)}
+                <Input
+                  type="password"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="••••••••"
-                  className={cn(confirmarSenha && confirmarSenha !== senha && "border-destructive/60 focus-visible:ring-destructive/30")} />
+                  className={cn(
+                    confirmarSenha &&
+                      confirmarSenha !== senha &&
+                      "border-destructive/60 focus-visible:ring-destructive/30",
+                  )}
+                />
                 {confirmarSenha && confirmarSenha !== senha && (
                   <p className="text-[11px] text-destructive">As senhas não coincidem</p>
                 )}
               </div>
 
               <label className="flex cursor-pointer items-start gap-2.5 pt-1">
-                <input type="checkbox" checked={termos} onChange={e => setTermos(e.target.checked)} className="mt-0.5 accent-primary" />
+                <input
+                  type="checkbox"
+                  checked={termos}
+                  onChange={(e) => setTermos(e.target.checked)}
+                  className="mt-0.5 accent-primary"
+                />
                 <span className="text-xs text-muted-foreground leading-relaxed">
                   Li e aceito os{" "}
-                  <a href="/termos" target="_blank" rel="noopener" className="text-primary hover:underline">Termos de Uso</a>
-                  {" "}e a{" "}
-                  <a href="/privacidade" target="_blank" rel="noopener" className="text-primary hover:underline">Política de Privacidade</a>.
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    rel="noopener"
+                    className="text-primary hover:underline"
+                  >
+                    Termos de Uso
+                  </a>{" "}
+                  e a{" "}
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    rel="noopener"
+                    className="text-primary hover:underline"
+                  >
+                    Política de Privacidade
+                  </a>
+                  .
                 </span>
               </label>
 
@@ -186,10 +267,17 @@ function Convite() {
               )}
 
               {erro && (
-                <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
+                <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  {erro}
+                </p>
               )}
 
-              <Button type="submit" size="lg" className="w-full" disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              >
                 {loading ? "Aguarde…" : "Começar teste grátis"}
               </Button>
             </form>
@@ -201,14 +289,20 @@ function Convite() {
 }
 
 function PasswordStrength({ senha }: { senha: string }) {
-  const score = [/.{8,}/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(r => r.test(senha)).length;
+  const score = [/.{8,}/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter((r) => r.test(senha)).length;
   const labels = ["Fraca", "Razoável", "Boa", "Forte"];
   const colors = ["bg-destructive", "bg-warning", "bg-info", "bg-success"];
   return (
     <div className="space-y-1">
       <div className="flex gap-1">
-        {[0, 1, 2, 3].map(i => (
-          <div key={i} className={cn("h-1 flex-1 rounded-full transition-all", i < score ? colors[score - 1] : "bg-border")} />
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-all",
+              i < score ? colors[score - 1] : "bg-border",
+            )}
+          />
         ))}
       </div>
       <p className="text-[11px] text-muted-foreground">{labels[score - 1] ?? "Digite sua senha"}</p>
@@ -218,7 +312,8 @@ function PasswordStrength({ senha }: { senha: string }) {
 
 function traduzirErro(msg: string): string {
   if (msg.includes("User already registered")) return "Este e-mail já está cadastrado.";
-  if (msg.includes("Password should be at least")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (msg.includes("Password should be at least"))
+    return "A senha precisa ter pelo menos 6 caracteres.";
   if (msg.includes("rate limit")) return "Muitas tentativas. Aguarde alguns minutos.";
   return msg;
 }

@@ -30,12 +30,12 @@ export function useVisaoGeral() {
   const receitaMes = resumo.receita;
   const lucroMes = resumo.lucro;
   const margemMes = resumo.margem;
-  const projetosAtivos = pj.projetos.filter(p => p.fase !== "concluido" && p.fase !== "pausado").length;
+  const projetosAtivos = pj.projetos.filter(p => !p.arquivado && p.fase !== "concluido" && p.fase !== "pausado").length;
   const projetosCriticos = pj.projetos.filter(p => {
-    const diasAteEntrega = (new Date(p.dataEntrega).getTime() - Date.now()) / 86400000;
+    const diasAteEntrega = p.dataEntrega ? (new Date(p.dataEntrega).getTime() - Date.now()) / 86400000 : Number.POSITIVE_INFINITY;
     return diasAteEntrega < 7 && p.progresso < 60;
   }).length;
-  const clientesAtivos = new Set(pj.projetos.filter(p => p.fase !== "concluido").map(p => p.cliente)).size;
+  const clientesAtivos = new Set(pj.projetos.filter(p => !p.arquivado && p.fase !== "concluido").map(p => p.cliente)).size;
 
   const leadsFechados = com.leads.filter(l => l.etapa === "fechado").length;
   const leadsPerdidos = com.leads.filter(l => l.etapa === "perdido").length;
@@ -94,7 +94,7 @@ export function usePerformanceProducao() {
   const pj = useProjetos();
   const ativos = pj.projetos.filter(p => p.fase !== "concluido").length;
   const concluidos = pj.projetos.filter(p => p.fase === "concluido").length;
-  const atrasados = pj.projetos.filter(p => new Date(p.dataEntrega) < new Date() && p.fase !== "concluido").length;
+  const atrasados = pj.projetos.filter(p => p.dataEntrega && new Date(p.dataEntrega) < new Date() && p.fase !== "concluido").length;
   const tarefasConcluidas = pj.tarefas.filter(t => t.concluida).length;
   const tarefasPendentes = pj.tarefas.filter(t => !t.concluida).length;
 

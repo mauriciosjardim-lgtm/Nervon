@@ -112,7 +112,18 @@ export const agendaActions = {
   },
 
   async upsertPorRef(refTipo: RefTipo, refId: string, input: Omit<Evento, "id" | "criadoEm" | "refTipo" | "refId">) {
-    const existente = eventos.find(e => e.refTipo === refTipo && e.refId === refId);
+    // Não depende do cache da Agenda: tarefas podem ser editadas antes de esta tela
+    // carregar. Consultar o banco evita criar outro evento para a mesma referência.
+    const empresa_id = await getEmpresaId();
+    const { data: encontrados, error } = await supabase
+      .from("eventos")
+      .select("id")
+      .eq("empresa_id", empresa_id)
+      .eq("ref_tipo", refTipo)
+      .eq("ref_id", refId)
+      .limit(1);
+    if (dbErro(error, "localizar evento vinculado")) return;
+    const existente = encontrados?.[0] ?? eventos.find(e => e.refTipo === refTipo && e.refId === refId);
     if (existente) {
       await this.atualizar(existente.id, { ...input, refTipo, refId });
       return existente.id;

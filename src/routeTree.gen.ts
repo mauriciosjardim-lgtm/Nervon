@@ -10,17 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as RedesignLoginRouteImport } from './routes/redesign-login'
+import { Route as RedesignRouteImport } from './routes/redesign'
 import { Route as PropostasRouteImport } from './routes/propostas'
 import { Route as ProjetosRouteImport } from './routes/projetos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NovoEventoRouteImport } from './routes/novo-evento'
 import { Route as LpRouteImport } from './routes/lp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
-import { Route as DashboardV3RouteImport } from './routes/dashboard-v3'
+import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as ConviteRouteImport } from './routes/convite'
 import { Route as ContratosRouteImport } from './routes/contratos'
@@ -28,6 +31,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComercialRouteImport } from './routes/comercial'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AceitarConviteRouteImport } from './routes/aceitar-convite'
 import { Route as IndexRouteImport } from './routes/index'
@@ -44,9 +48,11 @@ import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as OrcamentosNovoRouteImport } from './routes/orcamentos.novo'
 import { Route as OrcamentosIdRouteImport } from './routes/orcamentos.$id'
+import { Route as OperacaoEventoIdRouteImport } from './routes/operacao-evento.$id'
 import { Route as FinanceiroProjetosRouteImport } from './routes/financeiro.projetos'
 import { Route as FinanceiroLancamentosRouteImport } from './routes/financeiro.lancamentos'
 import { Route as FinanceiroContasRouteImport } from './routes/financeiro.contas'
+import { Route as EventoLiveIdRouteImport } from './routes/evento-live.$id'
 import { Route as ContratosVaultIdRouteImport } from './routes/contratos.$vaultId'
 import { Route as ComercialLeadsRouteImport } from './routes/comercial.leads'
 import { Route as ComercialFollowupsRouteImport } from './routes/comercial.followups'
@@ -58,11 +64,23 @@ import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ContratosVaultIdIndexRouteImport } from './routes/contratos.$vaultId.index'
 import { Route as ContratosVaultIdNovoRouteImport } from './routes/contratos.$vaultId.novo'
+import { Route as ApiEquipeConvidarRouteImport } from './routes/api/equipe/convidar'
+import { Route as ApiAsaasWebhookRouteImport } from './routes/api/asaas/webhook'
 import { Route as ContratosVaultIdContratoContractIdRouteImport } from './routes/contratos.$vaultId.contrato.$contractId'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedesignLoginRoute = RedesignLoginRouteImport.update({
+  id: '/redesign-login',
+  path: '/redesign-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedesignRoute = RedesignRouteImport.update({
+  id: '/redesign',
+  path: '/redesign',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PropostasRoute = PropostasRouteImport.update({
@@ -95,6 +113,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NovoEventoRoute = NovoEventoRouteImport.update({
+  id: '/novo-evento',
+  path: '/novo-evento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LpRoute = LpRouteImport.update({
   id: '/lp',
   path: '/lp',
@@ -115,9 +138,9 @@ const FinanceiroRoute = FinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardV3Route = DashboardV3RouteImport.update({
-  id: '/dashboard-v3',
-  path: '/dashboard-v3',
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrmRoute = CrmRouteImport.update({
@@ -153,6 +176,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const BibliotecaRoute = BibliotecaRouteImport.update({
   id: '/biblioteca',
   path: '/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendaRoute = AgendaRouteImport.update({
@@ -235,6 +263,11 @@ const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => OrcamentosRoute,
 } as any)
+const OperacaoEventoIdRoute = OperacaoEventoIdRouteImport.update({
+  id: '/operacao-evento/$id',
+  path: '/operacao-evento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroProjetosRoute = FinanceiroProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
@@ -249,6 +282,11 @@ const FinanceiroContasRoute = FinanceiroContasRouteImport.update({
   id: '/contas',
   path: '/contas',
   getParentRoute: () => FinanceiroRoute,
+} as any)
+const EventoLiveIdRoute = EventoLiveIdRouteImport.update({
+  id: '/evento-live/$id',
+  path: '/evento-live/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosVaultIdRoute = ContratosVaultIdRouteImport.update({
   id: '/$vaultId',
@@ -305,6 +343,16 @@ const ContratosVaultIdNovoRoute = ContratosVaultIdNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => ContratosVaultIdRoute,
 } as any)
+const ApiEquipeConvidarRoute = ApiEquipeConvidarRouteImport.update({
+  id: '/api/equipe/convidar',
+  path: '/api/equipe/convidar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAsaasWebhookRoute = ApiAsaasWebhookRouteImport.update({
+  id: '/api/asaas/webhook',
+  path: '/api/asaas/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContratosVaultIdContratoContractIdRoute =
   ContratosVaultIdContratoContractIdRouteImport.update({
     id: '/contrato/$contractId',
@@ -316,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/assistant': typeof AssistantRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/comercial': typeof ComercialRouteWithChildren
@@ -323,17 +372,20 @@ export interface FileRoutesByFullPath {
   '/contratos': typeof ContratosRouteWithChildren
   '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
-  '/dashboard-v3': typeof DashboardV3Route
+  '/eventos': typeof EventosRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/lp': typeof LpRoute
+  '/novo-evento': typeof NovoEventoRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
   '/performance': typeof PerformanceRoute
   '/privacidade': typeof PrivacidadeRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/propostas': typeof PropostasRouteWithChildren
+  '/redesign': typeof RedesignRoute
+  '/redesign-login': typeof RedesignLoginRoute
   '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -344,9 +396,11 @@ export interface FileRoutesByFullPath {
   '/comercial/followups': typeof ComercialFollowupsRoute
   '/comercial/leads': typeof ComercialLeadsRoute
   '/contratos/$vaultId': typeof ContratosVaultIdRouteWithChildren
+  '/evento-live/$id': typeof EventoLiveIdRoute
   '/financeiro/contas': typeof FinanceiroContasRoute
   '/financeiro/lancamentos': typeof FinanceiroLancamentosRoute
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
+  '/operacao-evento/$id': typeof OperacaoEventoIdRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
@@ -360,6 +414,8 @@ export interface FileRoutesByFullPath {
   '/orcamentos/': typeof OrcamentosIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
   '/propostas/': typeof PropostasIndexRoute
+  '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
+  '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -368,17 +424,21 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/assistant': typeof AssistantRoute
   '/checkout': typeof CheckoutRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
-  '/dashboard-v3': typeof DashboardV3Route
+  '/eventos': typeof EventosRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/lp': typeof LpRoute
+  '/novo-evento': typeof NovoEventoRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/redesign': typeof RedesignRoute
+  '/redesign-login': typeof RedesignLoginRoute
   '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -388,9 +448,11 @@ export interface FileRoutesByTo {
   '/comercial/empresas': typeof ComercialEmpresasRoute
   '/comercial/followups': typeof ComercialFollowupsRoute
   '/comercial/leads': typeof ComercialLeadsRoute
+  '/evento-live/$id': typeof EventoLiveIdRoute
   '/financeiro/contas': typeof FinanceiroContasRoute
   '/financeiro/lancamentos': typeof FinanceiroLancamentosRoute
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
+  '/operacao-evento/$id': typeof OperacaoEventoIdRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
@@ -404,6 +466,8 @@ export interface FileRoutesByTo {
   '/orcamentos': typeof OrcamentosIndexRoute
   '/projetos': typeof ProjetosIndexRoute
   '/propostas': typeof PropostasIndexRoute
+  '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
+  '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -413,6 +477,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/assistant': typeof AssistantRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/comercial': typeof ComercialRouteWithChildren
@@ -420,17 +485,20 @@ export interface FileRoutesById {
   '/contratos': typeof ContratosRouteWithChildren
   '/convite': typeof ConviteRoute
   '/crm': typeof CrmRoute
-  '/dashboard-v3': typeof DashboardV3Route
+  '/eventos': typeof EventosRoute
   '/financeiro': typeof FinanceiroRouteWithChildren
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/lp': typeof LpRoute
+  '/novo-evento': typeof NovoEventoRoute
   '/onboarding': typeof OnboardingRoute
   '/orcamentos': typeof OrcamentosRouteWithChildren
   '/performance': typeof PerformanceRoute
   '/privacidade': typeof PrivacidadeRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/propostas': typeof PropostasRouteWithChildren
+  '/redesign': typeof RedesignRoute
+  '/redesign-login': typeof RedesignLoginRoute
   '/termos': typeof TermosRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -441,9 +509,11 @@ export interface FileRoutesById {
   '/comercial/followups': typeof ComercialFollowupsRoute
   '/comercial/leads': typeof ComercialLeadsRoute
   '/contratos/$vaultId': typeof ContratosVaultIdRouteWithChildren
+  '/evento-live/$id': typeof EventoLiveIdRoute
   '/financeiro/contas': typeof FinanceiroContasRoute
   '/financeiro/lancamentos': typeof FinanceiroLancamentosRoute
   '/financeiro/projetos': typeof FinanceiroProjetosRoute
+  '/operacao-evento/$id': typeof OperacaoEventoIdRoute
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
@@ -457,6 +527,8 @@ export interface FileRoutesById {
   '/orcamentos/': typeof OrcamentosIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
   '/propostas/': typeof PropostasIndexRoute
+  '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
+  '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -467,6 +539,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/assistant'
     | '/biblioteca'
     | '/checkout'
     | '/comercial'
@@ -474,17 +547,20 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/convite'
     | '/crm'
-    | '/dashboard-v3'
+    | '/eventos'
     | '/financeiro'
     | '/home'
     | '/login'
     | '/lp'
+    | '/novo-evento'
     | '/onboarding'
     | '/orcamentos'
     | '/performance'
     | '/privacidade'
     | '/projetos'
     | '/propostas'
+    | '/redesign'
+    | '/redesign-login'
     | '/termos'
     | '/auth/callback'
     | '/auth/reset'
@@ -495,9 +571,11 @@ export interface FileRouteTypes {
     | '/comercial/followups'
     | '/comercial/leads'
     | '/contratos/$vaultId'
+    | '/evento-live/$id'
     | '/financeiro/contas'
     | '/financeiro/lancamentos'
     | '/financeiro/projetos'
+    | '/operacao-evento/$id'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
@@ -511,6 +589,8 @@ export interface FileRouteTypes {
     | '/orcamentos/'
     | '/projetos/'
     | '/propostas/'
+    | '/api/asaas/webhook'
+    | '/api/equipe/convidar'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId/'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -519,17 +599,21 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/assistant'
     | '/checkout'
     | '/configuracoes'
     | '/convite'
     | '/crm'
-    | '/dashboard-v3'
+    | '/eventos'
     | '/home'
     | '/login'
     | '/lp'
+    | '/novo-evento'
     | '/onboarding'
     | '/performance'
     | '/privacidade'
+    | '/redesign'
+    | '/redesign-login'
     | '/termos'
     | '/auth/callback'
     | '/auth/reset'
@@ -539,9 +623,11 @@ export interface FileRouteTypes {
     | '/comercial/empresas'
     | '/comercial/followups'
     | '/comercial/leads'
+    | '/evento-live/$id'
     | '/financeiro/contas'
     | '/financeiro/lancamentos'
     | '/financeiro/projetos'
+    | '/operacao-evento/$id'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
@@ -555,6 +641,8 @@ export interface FileRouteTypes {
     | '/orcamentos'
     | '/projetos'
     | '/propostas'
+    | '/api/asaas/webhook'
+    | '/api/equipe/convidar'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -563,6 +651,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/assistant'
     | '/biblioteca'
     | '/checkout'
     | '/comercial'
@@ -570,17 +659,20 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/convite'
     | '/crm'
-    | '/dashboard-v3'
+    | '/eventos'
     | '/financeiro'
     | '/home'
     | '/login'
     | '/lp'
+    | '/novo-evento'
     | '/onboarding'
     | '/orcamentos'
     | '/performance'
     | '/privacidade'
     | '/projetos'
     | '/propostas'
+    | '/redesign'
+    | '/redesign-login'
     | '/termos'
     | '/auth/callback'
     | '/auth/reset'
@@ -591,9 +683,11 @@ export interface FileRouteTypes {
     | '/comercial/followups'
     | '/comercial/leads'
     | '/contratos/$vaultId'
+    | '/evento-live/$id'
     | '/financeiro/contas'
     | '/financeiro/lancamentos'
     | '/financeiro/projetos'
+    | '/operacao-evento/$id'
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
@@ -607,6 +701,8 @@ export interface FileRouteTypes {
     | '/orcamentos/'
     | '/projetos/'
     | '/propostas/'
+    | '/api/asaas/webhook'
+    | '/api/equipe/convidar'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId/'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -616,6 +712,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AceitarConviteRoute: typeof AceitarConviteRoute
   AgendaRoute: typeof AgendaRoute
+  AssistantRoute: typeof AssistantRoute
   BibliotecaRoute: typeof BibliotecaRouteWithChildren
   CheckoutRoute: typeof CheckoutRoute
   ComercialRoute: typeof ComercialRouteWithChildren
@@ -623,21 +720,28 @@ export interface RootRouteChildren {
   ContratosRoute: typeof ContratosRouteWithChildren
   ConviteRoute: typeof ConviteRoute
   CrmRoute: typeof CrmRoute
-  DashboardV3Route: typeof DashboardV3Route
+  EventosRoute: typeof EventosRoute
   FinanceiroRoute: typeof FinanceiroRouteWithChildren
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
   LpRoute: typeof LpRoute
+  NovoEventoRoute: typeof NovoEventoRoute
   OnboardingRoute: typeof OnboardingRoute
   OrcamentosRoute: typeof OrcamentosRouteWithChildren
   PerformanceRoute: typeof PerformanceRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ProjetosRoute: typeof ProjetosRouteWithChildren
   PropostasRoute: typeof PropostasRouteWithChildren
+  RedesignRoute: typeof RedesignRoute
+  RedesignLoginRoute: typeof RedesignLoginRoute
   TermosRoute: typeof TermosRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
+  EventoLiveIdRoute: typeof EventoLiveIdRoute
+  OperacaoEventoIdRoute: typeof OperacaoEventoIdRoute
   PSlugRoute: typeof PSlugRoute
+  ApiAsaasWebhookRoute: typeof ApiAsaasWebhookRoute
+  ApiEquipeConvidarRoute: typeof ApiEquipeConvidarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -647,6 +751,20 @@ declare module '@tanstack/react-router' {
       path: '/termos'
       fullPath: '/termos'
       preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redesign-login': {
+      id: '/redesign-login'
+      path: '/redesign-login'
+      fullPath: '/redesign-login'
+      preLoaderRoute: typeof RedesignLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redesign': {
+      id: '/redesign'
+      path: '/redesign'
+      fullPath: '/redesign'
+      preLoaderRoute: typeof RedesignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/propostas': {
@@ -691,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/novo-evento': {
+      id: '/novo-evento'
+      path: '/novo-evento'
+      fullPath: '/novo-evento'
+      preLoaderRoute: typeof NovoEventoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lp': {
       id: '/lp'
       path: '/lp'
@@ -719,11 +844,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceiroRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard-v3': {
-      id: '/dashboard-v3'
-      path: '/dashboard-v3'
-      fullPath: '/dashboard-v3'
-      preLoaderRoute: typeof DashboardV3RouteImport
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crm': {
@@ -773,6 +898,13 @@ declare module '@tanstack/react-router' {
       path: '/biblioteca'
       fullPath: '/biblioteca'
       preLoaderRoute: typeof BibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agenda': {
@@ -887,6 +1019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrcamentosIdRouteImport
       parentRoute: typeof OrcamentosRoute
     }
+    '/operacao-evento/$id': {
+      id: '/operacao-evento/$id'
+      path: '/operacao-evento/$id'
+      fullPath: '/operacao-evento/$id'
+      preLoaderRoute: typeof OperacaoEventoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro/projetos': {
       id: '/financeiro/projetos'
       path: '/projetos'
@@ -907,6 +1046,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/financeiro/contas'
       preLoaderRoute: typeof FinanceiroContasRouteImport
       parentRoute: typeof FinanceiroRoute
+    }
+    '/evento-live/$id': {
+      id: '/evento-live/$id'
+      path: '/evento-live/$id'
+      fullPath: '/evento-live/$id'
+      preLoaderRoute: typeof EventoLiveIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/contratos/$vaultId': {
       id: '/contratos/$vaultId'
@@ -984,6 +1130,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/contratos/$vaultId/novo'
       preLoaderRoute: typeof ContratosVaultIdNovoRouteImport
       parentRoute: typeof ContratosVaultIdRoute
+    }
+    '/api/equipe/convidar': {
+      id: '/api/equipe/convidar'
+      path: '/api/equipe/convidar'
+      fullPath: '/api/equipe/convidar'
+      preLoaderRoute: typeof ApiEquipeConvidarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/asaas/webhook': {
+      id: '/api/asaas/webhook'
+      path: '/api/asaas/webhook'
+      fullPath: '/api/asaas/webhook'
+      preLoaderRoute: typeof ApiAsaasWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/contratos/$vaultId/contrato/$contractId': {
       id: '/contratos/$vaultId/contrato/$contractId'
@@ -1129,6 +1289,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AceitarConviteRoute: AceitarConviteRoute,
   AgendaRoute: AgendaRoute,
+  AssistantRoute: AssistantRoute,
   BibliotecaRoute: BibliotecaRouteWithChildren,
   CheckoutRoute: CheckoutRoute,
   ComercialRoute: ComercialRouteWithChildren,
@@ -1136,21 +1297,28 @@ const rootRouteChildren: RootRouteChildren = {
   ContratosRoute: ContratosRouteWithChildren,
   ConviteRoute: ConviteRoute,
   CrmRoute: CrmRoute,
-  DashboardV3Route: DashboardV3Route,
+  EventosRoute: EventosRoute,
   FinanceiroRoute: FinanceiroRouteWithChildren,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
   LpRoute: LpRoute,
+  NovoEventoRoute: NovoEventoRoute,
   OnboardingRoute: OnboardingRoute,
   OrcamentosRoute: OrcamentosRouteWithChildren,
   PerformanceRoute: PerformanceRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ProjetosRoute: ProjetosRouteWithChildren,
   PropostasRoute: PropostasRouteWithChildren,
+  RedesignRoute: RedesignRoute,
+  RedesignLoginRoute: RedesignLoginRoute,
   TermosRoute: TermosRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
+  EventoLiveIdRoute: EventoLiveIdRoute,
+  OperacaoEventoIdRoute: OperacaoEventoIdRoute,
   PSlugRoute: PSlugRoute,
+  ApiAsaasWebhookRoute: ApiAsaasWebhookRoute,
+  ApiEquipeConvidarRoute: ApiEquipeConvidarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -6,7 +6,6 @@ import {
 import { ArrowRight2, MagicStar, Microphone, Cpu, TickCircle, ShieldTick, Flash } from "iconsax-react";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { DashboardMock } from "./dashboard-mock";
-const openAuth = () => window.dispatchEvent(new Event("makershub:open-auth"));
 const irParaPrecos = () => document.getElementById("precos")?.scrollIntoView({ behavior: "smooth" });
 
 function Wordmark({ className = "h-9 w-9" }: { className?: string }) {
@@ -22,7 +21,7 @@ function Wordmark({ className = "h-9 w-9" }: { className?: string }) {
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#18181f] text-foreground antialiased">
+    <div className="sales-landing min-h-screen overflow-x-hidden bg-[#18181f] text-foreground antialiased">
       <BackgroundFX />
       <Header />
       <main className="relative">
@@ -42,9 +41,9 @@ export function LandingPage() {
 /* ---------- background ---------- */
 function BackgroundFX() {
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden" aria-hidden="true">
       <div
-        className="absolute inset-0 opacity-[0.07]"
+        className="landing-grid absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
@@ -52,9 +51,8 @@ function BackgroundFX() {
           maskImage: "radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%)",
         }}
       />
-      <div className="absolute -top-32 left-1/2 h-[640px] w-[640px] -translate-x-1/2 rounded-full bg-[#90F826] opacity-[0.13] blur-[140px]" />
-      <div className="absolute top-[420px] -left-40 h-[460px] w-[460px] rounded-full bg-[#90F826] opacity-[0.06] blur-[120px]" />
-      <div className="absolute top-[920px] -right-40 h-[520px] w-[520px] rounded-full bg-[#5fd9ff] opacity-[0.05] blur-[140px]" />
+      <div className="landing-glow absolute -top-32 left-1/2 h-[640px] w-[640px] -translate-x-1/2 rounded-full" />
+      <div className="landing-glow absolute top-[420px] -left-40 h-[460px] w-[460px] rounded-full" />
     </div>
   );
 }
@@ -91,13 +89,12 @@ function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={openAuth}
+          <a
+            href="/login"
             className="inline-flex h-9 items-center rounded-lg px-2.5 text-sm font-medium text-white/80 transition hover:text-white sm:px-4"
           >
             Entrar
-          </button>
+          </a>
           <a
             href="#precos"
             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.05] px-2.5 text-sm font-medium text-white/85 transition hover:bg-white/[0.09] sm:px-4"

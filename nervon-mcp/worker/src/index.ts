@@ -25,7 +25,7 @@ interface Env {
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "makershub", version: "6.1.0" };
+const SERVER_INFO = { name: "makershub", version: "7.0.0" };
 const CODE_TTL_SECONDS = 600; // código de autorização válido por 10 min
 
 const CORS = {
@@ -232,6 +232,42 @@ const TOOLS = [
     name: "listar_projetos",
     description: "Lista os projetos da produtora no MakersHub (fase, progresso, valor, entrega).",
     inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "obter_projeto",
+    description: "Abre o workspace completo de um projeto: dados, etapas, equipe, tarefas, marcos e entregáveis. Use antes de criar ou mover tarefas para conhecer o fluxo configurado.",
+    inputSchema: { type: "object", properties: { projeto_id: { type: "string", description: "ID obtido em listar_projetos" } }, required: ["projeto_id"] },
+  },
+  {
+    name: "criar_tarefa_projeto",
+    description: "Cria uma ação concreta dentro de um projeto. O título descreve o que fazer; etapa indica onde ela está no fluxo de produção.",
+    inputSchema: { type: "object", properties: {
+      projeto_id: { type: "string" }, titulo: { type: "string", description: "Ação concreta, ex: Editar criativo Dia das Mães" },
+      etapa: { type: "string", description: "Etapa do fluxo. Consulte obter_projeto para ver as etapas disponíveis." },
+      responsavel: { type: "string" }, prazo: { type: "string", description: "ISO 8601 com fuso" },
+      prioridade: { type: "string", enum: ["baixa","media","alta","urgente"] }, descricao: { type: "string" }, link: { type: "string" },
+    }, required: ["projeto_id","titulo"] },
+  },
+  {
+    name: "listar_tarefas_projeto",
+    description: "Lista tarefas da operação. Pode filtrar por projeto, etapa e apenas pendentes; inclui projeto, cliente, cor, responsável e prazo.",
+    inputSchema: { type: "object", properties: {
+      projeto_id: { type: "string" }, etapa: { type: "string" }, apenas_pendentes: { type: "boolean" },
+    } },
+  },
+  {
+    name: "atualizar_tarefa_projeto",
+    description: "Edita ou move uma tarefa entre etapas. O avanço do projeto é recalculado automaticamente.",
+    inputSchema: { type: "object", properties: {
+      tarefa_id: { type: "string" }, titulo: { type: "string" }, etapa: { type: "string" }, concluida: { type: "boolean" },
+      responsavel: { type: "string" }, prazo: { type: "string", description: "ISO 8601 com fuso" },
+      prioridade: { type: "string", enum: ["baixa","media","alta","urgente"] }, descricao: { type: "string" }, link: { type: "string" },
+    }, required: ["tarefa_id"] },
+  },
+  {
+    name: "concluir_tarefa_projeto",
+    description: "Conclui uma tarefa do projeto, move para Concluída e recalcula o avanço da produção.",
+    inputSchema: { type: "object", properties: { tarefa_id: { type: "string" } }, required: ["tarefa_id"] },
   },
 
   // ── Follow-ups ──
@@ -683,6 +719,40 @@ async function runTool(env: Env, tokenHash: string, name: string, args: Record<s
       if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar projetos.", true);
       const ps = r.projetos ?? [];
       return toolText(ps.length === 0 ? "Nenhum projeto encontrado." : JSON.stringify(ps, null, 2));
+    }
+    case "obter_projeto": {
+      const r: any = await callRpc(env, "mcp_obter_projeto", { p_token_hash: tokenHash, p_projeto_id: args.projeto_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao abrir projeto.", true);
+      return toolText(JSON.stringify(r.projeto, null, 2));
+    }
+    case "criar_tarefa_projeto": {
+      const r: any = await callRpc(env, "mcp_criar_tarefa_projeto", {
+        p_token_hash: tokenHash, p_projeto_id: args.projeto_id, p_titulo: args.titulo, p_etapa: args.etapa ?? null,
+        p_responsavel: args.responsavel ?? "Agente IA", p_prazo: args.prazo ?? null, p_prioridade: args.prioridade ?? "media",
+        p_descricao: args.descricao ?? null, p_link: args.link ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao criar tarefa.", true);
+      return toolText(`Tarefa "${r.titulo}" criada em ${r.etapa}. ID: ${r.tarefa_id}. Avanço do projeto: ${r.progresso_projeto}%.`);
+    }
+    case "listar_tarefas_projeto": {
+      const r: any = await callRpc(env, "mcp_listar_tarefas_projeto", { p_token_hash: tokenHash, p_projeto_id: args.projeto_id ?? null, p_etapa: args.etapa ?? null, p_apenas_pendentes: args.apenas_pendentes ?? false });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao listar tarefas.", true);
+      const ts = r.tarefas ?? [];
+      return toolText(ts.length ? JSON.stringify(ts, null, 2) : "Nenhuma tarefa encontrada.");
+    }
+    case "atualizar_tarefa_projeto": {
+      const r: any = await callRpc(env, "mcp_atualizar_tarefa_projeto", {
+        p_token_hash: tokenHash, p_tarefa_id: args.tarefa_id, p_titulo: args.titulo ?? null, p_etapa: args.etapa ?? null,
+        p_concluida: args.concluida ?? null, p_responsavel: args.responsavel ?? null, p_prazo: args.prazo ?? null,
+        p_prioridade: args.prioridade ?? null, p_descricao: args.descricao ?? null, p_link: args.link ?? null,
+      });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao atualizar tarefa.", true);
+      return toolText(`Tarefa ${r.tarefa_id} atualizada. Avanço do projeto: ${r.progresso_projeto}%.`);
+    }
+    case "concluir_tarefa_projeto": {
+      const r: any = await callRpc(env, "mcp_concluir_tarefa_projeto", { p_token_hash: tokenHash, p_tarefa_id: args.tarefa_id });
+      if (!r?.ok) return toolText(r?.erro ?? "Erro ao concluir tarefa.", true);
+      return toolText(`Tarefa ${r.tarefa_id} concluída. Avanço do projeto: ${r.progresso_projeto}%.`);
     }
 
     // ── Follow-ups ──

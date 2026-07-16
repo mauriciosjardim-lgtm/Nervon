@@ -4,13 +4,13 @@ import {
   Briefcase,
   Kanban,
   Calendar,
+  CalendarTick,
   EmptyWallet,
   ClipboardText,
   DocumentText1,
   Calculator,
   Archive,
   StatusUp,
-  Flash,
   Setting2,
   Logout,
 } from "iconsax-react";
@@ -32,15 +32,14 @@ import type { Icon } from "iconsax-react";
 import { temAcesso, type Permissoes } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
 
-type NavItem = { title: string; url: string; icon: Icon; modulo?: keyof Permissoes };
+type NavItem = { title: string; url: string; icon: Icon; modulo?: keyof Permissoes; emBreve?: boolean };
 type SoonItem = { title: string; icon: Icon };
 
-const DASHBOARD_URL = import.meta.env.DEV ? "/dashboard-v3" : "/";
-
 const primary: NavItem[] = [
-  { title: "Dashboard", url: DASHBOARD_URL, icon: Element3 },
+  { title: "Dashboard", url: "/", icon: Element3 },
   { title: "Comercial", url: "/comercial", icon: Briefcase, modulo: "comercial" },
   { title: "Projetos", url: "/projetos", icon: Kanban, modulo: "projetos" },
+  { title: "Eventos", url: "/eventos", icon: CalendarTick, emBreve: true },
   { title: "Agenda", url: "/agenda", icon: Calendar, modulo: "agenda" },
   { title: "Financeiro", url: "/financeiro", icon: EmptyWallet, modulo: "financeiro" },
 ];
@@ -63,12 +62,12 @@ export function AppSidebar() {
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
   const { empresa, usuario, signOut } = useAuth();
 
-  const previewV3 = import.meta.env.DEV && pathname.startsWith("/dashboard-v3");
   const iconProps = (active = false) => ({
-    size: previewV3 ? 17 : 16,
+    size: 24,
     color: "currentColor",
-    variant: active && previewV3 ? ("Bold" as const) : ("Linear" as const),
+    variant: active ? ("Bulk" as const) : ("TwoTone" as const),
   });
+  const navIconClass = "[&>svg]:!size-6 [&>svg]:transition-[transform,filter,opacity] [&>svg]:duration-200 hover:[&>svg]:scale-110 hover:[&>svg]:opacity-100 data-[active=true]:[&>svg]:drop-shadow-[0_0_7px_var(--sidebar-primary)]";
 
   const role = (usuario as any)?.role ?? "admin";
   const permissoes = ((usuario as any)?.permissoes as Partial<Permissoes> | null) ?? null;
@@ -76,16 +75,10 @@ export function AppSidebar() {
     role === "admin" || !item.modulo || temAcesso(permissoes, item.modulo);
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className={cn(
-        "border-r border-sidebar-border",
-        previewV3 && "[font-family:'IBM_Plex_Sans',Inter,system-ui,sans-serif]",
-      )}
-    >
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2 py-3">
-          <div className="relative grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-[0_0_20px_-2px_var(--primary)] overflow-hidden">
+          <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-[0_0_24px_-3px_var(--primary)]">
             {empresa?.logo_url ? (
               <img src={empresa.logo_url} alt="logo" className="h-full w-full object-contain" />
             ) : (
@@ -122,13 +115,16 @@ export function AppSidebar() {
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
-                    className="group/item h-9 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-medium"
+                    className={cn("group/item h-11 rounded-xl px-3 transition-all duration-200 hover:translate-x-0.5 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-medium group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:[&>span]:hidden", navIconClass)}
                   >
                     <Link to={item.url}>
                       <item.icon {...iconProps(isActive(item.url))} />
                       <span>{item.title}</span>
+                      {item.emBreve && !collapsed && (
+                        <span className="ml-auto rounded-md border border-primary/20 bg-primary/8 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider text-primary">Em breve</span>
+                      )}
                       {isActive(item.url) && (
-                        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+                        <span className={cn("h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]", !item.emBreve && "ml-auto")} />
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -138,7 +134,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={`${item.title} — Em breve`}
-                    className="h-9 cursor-not-allowed opacity-40 hover:bg-transparent"
+                    className="h-11 cursor-not-allowed rounded-xl opacity-40 hover:bg-transparent [&>svg]:!size-6 group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:[&>span]:hidden"
                   >
                     <item.icon {...iconProps()} />
                     <span>{item.title}</span>
@@ -168,7 +164,7 @@ export function AppSidebar() {
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
-                    className="h-9 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
+                    className={cn("h-11 rounded-xl px-3 transition-all duration-200 hover:translate-x-0.5 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:[&>span]:hidden", navIconClass)}
                   >
                     <Link to={item.url}>
                       <item.icon {...iconProps(isActive(item.url))} />
@@ -181,7 +177,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={`${item.title} — Em breve`}
-                    className="h-9 cursor-not-allowed opacity-40 hover:bg-transparent"
+                    className="h-11 cursor-not-allowed rounded-xl opacity-40 hover:bg-transparent [&>svg]:!size-6 group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:[&>span]:hidden"
                   >
                     <item.icon {...iconProps()} />
                     <span>{item.title}</span>
@@ -197,31 +193,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          {!collapsed && (
-            <SidebarGroupLabel className="px-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70">
-              Inteligência
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="MakersHub Intelligence — Em breve"
-                  className="h-9 cursor-not-allowed opacity-50 hover:bg-transparent"
-                >
-                  <Flash {...iconProps()} />
-                  <span>Intelligence</span>
-                  {!collapsed && (
-                    <span className="ml-auto rounded-md border border-border bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
-                      Em breve
-                    </span>
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-1.5">
@@ -231,7 +202,7 @@ export function AppSidebar() {
               asChild
               isActive={isActive("/configuracoes")}
               tooltip="Configurações"
-              className="h-9 data-[active=true]:bg-sidebar-accent"
+              className={cn("h-11 rounded-xl px-3 transition-all duration-200 hover:translate-x-0.5 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:[&>span]:hidden", navIconClass)}
             >
               <Link to="/configuracoes">
                 <Setting2 {...iconProps(isActive("/configuracoes"))} />

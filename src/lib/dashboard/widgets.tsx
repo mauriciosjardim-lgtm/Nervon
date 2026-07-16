@@ -82,7 +82,7 @@ const Pipeline = () => {
 
 const ProjetosAtivos = () => {
   const { projetos, tarefas } = useProjetos();
-  const ativos = projetos.filter(p => p.fase !== "entrega" && p.fase !== "concluido");
+  const ativos = projetos.filter(p => !p.arquivado && p.fase !== "entrega" && p.fase !== "concluido");
   const pendentes = tarefas.filter(t => !t.concluida).length;
   return <Stat icon={FolderKanban} label="Projetos ativos" value={String(ativos.length)} hint={`${pendentes} tarefas em aberto`} />;
 };

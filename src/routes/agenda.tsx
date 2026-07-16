@@ -2,15 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   addDays, addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format,
-  isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths,
+  differenceInCalendarDays, isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft2, ArrowRight2, Add, Clock, Location, Profile2User } from "iconsax-react";
+import { ArrowLeft2, ArrowRight2, Add, Clock, Location, Lock1, Profile2User } from "iconsax-react";
 import type { Icon as IconsaxIcon } from "iconsax-react";
 import { Button } from "@/components/ui/button";
 import { GoogleCalendarIcon } from "@/components/icons/google-calendar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgendaSupa } from "@/lib/hooks/useAgenda";
+import { useProjetos } from "@/lib/hooks/useProjetos";
 import { TIPOS, type Evento } from "@/lib/mock/agenda";
 import { EventoModal } from "@/components/agenda/evento-modal";
 import { cn } from "@/lib/utils";
@@ -22,8 +23,13 @@ type Visao = "mes" | "semana" | "dia";
 
 function AgendaPage() {
   const { eventos } = useAgendaSupa();
+  const { tarefas } = useProjetos();
   const [visao, setVisao] = useState<Visao>("semana");
-  const [cursor, setCursor] = useState(new Date());
+  const [cursor, setCursor] = useState(() => {
+    const saved = typeof window !== "undefined" ? sessionStorage.getItem("makershub:agenda:cursor") : null;
+    if (saved) { sessionStorage.removeItem("makershub:agenda:cursor"); const date = new Date(saved); if (!Number.isNaN(date.getTime())) return date; }
+    return new Date();
+  });
   const [editando, setEditando] = useState<Evento | null>(null);
   const [criandoEm, setCriandoEm] = useState<Date | null>(null);
   const [modal, setModal] = useState(false);
@@ -52,6 +58,14 @@ function AgendaPage() {
     else setCursor(addDays(cursor, dir));
   };
 
+  // Tarefas criadas antes da integração ainda não possuem participantes no
+  // evento. Exibe o responsável vindo de Projetos sem exigir nova edição.
+  const eventosComResponsaveis = useMemo(() => eventos.map(evento => {
+    if (evento.participantes?.length || evento.refTipo !== "tarefa" || !evento.refId) return evento;
+    const responsavel = tarefas.find(t => t.id === evento.refId)?.responsavel;
+    return responsavel ? { ...evento, participantes: [responsavel] } : evento;
+  }), [eventos, tarefas]);
+
   return (
     <div className="space-y-4 px-4 py-5 md:px-8 md:py-7">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -79,9 +93,9 @@ function AgendaPage() {
 
       <Legenda onNovo={() => abrirNovo()} />
 
-      {visao === "mes" && <VisaoMes cursor={cursor} eventos={eventos} onDia={abrirNovo} onEvento={abrirEdicao} />}
-      {visao === "semana" && <VisaoSemana cursor={cursor} eventos={eventos} onDia={abrirNovo} onEvento={abrirEdicao} />}
-      {visao === "dia" && <VisaoDia cursor={cursor} eventos={eventos} onNovo={() => abrirNovo(cursor)} onEvento={abrirEdicao} />}
+      {visao === "mes" && <VisaoMes cursor={cursor} eventos={eventosComResponsaveis} onDia={abrirNovo} onEvento={abrirEdicao} />}
+      {visao === "semana" && <VisaoSemana cursor={cursor} eventos={eventosComResponsaveis} onDia={abrirNovo} onEvento={abrirEdicao} />}
+      {visao === "dia" && <VisaoDia cursor={cursor} eventos={eventosComResponsaveis} onNovo={() => abrirNovo(cursor)} onEvento={abrirEdicao} />}
 
       <EventoModal open={modal} onClose={() => setModal(false)} evento={editando} dataInicial={criandoEm} />
     </div>
@@ -165,50 +179,99 @@ function VisaoMes({ cursor, eventos, onDia, onEvento }: {
 }
 
 /* ===================== SEMANA ===================== */
+// Timeline editorial: a semana é a régua horizontal e cada evento ocupa uma
+// lane própria. O horário continua sendo informação, mas não define a posição.
+const NOTCH_CLIP: Record<string, string> = {
+  reuniao:  "bg-info",
+  gravacao: "bg-primary",
+  edicao:   "bg-purple-400",
+  entrega:  "bg-success",
+  tarefa:   "bg-warning",
+  outro:    "bg-muted-foreground",
+};
+const TEXTO_CLIP: Record<string, string> = {
+  reuniao:  "text-info",
+  gravacao: "text-primary",
+  edicao:   "text-purple-300",
+  entrega:  "text-success",
+  tarefa:   "text-warning",
+  outro:    "text-muted-foreground",
+};
+
+function iniciaisDe(nome: string) {
+  return nome.split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+}
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
 function VisaoSemana({ cursor, eventos, onDia, onEvento }: {
   cursor: Date; eventos: Evento[];
   onDia: (d: Date) => void; onEvento: (e: Evento) => void;
 }) {
   const ini = startOfWeek(cursor, { weekStartsOn: 1 });
   const dias = Array.from({ length: 7 }, (_, i) => addDays(ini, i));
+  const fimSemana = addDays(addDays(ini, 6), 1); // exclusivo (início do dia seguinte)
+  const itens = eventos
+    .filter(e => { const d = new Date(e.inicio); return d >= ini && d < fimSemana; })
+    .sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
+  const fimPorLane: number[] = [];
+  const clips = itens.map(evento => {
+    const inicioEvento = new Date(evento.inicio);
+    const fimEvento = new Date(evento.fim);
+    const inicioDia = clamp(differenceInCalendarDays(inicioEvento, ini), 0, 6);
+    const fimDia = clamp(Math.max(inicioDia, differenceInCalendarDays(fimEvento, ini)), inicioDia, 6);
+    let lane = fimPorLane.findIndex(ocupadoAte => ocupadoAte < inicioDia);
+    if (lane === -1) { lane = fimPorLane.length; fimPorLane.push(fimDia); }
+    else fimPorLane[lane] = fimDia;
+    return { evento, inicioEvento, fimEvento, inicioDia, fimDia, lane };
+  });
+  const totalLanes = Math.max(5, fimPorLane.length);
+  const idxHoje = dias.findIndex((dia) => isToday(dia));
+
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-7">
-      {dias.map(d => {
-        const doDia = eventos
-          .filter(e => isSameDay(new Date(e.inicio), d))
-          .sort((a, b) => +new Date(a.inicio) - +new Date(b.inicio));
-        const hoje = isToday(d);
-        return (
-          <div key={d.toISOString()} className={cn(
-            "min-h-[280px] rounded-xl border bg-surface-1/40 p-3",
-            hoje ? "border-primary/40 ring-1 ring-primary/30" : "border-border",
-          )}>
-            <button onClick={() => onDia(d)} className="mb-3 flex w-full items-center justify-between text-left group">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{format(d, "EEE", { locale: ptBR })}</p>
-                <p className={cn("font-display text-xl font-semibold", hoje && "text-primary")}>{format(d, "dd")}</p>
-              </div>
-              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary">
-                {doDia.length || "+"}
-              </span>
-            </button>
-            <div className="space-y-1.5">
-              {doDia.length === 0 && <p className="rounded-md border border-dashed border-border/60 p-3 text-center text-[10px] text-muted-foreground">Sem eventos</p>}
-              {doDia.map(e => (
-                <button key={e.id} onClick={() => onEvento(e)} className={cn(
-                  "w-full rounded-lg border p-2 text-left transition hover:scale-[1.01]", TIPOS[e.tipo].classe,
-                )}>
-                  <p className="text-[10px] tabular-nums opacity-80">
-                    {format(new Date(e.inicio), "HH:mm")} – {format(new Date(e.fim), "HH:mm")}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs font-medium text-foreground">{e.titulo}</p>
-                  {e.local && <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] opacity-70"><Location size={10} color="currentColor" variant="Linear" /> {e.local}</p>}
-                </button>
-              ))}
-            </div>
+    <div className="overflow-hidden rounded-2xl border border-border/60 bg-surface-1/30 shadow-[0_24px_60px_-40px_rgba(0,0,0,.95)]">
+      <div className="overflow-x-auto">
+        <div className="min-w-[1120px]">
+          <div className="grid grid-cols-7 border-b border-border/40 bg-surface-2/15">
+              {dias.map(d => {
+                const hoje = isToday(d);
+                return (
+                  <button key={d.toISOString()} onClick={() => onDia(d)} title="Agendar neste dia"
+                    className={cn("group flex items-baseline gap-2 border-l border-border/25 px-4 py-3.5 text-left transition first:border-l-0 hover:bg-white/[0.02]", hoje && "bg-primary/[0.035]")}>
+                    <span className={cn("text-[10px] font-medium uppercase", hoje ? "text-primary" : "text-muted-foreground/70")}>{format(d, "EEEEE", { locale: ptBR })}</span>
+                    <strong className={cn("font-display text-xl font-semibold tabular-nums tracking-tight", hoje ? "text-foreground" : "text-muted-foreground")}>{format(d, "d")}</strong>
+                    <span className="ml-auto text-[9px] text-muted-foreground/60 opacity-0 transition group-hover:opacity-100">+</span>
+                  </button>
+                );
+              })}
           </div>
-        );
-      })}
+          <div className="relative grid grid-cols-7" style={{ minHeight: totalLanes * 94 + 40 }}>
+            {dias.map(d => <button key={d.toISOString()} onClick={() => onDia(d)} title={`Agendar ${format(d, "dd MMM", { locale: ptBR })}`} className={cn("border-l border-border/25 first:border-l-0 transition hover:bg-white/[0.012]", (d.getDay() === 0 || d.getDay() === 6) && "bg-black/[0.055]", isToday(d) && "bg-primary/[0.018]")} />)}
+            {idxHoje >= 0 && <div className="pointer-events-none absolute inset-y-0 z-[1] w-px bg-primary/45" style={{ left: `${((idxHoje + .5) / 7) * 100}%` }}><span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/.75)]" /></div>}
+            {clips.map(({ evento, inicioEvento, fimEvento, inicioDia, fimDia, lane }) => {
+              const responsavel = evento.participantes?.[0];
+              const span = fimDia - inicioDia + 1;
+              const top = 22 + lane * 94;
+              return <div key={evento.id} className="contents">
+                {span > 1 && <div className="pointer-events-none absolute z-[1] h-px bg-primary/45" style={{ top: top + 36, left: `${((inicioDia + .5) / 7) * 100}%`, width: `${((span - 1) / 7) * 100}%` }}><span className="absolute left-1/2 top-1/2 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-primary/35 bg-background text-primary shadow-[0_0_12px_hsl(var(--primary)/.18)]"><Lock1 size={9} color="currentColor" variant="Bold" /></span></div>}
+                {Array.from({ length: span }, (_, indice) => {
+                  const diaSegmento = inicioDia + indice;
+                  const rotuloHorario = evento.diaTodo ? "Dia todo" : span === 1 ? `${format(inicioEvento, "HH:mm")}–${format(fimEvento, "HH:mm")}` : indice === 0 ? `${format(inicioEvento, "HH:mm")} · início` : indice === span - 1 ? `${format(fimEvento, "HH:mm")} · término` : "Continuação";
+                  return <button key={`${evento.id}-${diaSegmento}`} onClick={() => onEvento(evento)} style={{ left: `calc(${(diaSegmento / 7) * 100}% + 10px)`, width: `calc(${(1 / 7) * 100}% - 20px)`, top }} className="group absolute z-[2] flex min-h-[72px] overflow-hidden rounded-xl bg-surface-2/95 p-3 text-left ring-1 ring-white/[0.055] shadow-[0_14px_30px_-22px_rgba(0,0,0,.95)] transition duration-200 hover:z-[3] hover:scale-[1.015] hover:bg-surface-2 hover:ring-white/[0.13] hover:shadow-[0_18px_36px_-22px_rgba(0,0,0,1)]">
+                    <span className={cn("mr-2.5 w-[3px] shrink-0 self-stretch rounded-full", NOTCH_CLIP[evento.tipo] ?? "bg-muted-foreground")} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2"><p className="truncate font-display text-[13px] font-semibold leading-tight text-foreground">{evento.titulo}</p>{responsavel && <span title={responsavel} className="grid size-6 shrink-0 place-items-center rounded-full bg-surface-3 text-[8px] font-bold text-foreground/80 ring-2 ring-surface-2">{iniciaisDe(responsavel)}</span>}</div>
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px]"><span className={cn("font-medium", TEXTO_CLIP[evento.tipo])}>{TIPOS[evento.tipo].label}</span><span className="truncate tabular-nums text-muted-foreground">{rotuloHorario}</span></div>
+                      {responsavel && <p className="mt-1 truncate text-[10px] text-muted-foreground">{responsavel}</p>}
+                    </div>
+                  </button>;
+                })}
+              </div>;
+            })}
+            {!clips.length && <p className="absolute inset-x-0 top-20 text-center text-xs text-muted-foreground">Semana livre. Clique em qualquer dia para agendar.</p>}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -245,6 +308,7 @@ function VisaoDia({ cursor, eventos, onNovo, onEvento }: {
                         </span>
                       </div>
                       {e.local && <p className="mt-1 flex items-center gap-1 text-[11px] opacity-80"><Location size={12} color="currentColor" variant="Linear" /> {e.local}</p>}
+                      {e.participantes?.[0] && <p className="mt-1 text-[11px] text-muted-foreground">Responsável: {e.participantes[0]}</p>}
                     </button>
                   ))}
                 </div>
