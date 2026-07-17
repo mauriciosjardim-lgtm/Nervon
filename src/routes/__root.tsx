@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getSessionHint } from "@/lib/sessionHint";
 import { LandingPage } from "@/components/landing/landing-page";
 import { MakersHubUpdatedScreen } from "@/components/makershub-updated-screen";
+import { trackMetaPageView } from "@/lib/meta-pixel";
 
 const AppRuntimeShell = lazy(() =>
   import("@/components/app-runtime-shell").then((m) => ({ default: m.AppRuntimeShell })),
@@ -165,9 +166,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       {
-        // Meta Pixel (dataset "Makers Hub" — 1576110244237458). Dispara PageView
-        // em todas as rotas para alimentar a campanha de aquisição.
-        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1576110244237458');fbq('track','PageView');`,
+        // O PageView é disparado pelo MetaPageViewTracker com event_id, permitindo
+        // deduplicar o evento enviado em paralelo pela Conversions API.
+        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1576110244237458');`,
       },
       {
         // Carrega Google Fonts de forma não-bloqueante — não trava o primeiro paint
@@ -212,6 +213,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { sessionHint } = Route.useLoaderData();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    trackMetaPageView();
+  }, [pathname]);
 
   // Caminho crítico do anúncio: visitante na home não precisa inicializar
   // Supabase/Auth nem esperar chunk lazy da landing. Isso evita a tela escura

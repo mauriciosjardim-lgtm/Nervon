@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft2, TickCircle, ShieldTick, Flash, Eye, EyeSlash, CloseCircle, Lock1, InfoCircle } from "iconsax-react";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { AuthBackground } from "@/components/auth-background";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { iniciarPix, checarPedido, pagarCartao } from "@/lib/api/asaas.functions";
+import { trackMetaInitiateCheckout, trackMetaPurchaseBrowser } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
@@ -220,6 +221,10 @@ function Checkout() {
   const [telefone, setTelefone] = useState("");
   const [pagando, setPagando] = useState(false);
 
+  useEffect(() => {
+    trackMetaInitiateCheckout();
+  }, []);
+
   function validarConta(): string | null {
     if (!nome.trim()) return "Informe seu nome completo.";
     if (!empresa.trim()) return "Informe o nome da sua produtora.";
@@ -265,6 +270,7 @@ function Checkout() {
       const { status, error: errMsg } = await checarPedido({ data: { paymentId: charge.id } });
 
       if (status === "completed") {
+        trackMetaPurchaseBrowser(charge.id);
         setAguardandoAtivacao(false);
         setContaCriada(true);
         return;
@@ -305,13 +311,14 @@ function Checkout() {
     setErro(null);
     setPagando(true);
     try {
-      await pagarCartao({
+      const result = await pagarCartao({
         data: {
           nome: nome.trim(), email: email.trim(), cpfCnpj: cpf, senha, empresa: empresa.trim(),
           card: { holderName: cardName.trim(), number: cardNumber, expiryMonth: mm, expiryYear: aa, ccv: cvv },
           holder: { postalCode: cep, addressNumber: numero.trim(), phone: telefone },
         },
       });
+      trackMetaPurchaseBrowser(result.paymentId);
       const { error } = await signIn(email.trim(), senha);
       if (error) { navigate({ to: "/login" }); return; }
       navigate({ to: "/" });

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { rateLimit } from "./rateLimit";
+import { trackMetaPurchase } from "./meta.functions";
 
 // Integração Asaas (https://docs.asaas.com)
 // Auth por header `access_token`. Aceita CPF (pessoa física).
@@ -192,6 +193,12 @@ export async function processarPagamento({
       console.error("[pagamento] erro ao enviar e-mail de definição de senha:", err instanceof Error ? err.message : err);
     });
   }
+
+  // Best-effort: a compra já foi confirmada e provisionada. Falha na
+  // plataforma de anúncios não pode reverter nem atrasar a conta do cliente.
+  await trackMetaPurchase({ paymentId, email }).catch((err) => {
+    console.error("[pagamento] erro ao registrar Purchase na Meta:", err instanceof Error ? err.message : err);
+  });
 }
 
 // Libera empresa de usuário logado (upgrade trial → vitalício).
@@ -417,7 +424,7 @@ export const pagarCartao = createServerFn({ method: "POST" })
       senha:     data.senha,
     });
 
-    return { email: data.email };
+    return { email: data.email, paymentId: cobranca.id as string };
   });
 
 // ─────────────────── UPGRADE: PIX ───────────────────
