@@ -84,6 +84,10 @@ function LancamentosPage() {
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
         <span>{filtrados.length} lançamentos</span>
         <span>·</span>
+        {/* A Visão geral filtra por mês; aqui é tudo. Sem esse rótulo os totais
+            pareciam contradizer os KPIs da outra aba. */}
+        <span className="text-muted-foreground/70">todo o período</span>
+        <span>·</span>
         <span className="flex items-center gap-1"><TrendUp size={12} color="currentColor" variant="Linear" className="text-primary" /> Receita: <strong className="tabular-nums text-foreground">{fmtBRL(totalReceita)}</strong></span>
         <span>·</span>
         <span className="flex items-center gap-1"><TrendDown size={12} color="currentColor" variant="Linear" className="text-primary" /> Despesa: <strong className="tabular-nums text-foreground">{fmtBRL(totalDespesa)}</strong></span>
@@ -151,12 +155,14 @@ function LancamentosPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{fmtData(l.vencimento)}</TableCell>
-                <TableCell className={`text-right font-display text-sm font-semibold tabular-nums ${l.tipo === "receita" ? "text-foreground" : "text-foreground"}`}>
+                <TableCell className="whitespace-nowrap text-right font-display text-sm font-semibold tabular-nums text-foreground">
                   {l.tipo === "despesa" && "− "}{fmtBRL(l.valor)}
                 </TableCell>
                 <TableCell><StatusBadge status={l.status} /></TableCell>
                 <TableCell className="text-right" onClick={e => e.stopPropagation()}>
-                  <div className="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100">
+                  {/* Em touch não existe hover: os botões ficavam invisíveis mas
+                      continuavam clicáveis, dando pra excluir um lançamento às cegas. */}
+                  <div className="flex justify-end gap-1 transition [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
                     {l.pagamentoEm ? (
                       <Button
                         size="icon" variant="ghost" className="size-7"

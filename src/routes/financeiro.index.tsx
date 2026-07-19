@@ -11,7 +11,7 @@ import { KpiDetalheSheet } from "@/components/financeiro/kpi-detalhe-sheet";
 import { NovoLancamentoModal } from "@/components/financeiro/novo-lancamento-modal";
 import { StatusBadge } from "@/components/financeiro/status-badge";
 import {
-  calcularMetricas, serieMensal, porCategoria, fmtBRL, fmtData,
+  calcularMetricas, serieMensal, porCategoria, fmtBRL, fmtData, fmtEixo,
   type Lancamento,
 } from "@/lib/mock/financeiro";
 import { useFinanceiroSupa } from "@/lib/hooks/useFinanceiro";
@@ -119,7 +119,7 @@ function FinanceiroDashboard() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
           icon={ArrowUp} label="Recebido" value={fmtBRL(m.recebido)}
-          hint={`${fmtBRL(m.aReceber)} a receber`} tone="positive"
+          hint={`${fmtBRL(m.aReceberTotal)} a receber`} tone="positive"
           onClick={() => setKpiSheet({
             titulo: "Receitas recebidas",
             descricao: "Lançamentos de receita já confirmados",
@@ -133,7 +133,7 @@ function FinanceiroDashboard() {
         />
         <KpiCard
           icon={ArrowDown} label="Pago" value={fmtBRL(m.pago)}
-          hint={`${fmtBRL(m.aPagar)} a pagar`} tone="negative"
+          hint={`${fmtBRL(m.aPagarTotal)} a pagar`} tone="negative"
           onClick={() => setKpiSheet({
             titulo: "Despesas pagas",
             descricao: "Lançamentos de despesa já quitados",
@@ -206,7 +206,7 @@ function FinanceiroDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}
-                  tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                  tickFormatter={fmtEixo} />
                 <Tooltip
                   contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12 }}
                   formatter={(v: number) => fmtBRL(v)}
@@ -240,7 +240,7 @@ function FinanceiroDashboard() {
                 <BarChart data={catDespesa} layout="vertical" margin={{ top: 6, right: 12, left: 8, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                   <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false}
-                    tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                    tickFormatter={fmtEixo} />
                   <YAxis dataKey="categoria" type="category" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={80} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12 }}

@@ -175,8 +175,8 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
+      <DialogContent className="max-w-xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0">
+        <DialogHeader className="px-4 pt-5 sm:px-6 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Add size={16} color="currentColor" variant="Linear" className="text-primary" />
             {editar ? "Editar lançamento" : "Novo lançamento"}
@@ -186,7 +186,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4 overflow-y-auto px-4 pb-3 sm:px-6">
           {/* Toggle tipo */}
           <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-surface-1 p-1">
             <button
@@ -218,7 +218,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
             <Input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Ex.: Parcela 2/4 — campanha Vibe" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="grid gap-1.5">
               <Label>Valor (R$)</Label>
               <CurrencyInput value={valor} onValueChange={setValor} />
@@ -229,7 +229,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="grid gap-1.5">
               <Label>Categoria</Label>
               <Select value={categoria} onValueChange={setCategoria}>
@@ -251,7 +251,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="grid gap-1.5">
               <Label>Forma de pagamento</Label>
               <Select value={formaPagamento} onValueChange={setFormaPagamento}>
@@ -351,7 +351,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
                 <span>Lançamento recorrente</span>
               </label>
               {recorrente && (
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
                   <div className="grid gap-1.5">
                     <Label className="text-xs">Frequência</Label>
                     <Select value={recFreq} onValueChange={setRecFreq}>
@@ -378,7 +378,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border/60 bg-background px-4 py-3 sm:px-6 sm:py-4">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={salvar} disabled={salvando}>
             {salvando ? "Salvando…" : editar ? "Salvar alterações" : recorrente ? `Criar ${recParcelas} lançamentos` : "Registrar"}

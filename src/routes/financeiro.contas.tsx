@@ -56,7 +56,7 @@ function ListaContas({ tipo, lancamentos }: { tipo: LancTipo; lancamentos: Lanca
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Total {tipo === "receita" ? "a receber" : "a pagar"}
+            Total {tipo === "receita" ? "a receber" : "a pagar"} · todo o período
           </p>
           <p className="font-display text-2xl font-semibold tabular-nums">{fmtBRL(totalAbertos)}</p>
         </div>

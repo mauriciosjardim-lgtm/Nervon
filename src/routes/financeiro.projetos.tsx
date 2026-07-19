@@ -39,20 +39,28 @@ function PorProjetoPage() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {linhas.map(p => (
-            <div key={p.nome} className="overflow-hidden rounded-xl border border-border bg-surface-1/60 p-4">
+            <div key={p.chave} className="overflow-hidden rounded-xl border border-border bg-surface-1/60 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-display text-base font-semibold">{p.nome}</p>
                   {p.cliente && <p className="truncate text-xs text-muted-foreground">{p.cliente}</p>}
+                  {p.porCliente && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      Agrupado por cliente — sem projeto no lançamento
+                    </p>
+                  )}
                 </div>
+                {/* Sem receita não existe margem — mostrar "0.0%" fazia um card
+                    de despesa pura parecer no zero a zero. */}
                 <span className={cn(
-                  "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                  "inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                  p.receita === 0 ? "border-border bg-surface-2/60 text-muted-foreground" :
                   p.margem >= 30 ? "border-success/30 bg-success/10 text-success" :
                   p.margem >= 0 ? "border-warning/30 bg-warning/10 text-warning" :
                   "border-destructive/30 bg-destructive/10 text-destructive",
                 )}>
                   <PercentageSquare size={12} color="currentColor" variant="Linear" />
-                  {p.margem.toFixed(1)}%
+                  {p.receita === 0 ? "só despesa" : `${p.margem.toFixed(1)}%`}
                 </span>
               </div>
 
@@ -83,9 +91,10 @@ function PorProjetoPage() {
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
+                    p.receita === 0 ? "bg-destructive" :
                     p.margem >= 30 ? "bg-success" : p.margem >= 0 ? "bg-warning" : "bg-destructive",
                   )}
-                  style={{ width: `${Math.max(2, Math.min(100, p.margem))}%` }}
+                  style={{ width: `${p.receita === 0 ? 100 : Math.max(2, Math.min(100, p.margem))}%` }}
                 />
               </div>
             </div>

@@ -28,6 +28,16 @@ export const fmtBRLDetalhado = (v: number) =>
 export const fmtData = (iso: string) =>
   new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 
+// Rótulo de eixo de gráfico. Arredondar para "k" inteiro colapsa ticks distintos
+// no mesmo texto (1500 e 750 viravam "1k"), então abaixo de 1k mostra o valor
+// cheio e acima usa uma casa decimal quando não é múltiplo exato de mil.
+export const fmtEixo = (v: number) => {
+  const abs = Math.abs(v);
+  if (abs < 1000) return String(Math.round(v));
+  const k = v / 1000;
+  return Number.isInteger(k) ? `${k}k` : `${k.toFixed(1).replace(".", ",")}k`;
+};
+
 export const STATUS_META: Record<LancStatus, { label: string; color: string; bg: string; border: string }> = {
   previsto: { label: "Previsto", color: "text-info", bg: "bg-info/10", border: "border-info/30" },
   recebido: { label: "Recebido", color: "text-success", bg: "bg-success/10", border: "border-success/30" },
@@ -42,9 +52,13 @@ export interface MetricasFin {
   recebido: number;
   aReceber: number;
   atrasadoReceber: number;
+  /** aReceber + atrasadoReceber — tudo que ainda está em aberto na entrada. */
+  aReceberTotal: number;
   pago: number;
   aPagar: number;
   atrasadoPagar: number;
+  /** aPagar + atrasadoPagar — tudo que ainda está em aberto na saída. */
+  aPagarTotal: number;
   saldoRealizado: number;
   saldoPrevisto: number;
   margemRealizada: number;
@@ -59,10 +73,14 @@ export function calcularMetricas(lancs: Lancamento[]): MetricasFin {
   const pago = d.filter(l => l.status === "pago").reduce((s, l) => s + l.valor, 0);
   const aPagar = d.filter(l => l.status === "previsto").reduce((s, l) => s + l.valor, 0);
   const atrasadoPagar = d.filter(l => l.status === "atrasado").reduce((s, l) => s + l.valor, 0);
+  // Atrasado continua em aberto: ignorá-lo aqui sumia com dinheiro real dos dois
+  // lados da previsão e fazia "a receber" divergir da lista que o próprio KPI abre.
+  const aReceberTotal = aReceber + atrasadoReceber;
+  const aPagarTotal = aPagar + atrasadoPagar;
   const saldoRealizado = recebido - pago;
-  const saldoPrevisto = (recebido + aReceber) - (pago + aPagar);
+  const saldoPrevisto = (recebido + aReceberTotal) - (pago + aPagarTotal);
   const margemRealizada = recebido ? (saldoRealizado / recebido) * 100 : 0;
-  return { recebido, aReceber, atrasadoReceber, pago, aPagar, atrasadoPagar, saldoRealizado, saldoPrevisto, margemRealizada };
+  return { recebido, aReceber, atrasadoReceber, aReceberTotal, pago, aPagar, atrasadoPagar, aPagarTotal, saldoRealizado, saldoPrevisto, margemRealizada };
 }
 
 // Fonte ÚNICA do resultado mensal realizado (competência = vencimento).
@@ -107,15 +125,45 @@ export function serieMensal(lancs: Lancamento[]) {
   return meses;
 }
 
-export function porProjeto(lancs: Lancamento[]) {
-  const map = new Map<string, { nome: string; cliente?: string; receita: number; despesa: number; saldo: number; margem: number }>();
+export interface LinhaProjeto {
+  chave: string;
+  nome: string;
+  cliente?: string;
+  /** Agrupado por cliente por falta de projeto no lançamento. */
+  porCliente: boolean;
+  receita: number;
+  despesa: number;
+  saldo: number;
+  margem: number;
+}
+
+// Na prática quase nenhum lançamento traz `projeto` preenchido, então agrupar só
+// por ele jogava a planilha inteira num balde "— Sem projeto —". Caindo para o
+// cliente, cada frente de trabalho aparece separada; o balde final só recebe o
+// que não tem nem projeto nem cliente — e aí não herda nome de ninguém.
+export function porProjeto(lancs: Lancamento[]): LinhaProjeto[] {
+  const map = new Map<string, LinhaProjeto>();
   for (const l of lancs) {
-    const k = l.projeto || "— Sem projeto —";
-    if (!map.has(k)) map.set(k, { nome: k, cliente: l.cliente, receita: 0, despesa: 0, saldo: 0, margem: 0 });
-    const a = map.get(k)!;
+    const projeto = l.projeto?.trim();
+    const cliente = l.cliente?.trim();
+    const porCliente = !projeto && !!cliente;
+    const chave = projeto ? `p:${projeto}` : cliente ? `c:${cliente}` : "sem";
+    if (!map.has(chave)) {
+      map.set(chave, {
+        chave,
+        nome: projeto || cliente || "— Sem projeto nem cliente —",
+        cliente: projeto ? cliente : undefined,
+        porCliente,
+        receita: 0,
+        despesa: 0,
+        saldo: 0,
+        margem: 0,
+      });
+    }
+    const a = map.get(chave)!;
     if (l.tipo === "receita") a.receita += l.valor;
     else a.despesa += l.valor;
-    if (l.cliente && !a.cliente) a.cliente = l.cliente;
+    if (projeto && cliente && !a.cliente) a.cliente = cliente;
   }
   return Array.from(map.values()).map(a => ({
     ...a,
