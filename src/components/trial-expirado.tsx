@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { PixBox } from "@/components/pix-box";
 import { Input } from "@/components/ui/input";
 import { criarPix, finalizarPix } from "@/lib/api/asaas.functions";
+import { maskCPF } from "@/lib/format";
 
 type Charge = { id: string; brCode: string; brCodeBase64: string; expiresAt: string };
 
@@ -18,7 +19,10 @@ export function TrialExpirado() {
 
   async function gerar() {
     setErro(null);
-    if (cpf.replace(/\D/g, "").length !== 11) { setErro("Informe um CPF válido."); return; }
+    if (cpf.replace(/\D/g, "").length !== 11) {
+      setErro("Informe um CPF válido.");
+      return;
+    }
     setGerando(true);
     try {
       // e-mail e identidade vêm da sessão autenticada, validada no servidor
@@ -53,7 +57,8 @@ export function TrialExpirado() {
       <div className="absolute left-8 top-8 z-10 flex items-center gap-3">
         <LogoMakersHub className="h-9 w-9" />
         <span className="font-display text-lg font-semibold">
-          <span className="text-foreground">Makers</span><span className="text-primary">Hub</span>
+          <span className="text-foreground">Makers</span>
+          <span className="text-primary">Hub</span>
         </span>
       </div>
 
@@ -68,7 +73,9 @@ export function TrialExpirado() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
             <PixBox charge={charge} onPaid={aoPagar} />
             {erro && (
-              <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-center text-xs text-red-400">{erro}</p>
+              <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-center text-xs text-red-400">
+                {erro}
+              </p>
             )}
           </div>
         </div>
@@ -82,12 +89,20 @@ export function TrialExpirado() {
             Seu teste encerrou
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-            Os 7 dias de acesso gratuito chegaram ao fim.<br />
-            Assine por <strong className="text-foreground">R$ 97/ano</strong> e continue de onde parou.
+            Os 7 dias de acesso gratuito chegaram ao fim.
+            <br />
+            Assine por <strong className="text-foreground">R$ 97/ano</strong> e continue de onde
+            parou.
           </p>
 
           <div className="mt-8 w-full text-left">
-            <Input value={cpf} onChange={e => setCpf(e.target.value)} placeholder="Seu CPF" inputMode="numeric" />
+            <Input
+              value={cpf}
+              onChange={(event) => setCpf(maskCPF(event.target.value))}
+              placeholder="000.000.000-00"
+              inputMode="numeric"
+              autoComplete="off"
+            />
           </div>
 
           <button

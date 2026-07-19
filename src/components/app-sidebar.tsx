@@ -13,6 +13,7 @@ import {
   StatusUp,
   Setting2,
   Logout,
+  Profile2User,
 } from "iconsax-react";
 import { useAuth } from "@/lib/auth";
 import {
@@ -39,6 +40,12 @@ const primary: NavItem[] = [
   { title: "Dashboard", url: "/", icon: Element3 },
   { title: "Comercial", url: "/comercial", icon: Briefcase, modulo: "comercial" },
   { title: "Projetos", url: "/projetos", icon: Kanban, modulo: "projetos" },
+  {
+    title: "Área do cliente",
+    url: "/area-cliente",
+    icon: Profile2User,
+    modulo: "projetos",
+  },
   { title: "Eventos", url: "/eventos", icon: CalendarTick, emBreve: true },
   { title: "Agenda", url: "/agenda", icon: Calendar, modulo: "agenda" },
   { title: "Financeiro", url: "/financeiro", icon: EmptyWallet, modulo: "financeiro" },

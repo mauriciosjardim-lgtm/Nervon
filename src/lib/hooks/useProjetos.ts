@@ -47,6 +47,13 @@ function rowToProjeto(r: any): Projeto {
     criadoEm: r.criado_em,
     notas: r.notas ?? undefined,
     links: Array.isArray(r.links) ? r.links : [],
+    portalVisible: r.portal_visible ?? false,
+    portalPhase: r.portal_phase ?? "preparacao",
+    portalProgress: r.portal_progress ?? 0,
+    portalUpdate: r.portal_update ?? undefined,
+    portalNextMilestone: r.portal_next_milestone ?? undefined,
+    portalCoverUrl: r.portal_cover_url ?? undefined,
+    portalUpdatedAt: r.portal_updated_at ?? undefined,
   };
 }
 
@@ -345,6 +352,23 @@ export const projetosActions = {
     if (input.cor !== undefined) payload.cor = input.cor;
     if (input.notas !== undefined) payload.notas = input.notas;
     if (input.progresso !== undefined) payload.progresso = input.progresso;
+    if (input.portalVisible !== undefined) payload.portal_visible = input.portalVisible;
+    if (input.portalPhase !== undefined) payload.portal_phase = input.portalPhase;
+    if (input.portalProgress !== undefined) payload.portal_progress = input.portalProgress;
+    if (input.portalUpdate !== undefined) payload.portal_update = input.portalUpdate || null;
+    if (input.portalNextMilestone !== undefined)
+      payload.portal_next_milestone = input.portalNextMilestone || null;
+    if (input.portalCoverUrl !== undefined) payload.portal_cover_url = input.portalCoverUrl || null;
+    if (
+      input.portalVisible !== undefined ||
+      input.portalPhase !== undefined ||
+      input.portalProgress !== undefined ||
+      input.portalUpdate !== undefined ||
+      input.portalNextMilestone !== undefined ||
+      input.portalCoverUrl !== undefined
+    ) {
+      payload.portal_updated_at = new Date().toISOString();
+    }
     const { error } = await supabase.from("projetos").update(payload).eq("id", id);
     if (dbErro(error, "atualizar projeto")) return;
     setStore({ projetos: store.projetos.map((p) => (p.id === id ? { ...p, ...input } : p)) });

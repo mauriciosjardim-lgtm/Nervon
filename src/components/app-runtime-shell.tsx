@@ -41,7 +41,10 @@ function AppShell({ sessionHint }: { sessionHint: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [preloadRecovery, setPreloadRecovery] = useState<"auto" | "manual" | null>(null);
   const isPublic = PUBLIC_PATHS.includes(pathname);
-  const isAlwaysPublic = ALWAYS_PUBLIC.includes(pathname) || pathname.startsWith("/p/");
+  const isAlwaysPublic =
+    ALWAYS_PUBLIC.includes(pathname) ||
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/portal/");
 
   // Recarrega automaticamente quando um chunk fica desatualizado após deploy.
   // Mantém a trava por alguns segundos após a recarga para evitar loop caso o

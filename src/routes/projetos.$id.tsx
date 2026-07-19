@@ -55,6 +55,7 @@ import { ProjetoModal } from "@/components/projetos/projeto-modal";
 import { TarefaModal } from "@/components/projetos/tarefa-modal";
 import { MarcoModal } from "@/components/projetos/marco-modal";
 import { EntregavelModal } from "@/components/projetos/entregavel-modal";
+import { ClientPortalWorkspace } from "@/components/projetos/client-portal-workspace";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useComercialSupa } from "@/lib/hooks/useComercial";
+import { comercial } from "@/lib/hooks/useComercial";
 
 export const Route = createFileRoute("/projetos/$id")({ component: ProjetoDetalhe });
 
@@ -104,11 +107,35 @@ function ProjetoDetalhe() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { projetos, tarefas, marcos, entregaveis } = useProjetos();
-  const projeto = projetos.find((p) => p.id === id);
+  const { empresas: crmClients } = useComercialSupa();
+  const directProject = projetos.find((p) => p.id === id);
+  const clientRecord =
+    crmClients.find((client) => client.id === id) ??
+    crmClients.find((client) => client.id === directProject?.clienteId) ??
+    crmClients.find((client) => client.nome.toLowerCase() === directProject?.cliente.toLowerCase());
+  const clientName = clientRecord?.nome ?? directProject?.cliente;
+  const projetosDoCliente = clientName
+    ? projetos
+        .filter(
+          (project) =>
+            project.clienteId === clientRecord?.id ||
+            project.cliente.toLowerCase() === clientName.toLowerCase(),
+        )
+        .sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm))
+    : [];
+  const projeto = directProject ?? projetosDoCliente[0];
   const [novoProjeto, setNovoProjeto] = useState(false);
   const [editandoCliente, setEditandoCliente] = useState(false);
 
-  if (!projeto) {
+  useEffect(() => {
+    const pendingClientId = sessionStorage.getItem("makershub:novo-projeto-cliente");
+    if (pendingClientId && (pendingClientId === id || pendingClientId === clientRecord?.id)) {
+      sessionStorage.removeItem("makershub:novo-projeto-cliente");
+      setNovoProjeto(true);
+    }
+  }, [id, clientRecord?.id]);
+
+  if (!clientName) {
     return (
       <div className="space-y-3">
         <Link
@@ -124,12 +151,7 @@ function ProjetoDetalhe() {
     );
   }
 
-  // Workspace do cliente: todos os projetos com o mesmo nome de cliente,
-  // pra trocar de produção sem sair da tela (mesmo cliente, vários projetos).
-  const projetosDoCliente = projetos
-    .filter((p) => p.cliente.toLowerCase() === projeto.cliente.toLowerCase())
-    .sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm));
-  const cor = corCliente(projeto.cliente);
+  const cor = clientRecord?.accentColor ?? corCliente(clientName);
 
   return (
     <div className="space-y-4">
@@ -147,10 +169,10 @@ function ProjetoDetalhe() {
       >
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-sm font-bold text-[var(--cliente)]">
-            {iniciais(projeto.cliente)}
+            {iniciais(clientName)}
           </span>
           <div className="min-w-0">
-            <h2 className="truncate font-display text-lg font-semibold">{projeto.cliente}</h2>
+            <h2 className="truncate font-display text-lg font-semibold">{clientName}</h2>
             <p className="text-[11px] text-muted-foreground">
               {projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"} ativo
               {projetosDoCliente.length === 1 ? "" : "s"}
@@ -179,7 +201,7 @@ function ProjetoDetalhe() {
                 onClick={() => navigate({ to: "/projetos/$id", params: { id: p.id } })}
                 className={cn(
                   "w-full rounded-lg border p-2.5 text-left text-xs transition",
-                  p.id === projeto.id
+                  p.id === projeto?.id
                     ? "border-primary/50 bg-primary/5"
                     : "border-border/60 bg-surface-1/30 hover:border-border",
                   p.arquivado && "opacity-45 hover:opacity-75",
@@ -198,23 +220,29 @@ function ProjetoDetalhe() {
           </button>
         </aside>
 
-        <ProjetoConteudo
-          projeto={projeto}
-          tarefas={tarefas}
-          marcos={marcos}
-          entregaveis={entregaveis}
-        />
+        {projeto ? (
+          <ProjetoConteudo
+            projeto={projeto}
+            tarefas={tarefas}
+            marcos={marcos}
+            entregaveis={entregaveis}
+          />
+        ) : (
+          <EmptyClientWorkspace clientName={clientName} onCreate={() => setNovoProjeto(true)} />
+        )}
       </div>
 
       <ProjetoModal
         open={novoProjeto}
         onClose={() => setNovoProjeto(false)}
-        clienteInicial={projeto.cliente}
+        clienteInicial={clientName}
+        clienteIdInicial={clientRecord?.id}
       />
       <EditarClienteDialog
         open={editandoCliente}
         onClose={() => setEditandoCliente(false)}
-        nomeAtual={projeto.cliente}
+        nomeAtual={clientName}
+        clientId={clientRecord?.id}
       />
     </div>
   );
@@ -224,17 +252,22 @@ function EditarClienteDialog({
   open,
   onClose,
   nomeAtual,
+  clientId,
 }: {
   open: boolean;
   onClose: () => void;
   nomeAtual: string;
+  clientId?: string;
 }) {
   const [nome, setNome] = useState(nomeAtual);
   useEffect(() => {
     if (open) setNome(nomeAtual);
   }, [open, nomeAtual]);
   const salvar = async () => {
-    await projetosActions.renomearCliente(nomeAtual, nome);
+    await Promise.all([
+      projetosActions.renomearCliente(nomeAtual, nome),
+      clientId ? comercial.updateEmpresa(clientId, { nome: nome.trim() }) : Promise.resolve(),
+    ]);
     onClose();
   };
   return (
@@ -264,6 +297,32 @@ function EditarClienteDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EmptyClientWorkspace({
+  clientName,
+  onCreate,
+}: {
+  clientName: string;
+  onCreate: () => void;
+}) {
+  return (
+    <div className="grid min-h-[460px] place-items-center rounded-xl border border-dashed border-border bg-surface-1/25 p-8 text-center">
+      <div className="max-w-md">
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+          <Add size={24} color="currentColor" variant="Linear" />
+        </span>
+        <h1 className="mt-5 font-display text-2xl font-semibold">{clientName} está pronto</h1>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Agora crie o primeiro projeto deste cliente. Cada projeto terá seu próprio fluxo, tarefas,
+          entregas e revisões.
+        </p>
+        <Button className="mt-6" onClick={onCreate}>
+          <Add size={16} color="currentColor" variant="Linear" /> Criar primeiro projeto
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -299,7 +358,12 @@ function ProjetoConteudo({
   const meusEntregaveis = entregaveis.filter((e) => e.projetoId === id);
 
   return (
-    <div className={cn("min-w-0 space-y-4 transition-opacity", projeto.arquivado && "opacity-60 hover:opacity-90")}>
+    <div
+      className={cn(
+        "min-w-0 space-y-4 transition-opacity",
+        projeto.arquivado && "opacity-60 hover:opacity-90",
+      )}
+    >
       <header className="rounded-xl border border-border bg-surface-1/40 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -328,11 +392,21 @@ function ProjetoConteudo({
                 size="sm"
                 onClick={async () => {
                   const fechar = !projeto.arquivado;
-                  if (fechar && !confirm(`Fechar o projeto "${projeto.nome}"? As informações continuarão disponíveis.`)) return;
+                  if (
+                    fechar &&
+                    !confirm(
+                      `Fechar o projeto "${projeto.nome}"? As informações continuarão disponíveis.`,
+                    )
+                  )
+                    return;
                   await projetosActions.atualizarProjeto(projeto.id, { arquivado: fechar });
                 }}
               >
-                {projeto.arquivado ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />}
+                {projeto.arquivado ? (
+                  <ArchiveRestore className="size-3.5" />
+                ) : (
+                  <Archive className="size-3.5" />
+                )}
                 {projeto.arquivado ? "Reabrir projeto" : "Fechar projeto"}
               </Button>
             )}
@@ -348,11 +422,13 @@ function ProjetoConteudo({
             podeVerValor ? "md:grid-cols-3" : "md:grid-cols-2",
           )}
         >
-          {projeto.dataEntrega && <StatCard
-            icon={Calendar}
-            label="Entrega geral"
-            valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })}
-          />}
+          {projeto.dataEntrega && (
+            <StatCard
+              icon={Calendar}
+              label="Entrega geral"
+              valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })}
+            />
+          )}
           {podeVerValor && (
             <StatCard
               icon={DollarCircle}
@@ -371,6 +447,7 @@ function ProjetoConteudo({
           <TabsTrigger value="tarefas">Tarefas ({minhasTarefas.length})</TabsTrigger>
           <TabsTrigger value="entregaveis">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
           <TabsTrigger value="marcos">Marcos ({meusMarcos.length})</TabsTrigger>
+          <TabsTrigger value="cliente">Área do cliente</TabsTrigger>
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="equipe">Equipe</TabsTrigger>
         </TabsList>
@@ -423,6 +500,10 @@ function ProjetoConteudo({
             marcos={meusMarcos}
             onEditar={(m) => setMarcoModal({ open: true, marco: m })}
           />
+        </TabsContent>
+
+        <TabsContent value="cliente" className="mt-3">
+          <ClientPortalWorkspace project={projeto} />
         </TabsContent>
 
         <TabsContent value="info" className="mt-3">

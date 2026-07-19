@@ -17,7 +17,7 @@ import { useProjetos } from "@/lib/hooks/useProjetos";
 const toDate = (iso?: string | null) => iso?.slice(0, 10) ?? "";
 const fromDate = (s: string) => { const d = new Date(s); d.setHours(10, 0, 0, 0); return d.toISOString(); };
 
-export function ProjetoModal({ open, onClose, projeto, clienteInicial }: { open: boolean; onClose: () => void; projeto?: Projeto | null; clienteInicial?: string }) {
+export function ProjetoModal({ open, onClose, projeto, clienteInicial, clienteIdInicial }: { open: boolean; onClose: () => void; projeto?: Projeto | null; clienteInicial?: string; clienteIdInicial?: string }) {
   const { usuario } = useAuth();
   const { projetos } = useProjetos();
   const podeVerValor = (usuario as any)?.role === "admin";
@@ -52,7 +52,10 @@ export function ProjetoModal({ open, onClose, projeto, clienteInicial }: { open:
     setSalvando(true);
     // Vínculo com o cadastro de cliente acontece nos bastidores — o usuário
     // só digita o nome, igual sempre foi.
-    const registro = await comercial.encontrarOuCriarCliente(cliente.trim());
+    const registro =
+      clienteIdInicial && !editando
+        ? { id: clienteIdInicial }
+        : await comercial.encontrarOuCriarCliente(cliente.trim());
     const payload = {
       nome: nome.trim(), cliente: cliente.trim(), clienteId: registro?.id, descricao: descricao.trim() || undefined, fase,
       equipe,
@@ -79,7 +82,16 @@ export function ProjetoModal({ open, onClose, projeto, clienteInicial }: { open:
         <DialogHeader><DialogTitle className="font-display">{editando ? "Editar projeto" : "Novo projeto"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5"><Label className="text-xs">Nome do projeto</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Campanha verão" /></div>
-          <div className="space-y-1.5"><Label className="text-xs">Cliente</Label><Input value={cliente} onChange={e => setCliente(e.target.value)} placeholder="Ex: Aurora Filmes" /></div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Cliente</Label>
+            {clienteInicial && !editando ? (
+              <div className="flex h-10 items-center rounded-lg border border-border/60 bg-surface-1/40 px-3 text-sm font-medium">
+                {clienteInicial}
+              </div>
+            ) : (
+              <Input value={cliente} onChange={e => setCliente(e.target.value)} placeholder="Ex: Aurora Filmes" />
+            )}
+          </div>
           <div className="space-y-2">
             <Label className="text-xs">Cor do projeto</Label>
             <div className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-surface-1/30 p-3">

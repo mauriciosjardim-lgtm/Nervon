@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Sms, Eye, EyeSlash, Gift } from "iconsax-react";
@@ -141,9 +142,9 @@ function Convite() {
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                       🇧🇷
                     </span>
-                    <Input
+                    <PhoneInput
                       value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
+                      onValueChange={setWhatsapp}
                       placeholder="(11) 99999-9999"
                       className="pl-8"
                     />

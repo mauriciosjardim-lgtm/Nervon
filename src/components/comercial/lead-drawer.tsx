@@ -4,21 +4,50 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Phone, MapPin, Globe, Instagram, Calendar as CalendarIcon,
-  FileText, StickyNote, XCircle, Flame, Snowflake, Thermometer,
-  Building2, Users, ArrowUpRight, ListChecks, FileSignature,
-  FolderKanban, DollarSign, Info, Activity, Star, CheckCircle2,
+  Phone,
+  MapPin,
+  Globe,
+  Instagram,
+  Calendar as CalendarIcon,
+  FileText,
+  StickyNote,
+  XCircle,
+  Flame,
+  Snowflake,
+  Thermometer,
+  Building2,
+  Users,
+  ArrowUpRight,
+  ListChecks,
+  FileSignature,
+  FolderKanban,
+  DollarSign,
+  Info,
+  Activity,
+  Star,
+  CheckCircle2,
 } from "lucide-react";
 import { Sms, Add, MagicStar, MessageCircle } from "iconsax-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import {
-  useComercial, comercial, getEmpresa, getContato, getContatosDaEmpresa,
-  getTimelineDoLead, getTarefasDoLead, fmtBRL, ETAPAS, leadScore,
-  type Lead, type Temperatura, type EtapaJornada,
+  useComercial,
+  comercial,
+  getEmpresa,
+  getContato,
+  getContatosDaEmpresa,
+  getTimelineDoLead,
+  getTarefasDoLead,
+  fmtBRL,
+  ETAPAS,
+  leadScore,
+  type Lead,
+  type Temperatura,
+  type EtapaJornada,
 } from "@/lib/hooks/useComercial";
 import { Timeline } from "./timeline";
 import { formatBRL, maskCurrency, maskPhone, isValidEmail } from "@/lib/format";
@@ -27,27 +56,39 @@ import { EtapaIcon } from "./etapa-icon";
 import { cn } from "@/lib/utils";
 
 export function LeadDrawer({ leadId, onClose }: { leadId: string | null; onClose: () => void }) {
-  const lead = useComercial(s => s.leads.find(l => l.id === leadId) ?? null);
+  const lead = useComercial((s) => s.leads.find((l) => l.id === leadId) ?? null);
   const open = !!leadId && !!lead;
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-full max-w-[640px] overflow-y-auto p-0 sm:max-w-[640px]">
+      <SheetContent
+        side="right"
+        className="w-full max-w-[640px] overflow-y-auto p-0 sm:max-w-[640px]"
+      >
         {lead && <DrawerBody lead={lead} onClose={onClose} />}
       </SheetContent>
     </Sheet>
   );
 }
 
-const PROGRESSO: EtapaJornada[] = ["novo", "diagnostico", "reuniao", "proposta", "negociacao", "fechado"];
+const PROGRESSO: EtapaJornada[] = [
+  "novo",
+  "diagnostico",
+  "reuniao",
+  "proposta",
+  "negociacao",
+  "fechado",
+];
 
 function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => void }) {
   const empresa = getEmpresa(lead.empresaId);
   const contato = getContato(lead.contatoId);
-  const outrosContatos = empresa ? getContatosDaEmpresa(empresa.id).filter(c => c.id !== contato?.id) : [];
-  useComercial(s => s.timeline.length + s.tarefas.length);
+  const outrosContatos = empresa
+    ? getContatosDaEmpresa(empresa.id).filter((c) => c.id !== contato?.id)
+    : [];
+  useComercial((s) => s.timeline.length + s.tarefas.length);
   const timeline = getTimelineDoLead(lead.id);
   const tarefas = getTarefasDoLead(lead.id);
-  const etapaMeta = ETAPAS.find(e => e.id === lead.etapa)!;
+  const etapaMeta = ETAPAS.find((e) => e.id === lead.etapa)!;
   const { score, estrelas, rotulo } = leadScore(lead);
 
   const [fechando, setFechando] = useState(false);
@@ -66,13 +107,19 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <EtapaIcon etapa={etapaMeta.id} className="size-4" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{etapaMeta.label}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                {etapaMeta.label}
+              </span>
             </div>
             <SheetTitle className="mt-1 truncate font-display text-xl">{empresa?.nome}</SheetTitle>
-            <p className="mt-0.5 truncate text-sm text-muted-foreground">{contato?.nome} · {contato?.cargo}</p>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              {contato?.nome} · {contato?.cargo}
+            </p>
           </div>
           <div className="text-right">
-            <p className="font-display text-2xl font-semibold tracking-tight text-foreground">{fmtBRL(lead.valor)}</p>
+            <p className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              {fmtBRL(lead.valor)}
+            </p>
             <p className="text-[11px] text-muted-foreground">Valor estimado</p>
           </div>
         </div>
@@ -92,26 +139,52 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
         <QuickBtn icon={FileText} label="Proposta" soon onClick={() => {}} />
         <QuickBtn icon={CalendarIcon} label="Reunião" soon onClick={() => {}} />
         <div className="ml-auto flex gap-2">
-          <QuickBtn icon={XCircle} label="Perdido" tone="destructive" onClick={() => {
-            comercial.moverEtapa(lead.id, "perdido");
-            comercial.addEvento(lead.id, { tipo: "perdido", titulo: "Marcado como perdido" });
-            toast("Lead movido para Perdido.");
-          }} />
-          <QuickBtn icon={CheckCircle2} label="Marcar como fechado" tone="success" onClick={() => setFechando(true)} />
+          <QuickBtn
+            icon={XCircle}
+            label="Perdido"
+            tone="destructive"
+            onClick={() => {
+              comercial.moverEtapa(lead.id, "perdido");
+              comercial.addEvento(lead.id, { tipo: "perdido", titulo: "Marcado como perdido" });
+              toast("Lead movido para Perdido.");
+            }}
+          />
+          <QuickBtn
+            icon={CheckCircle2}
+            label="Marcar como fechado"
+            tone="success"
+            onClick={() => setFechando(true)}
+          />
         </div>
       </div>
 
       {/* Tabs — central de tudo */}
       <Tabs defaultValue="informacoes" className="px-6 py-5">
         <TabsList className="mb-4 h-auto flex w-full flex-wrap gap-1 bg-surface-1/60 p-1">
-          <TabTrigger value="informacoes" icon={Info}>Informações</TabTrigger>
-          <TabTrigger value="contatos" icon={Users} badge={1 + outrosContatos.length}>Contatos</TabTrigger>
-          <TabTrigger value="timeline" icon={Activity}>Timeline</TabTrigger>
-          <TabTrigger value="atividades" icon={ListChecks}>Atividades</TabTrigger>
-          <TabTrigger value="propostas" icon={FileText} badge={lead.propostasIds.length}>Propostas</TabTrigger>
-          <TabTrigger value="contratos" icon={FileSignature} badge={lead.contratosIds.length}>Contratos</TabTrigger>
-          <TabTrigger value="projetos" icon={FolderKanban} badge={lead.projetosIds.length}>Projetos</TabTrigger>
-          <TabTrigger value="financeiro" icon={DollarSign} badge={lead.lancamentosIds.length}>Financeiro</TabTrigger>
+          <TabTrigger value="informacoes" icon={Info}>
+            Informações
+          </TabTrigger>
+          <TabTrigger value="contatos" icon={Users} badge={1 + outrosContatos.length}>
+            Contatos
+          </TabTrigger>
+          <TabTrigger value="timeline" icon={Activity}>
+            Timeline
+          </TabTrigger>
+          <TabTrigger value="atividades" icon={ListChecks}>
+            Atividades
+          </TabTrigger>
+          <TabTrigger value="propostas" icon={FileText} badge={lead.propostasIds.length}>
+            Propostas
+          </TabTrigger>
+          <TabTrigger value="contratos" icon={FileSignature} badge={lead.contratosIds.length}>
+            Contratos
+          </TabTrigger>
+          <TabTrigger value="projetos" icon={FolderKanban} badge={lead.projetosIds.length}>
+            Projetos
+          </TabTrigger>
+          <TabTrigger value="financeiro" icon={DollarSign} badge={lead.lancamentosIds.length}>
+            Financeiro
+          </TabTrigger>
         </TabsList>
 
         {/* ============ INFORMAÇÕES ============ */}
@@ -123,22 +196,22 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                 value={proxAcaoTitulo}
                 onChange={(e) => setProxAcaoTitulo(e.target.value)}
               />
-              <div className="flex gap-2">
-                <Input
-                  type="datetime-local"
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <DateTimePicker
                   value={proxAcaoData}
-                  onChange={(e) => setProxAcaoData(e.target.value)}
-                  className="flex-1"
+                  onChange={setProxAcaoData}
+                  placeholder="Quando acontece?"
                 />
                 <Button
-                  size="sm"
+                  className="h-10"
                   onClick={() => {
                     if (!proxAcaoTitulo || !proxAcaoData) {
                       toast.error("Informe ação e data.");
                       return;
                     }
                     comercial.setProximaAcao(lead.id, {
-                      titulo: proxAcaoTitulo, data: new Date(proxAcaoData).toISOString(),
+                      titulo: proxAcaoTitulo,
+                      data: new Date(proxAcaoData).toISOString(),
                     });
                     toast.success("Próxima ação definida.");
                   }}
@@ -156,60 +229,109 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
 
           <Bloco titulo="Detalhes do lead" icon={Info}>
             <div className="grid grid-cols-2 gap-2">
-              <CampoEdit label="Valor (R$)" format="currency" defaultValue={String(lead.valor)} onSave={(v) => {
-                const n = Number(v); if (!Number.isFinite(n)) return;
-                comercial.updateLead(lead.id, { valor: n });
-                toast.success("Valor atualizado.");
-              }} />
-              <CampoEdit label="Responsável" defaultValue={lead.responsavel} onSave={(v) => {
-                comercial.updateLead(lead.id, { responsavel: v });
-                toast.success("Responsável atualizado.");
-              }} />
-              <CampoEdit label="Origem" defaultValue={lead.origem} onSave={(v) => {
-                comercial.updateLead(lead.id, { origem: v });
-                toast.success("Origem atualizada.");
-              }} className="col-span-2" />
+              <CampoEdit
+                label="Valor (R$)"
+                format="currency"
+                defaultValue={String(lead.valor)}
+                onSave={(v) => {
+                  const n = Number(v);
+                  if (!Number.isFinite(n)) return;
+                  comercial.updateLead(lead.id, { valor: n });
+                  toast.success("Valor atualizado.");
+                }}
+              />
+              <CampoEdit
+                label="Responsável"
+                defaultValue={lead.responsavel}
+                onSave={(v) => {
+                  comercial.updateLead(lead.id, { responsavel: v });
+                  toast.success("Responsável atualizado.");
+                }}
+              />
+              <CampoEdit
+                label="Origem"
+                defaultValue={lead.origem}
+                onSave={(v) => {
+                  comercial.updateLead(lead.id, { origem: v });
+                  toast.success("Origem atualizada.");
+                }}
+                className="col-span-2"
+              />
             </div>
           </Bloco>
 
           <Bloco titulo="Empresa" icon={Building2}>
             <div className="grid grid-cols-2 gap-2">
-              <CampoEdit label="Nome" defaultValue={empresa?.nome ?? ""} onSave={(v) => {
-                if (!empresa) return;
-                comercial.updateEmpresa(empresa.id, { nome: v });
-                toast.success("Empresa atualizada.");
-              }} className="col-span-2" />
-              <CampoEdit label="Cidade" defaultValue={empresa?.cidade ?? ""} onSave={(v) => {
-                empresa && comercial.updateEmpresa(empresa.id, { cidade: v });
-                toast.success("Cidade atualizada.");
-              }} />
-              <CampoEdit label="Segmento" defaultValue={empresa?.segmento ?? ""} onSave={(v) => {
-                empresa && comercial.updateEmpresa(empresa.id, { segmento: v });
-                toast.success("Segmento atualizado.");
-              }} />
-              <CampoEdit label="Site" defaultValue={empresa?.site ?? ""} onSave={(v) => {
-                empresa && comercial.updateEmpresa(empresa.id, { site: v });
-              }} />
-              <CampoEdit label="Instagram" defaultValue={empresa?.instagram ?? ""} onSave={(v) => {
-                empresa && comercial.updateEmpresa(empresa.id, { instagram: v });
-              }} />
+              <CampoEdit
+                label="Nome"
+                defaultValue={empresa?.nome ?? ""}
+                onSave={(v) => {
+                  if (!empresa) return;
+                  comercial.updateEmpresa(empresa.id, { nome: v });
+                  toast.success("Empresa atualizada.");
+                }}
+                className="col-span-2"
+              />
+              <CampoEdit
+                label="Cidade"
+                defaultValue={empresa?.cidade ?? ""}
+                onSave={(v) => {
+                  empresa && comercial.updateEmpresa(empresa.id, { cidade: v });
+                  toast.success("Cidade atualizada.");
+                }}
+              />
+              <CampoEdit
+                label="Segmento"
+                defaultValue={empresa?.segmento ?? ""}
+                onSave={(v) => {
+                  empresa && comercial.updateEmpresa(empresa.id, { segmento: v });
+                  toast.success("Segmento atualizado.");
+                }}
+              />
+              <CampoEdit
+                label="Site"
+                defaultValue={empresa?.site ?? ""}
+                onSave={(v) => {
+                  empresa && comercial.updateEmpresa(empresa.id, { site: v });
+                }}
+              />
+              <CampoEdit
+                label="Instagram"
+                defaultValue={empresa?.instagram ?? ""}
+                onSave={(v) => {
+                  empresa && comercial.updateEmpresa(empresa.id, { instagram: v });
+                }}
+              />
             </div>
           </Bloco>
 
           <Bloco titulo={`Contatos · ${empresa?.nome ?? ""}`} icon={Users}>
             <ul className="space-y-2">
               {contato && <ContatoEditavel contato={contato} principal />}
-              {outrosContatos.map(c => <ContatoEditavel key={c.id} contato={c} />)}
+              {outrosContatos.map((c) => (
+                <ContatoEditavel key={c.id} contato={c} />
+              ))}
               {outrosContatos.length === 0 && !contato && (
                 <p className="text-xs text-muted-foreground">Nenhum contato adicional.</p>
               )}
               {empresa && (
                 <li>
-                  <Button size="sm" variant="outline" className="w-full gap-1.5" onClick={() => {
-                    comercial.addContato(empresa.id, { nome: "Novo contato", cargo: "—", email: "—", telefone: "—" });
-                    toast.success("Contato adicionado.");
-                  }}>
-                    <Add size={14} color="currentColor" variant="Linear" className="text-primary" /> Adicionar contato
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full gap-1.5"
+                    onClick={() => {
+                      comercial.addContato(empresa.id, {
+                        nome: "Novo contato",
+                        cargo: "—",
+                        email: "—",
+                        telefone: "—",
+                      });
+                      toast.success("Contato adicionado.");
+                    }}
+                  >
+                    <Add size={14} color="currentColor" variant="Linear" className="text-primary" />{" "}
+                    Adicionar contato
                   </Button>
                 </li>
               )}
@@ -236,7 +358,11 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                 onChange={(e) => setNovaObs(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && novaObs) {
-                    comercial.addEvento(lead.id, { tipo: "observacao", titulo: "Observação", descricao: novaObs });
+                    comercial.addEvento(lead.id, {
+                      tipo: "observacao",
+                      titulo: "Observação",
+                      descricao: novaObs,
+                    });
                     setNovaObs("");
                     toast.success("Nota adicionada.");
                   }
@@ -251,14 +377,27 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground">Contatos de {empresa?.nome}</p>
-              <p className="text-[11px] text-muted-foreground">{1 + outrosContatos.length} pessoa(s) vinculada(s)</p>
+              <p className="text-[11px] text-muted-foreground">
+                {1 + outrosContatos.length} pessoa(s) vinculada(s)
+              </p>
             </div>
             {empresa && (
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
-                comercial.addContato(empresa.id, { nome: "Novo contato", cargo: "—", email: "—", telefone: "—" });
-                toast.success("Contato adicionado.");
-              }}>
-                <Add size={14} color="currentColor" variant="Linear" className="text-primary" /> Adicionar
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => {
+                  comercial.addContato(empresa.id, {
+                    nome: "Novo contato",
+                    cargo: "—",
+                    email: "—",
+                    telefone: "—",
+                  });
+                  toast.success("Contato adicionado.");
+                }}
+              >
+                <Add size={14} color="currentColor" variant="Linear" className="text-primary" />{" "}
+                Adicionar
               </Button>
             )}
           </div>
@@ -273,33 +412,73 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                     </span>
                     <div>
                       <p className="text-sm font-medium text-foreground">{contato.nome}</p>
-                      <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">Contato principal</span>
+                      <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+                        Contato principal
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <CampoEdit label="Nome" defaultValue={contato.nome} className="col-span-2" onSave={(v) => {
-                    comercial.updateContato(contato.id, { nome: v });
-                    toast.success("Contato atualizado.");
-                  }} />
-                  <CampoEdit label="Cargo" defaultValue={contato.cargo} onSave={(v) => comercial.updateContato(contato.id, { cargo: v })} />
-                  <CampoEdit label="Telefone" format="phone" defaultValue={contato.telefone} onSave={(v) => comercial.updateContato(contato.id, { telefone: v })} />
-                  <CampoEdit label="E-mail" format="email" defaultValue={contato.email} className="col-span-2" onSave={(v) => comercial.updateContato(contato.id, { email: v })} />
+                  <CampoEdit
+                    label="Nome"
+                    defaultValue={contato.nome}
+                    className="col-span-2"
+                    onSave={(v) => {
+                      comercial.updateContato(contato.id, { nome: v });
+                      toast.success("Contato atualizado.");
+                    }}
+                  />
+                  <CampoEdit
+                    label="Cargo"
+                    defaultValue={contato.cargo}
+                    onSave={(v) => comercial.updateContato(contato.id, { cargo: v })}
+                  />
+                  <CampoEdit
+                    label="Telefone"
+                    format="phone"
+                    defaultValue={contato.telefone}
+                    onSave={(v) => comercial.updateContato(contato.id, { telefone: v })}
+                  />
+                  <CampoEdit
+                    label="E-mail"
+                    format="email"
+                    defaultValue={contato.email}
+                    className="col-span-2"
+                    onSave={(v) => comercial.updateContato(contato.id, { email: v })}
+                  />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <a href={`mailto:${contato.email}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" /> Enviar e-mail
+                  <a
+                    href={`mailto:${contato.email}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
+                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" />{" "}
+                    Enviar e-mail
                   </a>
-                  <a href={`tel:${contato.telefone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
+                  <a
+                    href={`tel:${contato.telefone}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
                     <Phone className="size-3 text-primary" /> Ligar
                   </a>
-                  <a href={`https://wa.me/${contato.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <MessageCircle size={12} color="currentColor" variant="Linear" className="text-primary" /> WhatsApp
+                  <a
+                    href={`https://wa.me/${contato.telefone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
+                    <MessageCircle
+                      size={12}
+                      color="currentColor"
+                      variant="Linear"
+                      className="text-primary"
+                    />{" "}
+                    WhatsApp
                   </a>
                 </div>
               </li>
             )}
-            {outrosContatos.map(c => (
+            {outrosContatos.map((c) => (
               <li key={c.id} className="rounded-xl border border-border/60 bg-surface-1/40 p-4">
                 <div className="mb-3 flex items-center gap-2.5">
                   <span className="grid size-9 place-items-center rounded-full bg-surface-2 text-sm font-semibold text-foreground">
@@ -311,23 +490,61 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <CampoEdit label="Nome" defaultValue={c.nome} className="col-span-2" onSave={(v) => {
-                    comercial.updateContato(c.id, { nome: v });
-                    toast.success("Contato atualizado.");
-                  }} />
-                  <CampoEdit label="Cargo" defaultValue={c.cargo} onSave={(v) => comercial.updateContato(c.id, { cargo: v })} />
-                  <CampoEdit label="Telefone" format="phone" defaultValue={c.telefone} onSave={(v) => comercial.updateContato(c.id, { telefone: v })} />
-                  <CampoEdit label="E-mail" format="email" defaultValue={c.email} className="col-span-2" onSave={(v) => comercial.updateContato(c.id, { email: v })} />
+                  <CampoEdit
+                    label="Nome"
+                    defaultValue={c.nome}
+                    className="col-span-2"
+                    onSave={(v) => {
+                      comercial.updateContato(c.id, { nome: v });
+                      toast.success("Contato atualizado.");
+                    }}
+                  />
+                  <CampoEdit
+                    label="Cargo"
+                    defaultValue={c.cargo}
+                    onSave={(v) => comercial.updateContato(c.id, { cargo: v })}
+                  />
+                  <CampoEdit
+                    label="Telefone"
+                    format="phone"
+                    defaultValue={c.telefone}
+                    onSave={(v) => comercial.updateContato(c.id, { telefone: v })}
+                  />
+                  <CampoEdit
+                    label="E-mail"
+                    format="email"
+                    defaultValue={c.email}
+                    className="col-span-2"
+                    onSave={(v) => comercial.updateContato(c.id, { email: v })}
+                  />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" /> Enviar e-mail
+                  <a
+                    href={`mailto:${c.email}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
+                    <Sms size={12} color="currentColor" variant="Linear" className="text-primary" />{" "}
+                    Enviar e-mail
                   </a>
-                  <a href={`tel:${c.telefone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
+                  <a
+                    href={`tel:${c.telefone}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
                     <Phone className="size-3 text-primary" /> Ligar
                   </a>
-                  <a href={`https://wa.me/${c.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition">
-                    <MessageCircle size={12} color="currentColor" variant="Linear" className="text-primary" /> WhatsApp
+                  <a
+                    href={`https://wa.me/${c.telefone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition"
+                  >
+                    <MessageCircle
+                      size={12}
+                      color="currentColor"
+                      variant="Linear"
+                      className="text-primary"
+                    />{" "}
+                    WhatsApp
                   </a>
                 </div>
               </li>
@@ -355,29 +572,47 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
               onChange={(e) => setNovaTarefa(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && novaTarefa) {
-                  const prazo = new Date(); prazo.setDate(prazo.getDate() + 1);
+                  const prazo = new Date();
+                  prazo.setDate(prazo.getDate() + 1);
                   comercial.addTarefa(lead.id, novaTarefa, prazo.toISOString());
                   setNovaTarefa("");
                   toast.success("Atividade criada.");
                 }
               }}
             />
-            <Button size="icon" variant="outline" onClick={() => {
-              if (!novaTarefa) return;
-              const prazo = new Date(); prazo.setDate(prazo.getDate() + 1);
-              comercial.addTarefa(lead.id, novaTarefa, prazo.toISOString());
-              setNovaTarefa("");
-            }}><Add size={16} color="currentColor" variant="Linear" className="text-primary" /></Button>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => {
+                if (!novaTarefa) return;
+                const prazo = new Date();
+                prazo.setDate(prazo.getDate() + 1);
+                comercial.addTarefa(lead.id, novaTarefa, prazo.toISOString());
+                setNovaTarefa("");
+              }}
+            >
+              <Add size={16} color="currentColor" variant="Linear" className="text-primary" />
+            </Button>
           </div>
 
           <ul className="space-y-1.5">
-            {tarefas.map(t => (
-              <li key={t.id} className="flex items-start gap-3 rounded-xl border border-border/60 bg-surface-1/40 p-3">
-                <Checkbox checked={t.feita} onCheckedChange={() => comercial.toggleTarefa(t.id)} className="mt-0.5" />
+            {tarefas.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-start gap-3 rounded-xl border border-border/60 bg-surface-1/40 p-3"
+              >
+                <Checkbox
+                  checked={t.feita}
+                  onCheckedChange={() => comercial.toggleTarefa(t.id)}
+                  className="mt-0.5"
+                />
                 <div className="min-w-0 flex-1">
-                  <p className={cn("text-sm", t.feita && "text-muted-foreground line-through")}>{t.titulo}</p>
+                  <p className={cn("text-sm", t.feita && "text-muted-foreground line-through")}>
+                    {t.titulo}
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {t.responsavel} · {format(new Date(t.prazo), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
+                    {t.responsavel} ·{" "}
+                    {format(new Date(t.prazo), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
                   </p>
                 </div>
               </li>
@@ -399,7 +634,11 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
             qtd={lead.propostasIds.length}
             acao="Gerar nova proposta"
             onAcao={() => {
-              comercial.addEvento(lead.id, { tipo: "proposta_enviada", titulo: "Proposta gerada", descricao: fmtBRL(lead.valor) });
+              comercial.addEvento(lead.id, {
+                tipo: "proposta_enviada",
+                titulo: "Proposta gerada",
+                descricao: fmtBRL(lead.valor),
+              });
               toast.success("Proposta registrada na timeline.");
             }}
           />
@@ -443,7 +682,15 @@ function DrawerBody({ lead, onClose: _onClose }: { lead: Lead; onClose: () => vo
 
 /* ===================== Sub-componentes ===================== */
 
-function ScoreBox({ score, estrelas, rotulo }: { score: number; estrelas: number; rotulo: string }) {
+function ScoreBox({
+  score,
+  estrelas,
+  rotulo,
+}: {
+  score: number;
+  estrelas: number;
+  rotulo: string;
+}) {
   return (
     <div className="mt-4 rounded-xl border border-border bg-gradient-to-br from-surface-2/60 to-surface-1/30 p-3.5">
       <div className="flex items-center justify-between gap-3">
@@ -452,9 +699,13 @@ function ScoreBox({ score, estrelas, rotulo }: { score: number; estrelas: number
             <MagicStar size={16} color="currentColor" variant="Linear" />
           </span>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Score do lead</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Score do lead
+            </p>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="font-display text-xl font-semibold tabular-nums text-foreground">{score}</span>
+              <span className="font-display text-xl font-semibold tabular-nums text-foreground">
+                {score}
+              </span>
               <span className="text-[11px] text-muted-foreground">/100</span>
             </div>
           </div>
@@ -464,7 +715,10 @@ function ScoreBox({ score, estrelas, rotulo }: { score: number; estrelas: number
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={cn("size-3.5", i < estrelas ? "fill-primary text-primary" : "text-muted-foreground/40")}
+                className={cn(
+                  "size-3.5",
+                  i < estrelas ? "fill-primary text-primary" : "text-muted-foreground/40",
+                )}
               />
             ))}
           </div>
@@ -477,7 +731,9 @@ function ScoreBox({ score, estrelas, rotulo }: { score: number; estrelas: number
           style={{ width: `${score}%` }}
         />
       </div>
-      <p className="mt-1.5 text-[9px] uppercase tracking-wider text-muted-foreground/60">Calculado por IA · em breve</p>
+      <p className="mt-1.5 text-[9px] uppercase tracking-wider text-muted-foreground/60">
+        Calculado por IA · em breve
+      </p>
     </div>
   );
 }
@@ -489,7 +745,7 @@ function ProgressoEtapas({ atual }: { atual: EtapaJornada }) {
     <div className="mt-3">
       <div className="flex items-center justify-between gap-1">
         {PROGRESSO.map((etapa, i) => {
-          const meta = ETAPAS.find(e => e.id === etapa)!;
+          const meta = ETAPAS.find((e) => e.id === etapa)!;
           const ativo = !perdido && i <= idxAtual;
           const atualEsse = !perdido && i === idxAtual;
           return (
@@ -498,7 +754,9 @@ function ProgressoEtapas({ atual }: { atual: EtapaJornada }) {
                 <span
                   className={cn(
                     "grid size-5 place-items-center rounded-full border transition",
-                    ativo ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface-1 text-muted-foreground",
+                    ativo
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-surface-1 text-muted-foreground",
                     atualEsse && "ring-2 ring-primary/40 ring-offset-2 ring-offset-background",
                   )}
                 >
@@ -508,19 +766,28 @@ function ProgressoEtapas({ atual }: { atual: EtapaJornada }) {
                     <span className="size-1.5 rounded-full bg-current" />
                   )}
                 </span>
-                <span className={cn("text-[8px] leading-tight text-center max-w-[60px]", ativo ? "text-foreground" : "text-muted-foreground")}>
+                <span
+                  className={cn(
+                    "text-[8px] leading-tight text-center max-w-[60px]",
+                    ativo ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
                   {meta.label}
                 </span>
               </div>
               {i < PROGRESSO.length - 1 && (
-                <div className={cn("h-px flex-1 -mt-3.5", i < idxAtual ? "bg-primary" : "bg-border")} />
+                <div
+                  className={cn("h-px flex-1 -mt-3.5", i < idxAtual ? "bg-primary" : "bg-border")}
+                />
               )}
             </div>
           );
         })}
       </div>
       {perdido && (
-        <p className="mt-2 text-center text-[10px] uppercase tracking-wider text-destructive">Lead perdido</p>
+        <p className="mt-2 text-center text-[10px] uppercase tracking-wider text-destructive">
+          Lead perdido
+        </p>
       )}
     </div>
   );
@@ -534,7 +801,7 @@ function TempPicker({ lead }: { lead: Lead }) {
   ];
   return (
     <div className="mt-3 inline-flex rounded-lg border border-border bg-surface-1 p-0.5">
-      {opts.map(o => {
+      {opts.map((o) => {
         const Icon = o.icon;
         const active = lead.temperatura === o.id;
         return (
@@ -543,7 +810,9 @@ function TempPicker({ lead }: { lead: Lead }) {
             onClick={() => comercial.setTemperatura(lead.id, o.id)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition",
-              active ? "bg-surface-3 text-foreground" : "text-muted-foreground hover:text-foreground",
+              active
+                ? "bg-surface-3 text-foreground"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className={cn("size-3", active ? o.cor : "")} />
@@ -555,7 +824,19 @@ function TempPicker({ lead }: { lead: Lead }) {
   );
 }
 
-function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Add; label: string; onClick: () => void; tone?: "success" | "destructive"; soon?: boolean }) {
+function QuickBtn({
+  icon: Icon,
+  label,
+  onClick,
+  tone,
+  soon,
+}: {
+  icon: typeof Add;
+  label: string;
+  onClick: () => void;
+  tone?: "success" | "destructive";
+  soon?: boolean;
+}) {
   return (
     <button
       onClick={soon ? undefined : onClick}
@@ -565,8 +846,12 @@ function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Add
         "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium transition",
         !soon && "hover:bg-surface-2",
         soon && "cursor-not-allowed opacity-50",
-        !soon && tone === "success" && "border-success/40 bg-success/10 text-success hover:bg-success/20",
-        !soon && tone === "destructive" && "border-destructive/30 text-destructive hover:bg-destructive/10",
+        !soon &&
+          tone === "success" &&
+          "border-success/40 bg-success/10 text-success hover:bg-success/20",
+        !soon &&
+          tone === "destructive" &&
+          "border-destructive/30 text-destructive hover:bg-destructive/10",
       )}
     >
       <Icon className={cn("size-3", soon ? "text-muted-foreground" : !tone && "text-primary")} />
@@ -580,7 +865,17 @@ function QuickBtn({ icon: Icon, label, onClick, tone, soon }: { icon: typeof Add
   );
 }
 
-function TabTrigger({ value, icon: Icon, children, badge }: { value: string; icon: typeof Add; children: React.ReactNode; badge?: number }) {
+function TabTrigger({
+  value,
+  icon: Icon,
+  children,
+  badge,
+}: {
+  value: string;
+  icon: typeof Add;
+  children: React.ReactNode;
+  badge?: number;
+}) {
   return (
     <TabsTrigger
       value={value}
@@ -597,7 +892,15 @@ function TabTrigger({ value, icon: Icon, children, badge }: { value: string; ico
   );
 }
 
-function Bloco({ titulo, icon: Icon, children }: { titulo: string; icon: typeof Add; children: React.ReactNode }) {
+function Bloco({
+  titulo,
+  icon: Icon,
+  children,
+}: {
+  titulo: string;
+  icon: typeof Add;
+  children: React.ReactNode;
+}) {
   return (
     <section>
       <h3 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -617,7 +920,13 @@ function Linha({ icon: Icon, value }: { icon: typeof Add; value: string }) {
   );
 }
 
-function ContatoLinha({ contato, principal }: { contato: { nome: string; cargo: string; email: string; telefone: string }; principal?: boolean }) {
+function ContatoLinha({
+  contato,
+  principal,
+}: {
+  contato: { nome: string; cargo: string; email: string; telefone: string };
+  principal?: boolean;
+}) {
   return (
     <li className="rounded-xl border border-border/60 bg-surface-1/40 p-3">
       <div className="flex items-start justify-between gap-2">
@@ -625,18 +934,39 @@ function ContatoLinha({ contato, principal }: { contato: { nome: string; cargo: 
           <p className="truncate text-sm font-medium">{contato.nome}</p>
           <p className="truncate text-[11px] text-muted-foreground">{contato.cargo}</p>
         </div>
-        {principal && <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">Principal</span>}
+        {principal && (
+          <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+            Principal
+          </span>
+        )}
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        <a href={`mailto:${contato.email}`} className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"><Sms size={12} color="currentColor" variant="Linear" className="text-primary" />{contato.email}</a>
-        <a href={`tel:${contato.telefone}`} className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"><Phone className="size-3 text-primary" />{contato.telefone}</a>
+        <a
+          href={`mailto:${contato.email}`}
+          className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <Sms size={12} color="currentColor" variant="Linear" className="text-primary" />
+          {contato.email}
+        </a>
+        <a
+          href={`tel:${contato.telefone}`}
+          className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <Phone className="size-3 text-primary" />
+          {contato.telefone}
+        </a>
       </div>
     </li>
   );
 }
 
 function CampoEdit({
-  label, defaultValue, onSave, type = "text", format = "text", className,
+  label,
+  defaultValue,
+  onSave,
+  type = "text",
+  format = "text",
+  className,
 }: {
   label: string;
   defaultValue: string;
@@ -646,9 +976,13 @@ function CampoEdit({
   className?: string;
 }) {
   const inicial =
-    format === "currency" ? (Number(defaultValue) ? formatBRL(Number(defaultValue), true) : "")
-    : format === "phone" ? maskPhone(defaultValue)
-    : defaultValue;
+    format === "currency"
+      ? Number(defaultValue)
+        ? formatBRL(Number(defaultValue), true)
+        : ""
+      : format === "phone"
+        ? maskPhone(defaultValue)
+        : defaultValue;
   const [val, setVal] = useState(inicial);
 
   const commit = () => {
@@ -658,7 +992,11 @@ function CampoEdit({
     } else if (format === "email") {
       const t = val.trim();
       if (t === defaultValue) return;
-      if (t && !isValidEmail(t)) { toast.error("E-mail inválido."); setVal(defaultValue); return; }
+      if (t && !isValidEmail(t)) {
+        toast.error("E-mail inválido.");
+        setVal(defaultValue);
+        return;
+      }
       onSave(t);
     } else if (val !== defaultValue) {
       onSave(val);
@@ -667,7 +1005,9 @@ function CampoEdit({
 
   return (
     <label className={cn("block", className)}>
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </span>
       <Input
         type={format === "email" ? "email" : type}
         inputMode={format === "currency" ? "numeric" : format === "phone" ? "tel" : undefined}
@@ -685,37 +1025,79 @@ function CampoEdit({
   );
 }
 
-function ContatoEditavel({ contato, principal }: { contato: { id: string; nome: string; cargo: string; email: string; telefone: string }; principal?: boolean }) {
+function ContatoEditavel({
+  contato,
+  principal,
+}: {
+  contato: { id: string; nome: string; cargo: string; email: string; telefone: string };
+  principal?: boolean;
+}) {
   return (
     <li className="rounded-xl border border-border/60 bg-surface-1/40 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {principal ? "Contato principal" : "Contato"}
         </span>
-        {principal && <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">Principal</span>}
+        {principal && (
+          <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+            Principal
+          </span>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <CampoEdit label="Nome" defaultValue={contato.nome} className="col-span-2" onSave={(v) => {
-          comercial.updateContato(contato.id, { nome: v });
-          toast.success("Contato atualizado.");
-        }} />
-        <CampoEdit label="Cargo" defaultValue={contato.cargo} onSave={(v) => {
-          comercial.updateContato(contato.id, { cargo: v });
-        }} />
-        <CampoEdit label="Telefone" format="phone" defaultValue={contato.telefone} onSave={(v) => {
-          comercial.updateContato(contato.id, { telefone: v });
-        }} />
-        <CampoEdit label="E-mail" format="email" defaultValue={contato.email} className="col-span-2" onSave={(v) => {
-          comercial.updateContato(contato.id, { email: v });
-        }} />
+        <CampoEdit
+          label="Nome"
+          defaultValue={contato.nome}
+          className="col-span-2"
+          onSave={(v) => {
+            comercial.updateContato(contato.id, { nome: v });
+            toast.success("Contato atualizado.");
+          }}
+        />
+        <CampoEdit
+          label="Cargo"
+          defaultValue={contato.cargo}
+          onSave={(v) => {
+            comercial.updateContato(contato.id, { cargo: v });
+          }}
+        />
+        <CampoEdit
+          label="Telefone"
+          format="phone"
+          defaultValue={contato.telefone}
+          onSave={(v) => {
+            comercial.updateContato(contato.id, { telefone: v });
+          }}
+        />
+        <CampoEdit
+          label="E-mail"
+          format="email"
+          defaultValue={contato.email}
+          className="col-span-2"
+          onSave={(v) => {
+            comercial.updateContato(contato.id, { email: v });
+          }}
+        />
       </div>
     </li>
   );
 }
 
 function Modulo({
-  titulo, descricao, icone: Icon, qtd, acao, onAcao,
-}: { titulo: string; descricao: string; icone: typeof Add; qtd: number; acao: string; onAcao: () => void }) {
+  titulo,
+  descricao,
+  icone: Icon,
+  qtd,
+  acao,
+  onAcao,
+}: {
+  titulo: string;
+  descricao: string;
+  icone: typeof Add;
+  qtd: number;
+  acao: string;
+  onAcao: () => void;
+}) {
   return (
     <div className="rounded-2xl border border-border bg-surface-1/40 p-5">
       <div className="flex items-start gap-3">

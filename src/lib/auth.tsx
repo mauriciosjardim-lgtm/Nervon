@@ -18,7 +18,12 @@ interface AuthState {
 
 interface AuthContext extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    nome: string,
+    meta?: { whatsapp?: string; tipo?: string },
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshEmpresa: () => Promise<void>;
 }
@@ -37,7 +42,7 @@ function getPersistedSession(): Promise<Session | null> {
     persistedSessionPromise = supabase.auth
       .getSession()
       .then(({ data }) => data.session)
-      .catch(err => {
+      .catch((err) => {
         persistedSessionPromise = null; // permite retry num bootstrap futuro
         throw err;
       });
@@ -47,7 +52,11 @@ function getPersistedSession(): Promise<Session | null> {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
-    session: null, user: null, usuario: null, empresa: null, loading: true,
+    session: null,
+    user: null,
+    usuario: null,
+    empresa: null,
+    loading: true,
   });
 
   // epoch/generation guard: cada mudança de sessão bumpa o epoch; respostas
@@ -65,11 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const activeUserIdRef = useRef<string | null>(null);
 
   const loadPerfil = async (userId: string) => {
-    const { data: usuario } = await supabase
-      .from("usuarios").select("*").eq("id", userId).single();
+    const { data: usuario } = await supabase.from("usuarios").select("*").eq("id", userId).single();
     if (!usuario) return null;
     const { data: empresa } = await supabase
-      .from("empresas").select("*").eq("id", usuario.empresa_id).single();
+      .from("empresas")
+      .select("*")
+      .eq("id", usuario.empresa_id)
+      .single();
     return { usuario, empresa };
   };
 
@@ -78,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const epoch = epochRef.current;
     const perfil = await loadPerfil(state.user.id);
     if (perfil && mountedRef.current && epoch === epochRef.current) {
-      setState(s => ({ ...s, ...perfil }));
+      setState((s) => ({ ...s, ...perfil }));
     }
   };
 
@@ -88,6 +99,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const applySession = async (session: Session | null, epoch: number) => {
     if (!mountedRef.current || epoch !== epochRef.current) return;
     if (session?.user) {
+      // Sessões de clientes usam outro storage. Remove qualquer sessão antiga
+      // que tenha sido gravada no cliente principal antes dessa separação.
+      if (
+        session.user.app_metadata?.account_type === "client_portal" ||
+        session.user.user_metadata?.account_type === "client_portal"
+      ) {
+        clearSessionHintCookie();
+        await supabase.auth.signOut({ scope: "local" });
+        if (mountedRef.current && epoch === epochRef.current) {
+          setState({
+            session: null,
+            user: null,
+            usuario: null,
+            empresa: null,
+            loading: false,
+          });
+        }
+        return;
+      }
       let perfil: Awaited<ReturnType<typeof loadPerfil>> = null;
       try {
         perfil = await loadPerfil(session.user.id);
@@ -98,7 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSessionHintCookie(); // sessão confirmada → cria/renova a dica pro SSR
       activeUserIdRef.current = session.user.id;
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
-      setState({ session, user: session.user, loading: false, ...(perfil ?? { usuario: null, empresa: null }) });
+      setState({
+        session,
+        user: session.user,
+        loading: false,
+        ...(perfil ?? { usuario: null, empresa: null }),
+      });
     } else {
       activeUserIdRef.current = null;
       clearSessionHintCookie(); // sem sessão (logout/expirada) → remove a dica
@@ -114,12 +149,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrapSession = (): Promise<void> => {
     const epoch = ++epochRef.current;
     return getPersistedSession()
-      .then(session => applySession(session, epoch))
-      .catch(err => {
+      .then((session) => applySession(session, epoch))
+      .catch((err) => {
         console.error("[auth] bootstrapSession:", err);
         if (!mountedRef.current || epoch !== epochRef.current) return;
         if (fallbackRef.current) clearTimeout(fallbackRef.current);
-        setState(s => s.loading ? { ...s, loading: false } : s);
+        setState((s) => (s.loading ? { ...s, loading: false } : s));
       });
   };
 
@@ -128,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // failsafe: nunca deixa o spinner travado pra sempre
     fallbackRef.current = setTimeout(() => {
-      setState(s => s.loading ? { ...s, loading: false } : s);
+      setState((s) => (s.loading ? { ...s, loading: false } : s));
     }, 8000);
 
     void bootstrapSession();
@@ -137,13 +172,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // O supabase-js segura um lock (navigator.locks) enquanto o callback roda;
     // qualquer query aguardada aqui chama getSession() -> mesmo lock -> deadlock.
     // Só registra a sessão e agenda o processamento fora da pilha do evento.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       // refresh de token: só atualiza o token, mantém o perfil já carregado
       if (event === "TOKEN_REFRESHED") {
         if (session) {
           activeUserIdRef.current = session.user.id;
           setSessionHintCookie(); // renova a dica (escrita síncrona, sem await)
-          setState(s => ({ ...s, session, user: session.user }));
+          setState((s) => ({ ...s, session, user: session.user }));
         }
         return;
       }
@@ -155,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // stores/canais já carregados. Antes, disposeSessionScope zerava o cockpit.
       if (event === "SIGNED_IN" && session?.user.id === activeUserIdRef.current) {
         setSessionHintCookie();
-        setState(s => ({ ...s, session, user: session.user }));
+        setState((s) => ({ ...s, session, user: session.user }));
         return;
       }
 
@@ -191,9 +228,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string, nome: string, meta?: { whatsapp?: string; tipo?: string }) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    nome: string,
+    meta?: { whatsapp?: string; tipo?: string },
+  ) => {
     const { data, error } = await supabase.auth.signUp({
-      email, password,
+      email,
+      password,
       options: {
         data: { nome, ...meta },
         emailRedirectTo: window.location.origin,

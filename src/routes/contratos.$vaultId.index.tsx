@@ -1,18 +1,28 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CofreModal } from "@/components/contratos/cofre-modal";
 import { AnexarModal } from "@/components/contratos/anexar-modal";
-import {
-  getVault, listContracts, listFiles, listEvents, deleteVault,
-} from "@/lib/contratos/api";
+import { getVault, listContracts, listFiles, listEvents, deleteVault } from "@/lib/contratos/api";
 import type { ClientVault, Contract, ClientFile, ContractEvent } from "@/lib/contratos/types";
 import { STATUS_LABEL, STATUS_COR, FILE_CATEGORY_LABEL } from "@/lib/contratos/types";
 import {
-  ArrowLeft2, Add, Buildings2, Profile2User, Edit2, Trash, DocumentText1,
-  DocumentDownload, Clock, ArrowRight2, Sms, Call, Location,
+  ArrowLeft2,
+  Add,
+  Buildings2,
+  Profile2User,
+  Edit2,
+  Trash,
+  DocumentText1,
+  DocumentDownload,
+  Clock,
+  ArrowRight2,
+  Sms,
+  Call,
+  Location,
 } from "iconsax-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -34,31 +44,49 @@ function VaultPage() {
     const v = await getVault(vaultId);
     setVault(v);
     if (v) {
-      const [cs, fs, es] = await Promise.all([listContracts(vaultId), listFiles(vaultId), listEvents(vaultId)]);
-      setContratos(cs); setArquivos(fs); setEventos(es);
+      const [cs, fs, es] = await Promise.all([
+        listContracts(vaultId),
+        listFiles(vaultId),
+        listEvents(vaultId),
+      ]);
+      setContratos(cs);
+      setArquivos(fs);
+      setEventos(es);
     }
     setLoading(false);
   }, [vaultId]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   if (loading) return <div className="p-8 text-sm text-muted-foreground">Carregando…</div>;
-  if (!vault) return (
-    <div className="p-8 text-center">
-      <p className="text-sm text-muted-foreground">Cofre não encontrado.</p>
-      <Link to="/contratos" className="mt-3 inline-block text-sm text-primary">← Voltar</Link>
-    </div>
-  );
+  if (!vault)
+    return (
+      <div className="p-8 text-center">
+        <p className="text-sm text-muted-foreground">Cofre não encontrado.</p>
+        <Link to="/contratos" className="mt-3 inline-block text-sm text-primary">
+          ← Voltar
+        </Link>
+      </div>
+    );
 
   const stats = {
     total: contratos.length,
-    rascunho: contratos.filter(c => c.status === "rascunho").length,
-    assinado: contratos.filter(c => c.status === "assinado").length,
-    aguardando: contratos.filter(c => c.status === "aguardando_assinatura" || c.status === "enviado").length,
+    rascunho: contratos.filter((c) => c.status === "rascunho").length,
+    assinado: contratos.filter((c) => c.status === "assinado").length,
+    aguardando: contratos.filter(
+      (c) => c.status === "aguardando_assinatura" || c.status === "enviado",
+    ).length,
   };
 
   const removerCofre = async () => {
-    if (!confirm(`Excluir o cofre de "${vault.name}"? Todos os contratos e arquivos vinculados serão removidos.`)) return;
+    if (
+      !confirm(
+        `Excluir o cofre de "${vault.name}"? Todos os contratos e arquivos vinculados serão removidos.`,
+      )
+    )
+      return;
     await deleteVault(vault.id);
     navigate({ to: "/contratos" });
   };
@@ -66,21 +94,27 @@ function VaultPage() {
   return (
     <div className="mx-auto w-full max-w-[1100px] space-y-5 px-4 py-7 md:px-8 md:py-9">
       {/* Voltar + header */}
-      <Link to="/contratos" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+      <Link
+        to="/contratos"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft2 size={14} color="currentColor" variant="Linear" /> Contratos
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-            {vault.type === "company"
-              ? <Buildings2 size={22} color="currentColor" variant="Linear" />
-              : <Profile2User size={22} color="currentColor" variant="Linear" />}
+            {vault.type === "company" ? (
+              <Buildings2 size={22} color="currentColor" variant="Linear" />
+            ) : (
+              <Profile2User size={22} color="currentColor" variant="Linear" />
+            )}
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight">{vault.name}</h1>
             <p className="text-xs text-muted-foreground">
-              {vault.fantasy_name ? `${vault.fantasy_name} · ` : ""}{vault.type === "company" ? "Pessoa Jurídica" : "Pessoa Física"}
+              {vault.fantasy_name ? `${vault.fantasy_name} · ` : ""}
+              {vault.type === "company" ? "Pessoa Jurídica" : "Pessoa Física"}
               {vault.document ? ` · ${vault.document}` : ""}
             </p>
           </div>
@@ -89,7 +123,11 @@ function VaultPage() {
           <Button variant="outline" size="sm" onClick={() => setEditar(true)} className="gap-1.5">
             <Edit2 size={14} color="currentColor" variant="Linear" /> Editar
           </Button>
-          <Button size="sm" onClick={() => navigate({ to: "/contratos/$vaultId/novo", params: { vaultId } })} className="gap-1.5">
+          <Button
+            size="sm"
+            onClick={() => navigate({ to: "/contratos/$vaultId/novo", params: { vaultId } })}
+            className="gap-1.5"
+          >
             <Add size={14} color="currentColor" variant="Linear" /> Novo contrato
           </Button>
         </div>
@@ -99,8 +137,16 @@ function VaultPage() {
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="contratos">Contratos {stats.total > 0 && <span className="ml-1 text-[10px] opacity-60">{stats.total}</span>}</TabsTrigger>
-          <TabsTrigger value="arquivos">Arquivos {arquivos.length > 0 && <span className="ml-1 text-[10px] opacity-60">{arquivos.length}</span>}</TabsTrigger>
+          <TabsTrigger value="contratos">
+            Contratos{" "}
+            {stats.total > 0 && <span className="ml-1 text-[10px] opacity-60">{stats.total}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="arquivos">
+            Arquivos{" "}
+            {arquivos.length > 0 && (
+              <span className="ml-1 text-[10px] opacity-60">{arquivos.length}</span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
 
@@ -116,21 +162,34 @@ function VaultPage() {
             <InfoCard titulo="Dados principais">
               <InfoLinha icon={Sms} label="E-mail" valor={vault.email} />
               <InfoLinha icon={Call} label="Telefone" valor={vault.phone} />
-              <InfoLinha icon={Location} label="Endereço" valor={[vault.address, vault.city, vault.state].filter(Boolean).join(", ")} />
+              <InfoLinha
+                icon={Location}
+                label="Endereço"
+                valor={[vault.address, vault.city, vault.state].filter(Boolean).join(", ")}
+              />
               <InfoLinha icon={Profile2User} label="Responsável" valor={vault.responsible_name} />
             </InfoCard>
             <InfoCard titulo="Arquivos vinculados">
-              {arquivos.length === 0
-                ? <p className="text-xs text-muted-foreground">Nenhum arquivo ainda.</p>
-                : <ul className="space-y-1.5">
-                    {arquivos.slice(0, 5).map(a => (
-                      <li key={a.id} className="flex items-center gap-2 text-xs">
-                        <DocumentText1 size={13} color="currentColor" variant="Linear" className="shrink-0 text-muted-foreground" />
-                        <span className="truncate">{a.name}</span>
-                        <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{FILE_CATEGORY_LABEL[a.category]}</span>
-                      </li>
-                    ))}
-                  </ul>}
+              {arquivos.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum arquivo ainda.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {arquivos.slice(0, 5).map((a) => (
+                    <li key={a.id} className="flex items-center gap-2 text-xs">
+                      <DocumentText1
+                        size={13}
+                        color="currentColor"
+                        variant="Linear"
+                        className="shrink-0 text-muted-foreground"
+                      />
+                      <span className="truncate">{a.name}</span>
+                      <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                        {FILE_CATEGORY_LABEL[a.category]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </InfoCard>
           </div>
         </TabsContent>
@@ -140,13 +199,24 @@ function VaultPage() {
           <div className="rounded-2xl border border-border bg-surface-1/50 p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-sm font-semibold">Dados do cliente</h2>
-              <Button variant="outline" size="sm" onClick={() => setEditar(true)} className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditar(true)}
+                className="gap-1.5"
+              >
                 <Edit2 size={13} color="currentColor" variant="Linear" /> Editar
               </Button>
             </div>
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-              <Campo label={vault.type === "company" ? "Razão social" : "Nome completo"} valor={vault.name} />
-              <Campo label={vault.type === "company" ? "Nome fantasia" : "Apelido"} valor={vault.fantasy_name} />
+              <Campo
+                label={vault.type === "company" ? "Razão social" : "Nome completo"}
+                valor={vault.name}
+              />
+              <Campo
+                label={vault.type === "company" ? "Nome fantasia" : "Apelido"}
+                valor={vault.fantasy_name}
+              />
               <Campo label={vault.type === "company" ? "CNPJ" : "CPF"} valor={vault.document} />
               <Campo label="Responsável" valor={vault.responsible_name} />
               <Campo label="E-mail" valor={vault.email} />
@@ -158,7 +228,10 @@ function VaultPage() {
               <Campo label="Observações internas" valor={vault.notes} full />
             </dl>
             <div className="mt-5 border-t border-border/40 pt-4">
-              <button onClick={removerCofre} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground transition hover:text-destructive">
+              <button
+                onClick={removerCofre}
+                className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground transition hover:text-destructive"
+              >
                 <Trash size={13} color="currentColor" variant="Linear" /> Excluir cofre
               </button>
             </div>
@@ -168,37 +241,62 @@ function VaultPage() {
         {/* CONTRATOS */}
         <TabsContent value="contratos" className="space-y-3 pt-4">
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => navigate({ to: "/contratos/$vaultId/novo", params: { vaultId } })} className="gap-1.5">
+            <Button
+              size="sm"
+              onClick={() => navigate({ to: "/contratos/$vaultId/novo", params: { vaultId } })}
+              className="gap-1.5"
+            >
               <Add size={14} color="currentColor" variant="Linear" /> Novo contrato
             </Button>
           </div>
           {contratos.length === 0 ? (
             <div className="grid place-items-center rounded-2xl border border-dashed border-border/60 px-6 py-14 text-center">
-              <DocumentText1 size={22} color="currentColor" variant="Linear" className="mb-2 text-primary" />
+              <DocumentText1
+                size={22}
+                color="currentColor"
+                variant="Linear"
+                className="mb-2 text-primary"
+              />
               <p className="text-sm font-semibold">Nenhum contrato ainda</p>
-              <p className="mt-1 text-xs text-muted-foreground">Crie o primeiro contrato deste cliente.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Crie o primeiro contrato deste cliente.
+              </p>
             </div>
           ) : (
             <ul className="divide-y divide-border/50 overflow-hidden rounded-2xl border border-border/50">
-              {contratos.map(c => (
+              {contratos.map((c) => (
                 <li key={c.id}>
-                  <Link to="/contratos/$vaultId/contrato/$contractId" params={{ vaultId, contractId: c.id }}
-                    className="flex items-center gap-3 bg-surface-1/40 px-4 py-3 transition hover:bg-surface-2/40">
+                  <Link
+                    to="/contratos/$vaultId/contrato/$contractId"
+                    params={{ vaultId, contractId: c.id }}
+                    className="flex items-center gap-3 bg-surface-1/40 px-4 py-3 transition hover:bg-surface-2/40"
+                  >
                     <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/[0.04] text-muted-foreground">
                       <DocumentText1 size={16} color="currentColor" variant="Linear" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
-                        {c.numero ? `Nº ${String(c.numero).padStart(4, "0")} · ` : ""}{c.title}
+                        {c.numero ? `Nº ${String(c.numero).padStart(4, "0")} · ` : ""}
+                        {c.title}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
                         {format(new Date(c.created_at), "dd MMM yyyy", { locale: ptBR })}
                       </p>
                     </div>
-                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COR[c.status])}>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                        STATUS_COR[c.status],
+                      )}
+                    >
                       {STATUS_LABEL[c.status]}
                     </span>
-                    <ArrowRight2 size={15} color="currentColor" variant="Linear" className="shrink-0 text-muted-foreground/40" />
+                    <ArrowRight2
+                      size={15}
+                      color="currentColor"
+                      variant="Linear"
+                      className="shrink-0 text-muted-foreground/40"
+                    />
                   </Link>
                 </li>
               ))}
@@ -215,20 +313,47 @@ function VaultPage() {
           </div>
           {arquivos.length === 0 ? (
             <div className="grid place-items-center rounded-2xl border border-dashed border-border/60 px-6 py-14 text-center">
-              <DocumentDownload size={22} color="currentColor" variant="Linear" className="mb-2 text-primary" />
+              <DocumentDownload
+                size={22}
+                color="currentColor"
+                variant="Linear"
+                className="mb-2 text-primary"
+              />
               <p className="text-sm font-semibold">Nenhum arquivo</p>
-              <p className="mt-1 text-xs text-muted-foreground">Anexe contratos assinados, documentos, propostas e comprovantes.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Anexe contratos assinados, documentos, propostas e comprovantes.
+              </p>
             </div>
           ) : (
             <ul className="divide-y divide-border/50 overflow-hidden rounded-2xl border border-border/50">
-              {arquivos.map(a => (
+              {arquivos.map((a) => (
                 <li key={a.id} className="flex items-center gap-3 bg-surface-1/40 px-4 py-3">
-                  <DocumentText1 size={16} color="currentColor" variant="Linear" className="shrink-0 text-muted-foreground" />
+                  <DocumentText1
+                    size={16}
+                    color="currentColor"
+                    variant="Linear"
+                    className="shrink-0 text-muted-foreground"
+                  />
                   <div className="min-w-0 flex-1">
-                    <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="truncate text-sm font-medium hover:text-primary">{a.name}</a>
-                    <p className="text-[11px] text-muted-foreground">{FILE_CATEGORY_LABEL[a.category]} · {format(new Date(a.created_at), "dd MMM yyyy", { locale: ptBR })}</p>
+                    <a
+                      href={a.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-medium hover:text-primary"
+                    >
+                      {a.name}
+                    </a>
+                    <p className="text-[11px] text-muted-foreground">
+                      {FILE_CATEGORY_LABEL[a.category]} ·{" "}
+                      {format(new Date(a.created_at), "dd MMM yyyy", { locale: ptBR })}
+                    </p>
                   </div>
-                  <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded-md p-1.5 text-muted-foreground transition hover:bg-surface-2 hover:text-foreground">
+                  <a
+                    href={a.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-md p-1.5 text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
+                  >
                     <DocumentDownload size={15} color="currentColor" variant="Linear" />
                   </a>
                 </li>
@@ -243,7 +368,7 @@ function VaultPage() {
             <p className="px-1 text-xs text-muted-foreground">Nenhum evento registrado ainda.</p>
           ) : (
             <ol className="relative space-y-4 border-l border-border/50 pl-5">
-              {eventos.map(e => (
+              {eventos.map((e) => (
                 <li key={e.id} className="relative">
                   <span className="absolute -left-[1.42rem] top-1 grid size-3 place-items-center rounded-full border-2 border-background bg-primary" />
                   <p className="text-sm text-foreground/90">{e.description || e.event_type}</p>
@@ -258,8 +383,18 @@ function VaultPage() {
         </TabsContent>
       </Tabs>
 
-      <CofreModal open={editar} onClose={() => setEditar(false)} vault={vault} onSaved={() => carregar()} />
-      <AnexarModal open={anexar} onClose={() => setAnexar(false)} vaultId={vaultId} onSaved={() => carregar()} />
+      <CofreModal
+        open={editar}
+        onClose={() => setEditar(false)}
+        vault={vault}
+        onSaved={() => carregar()}
+      />
+      <AnexarModal
+        open={anexar}
+        onClose={() => setAnexar(false)}
+        vaultId={vaultId}
+        onSaved={() => carregar()}
+      />
     </div>
   );
 }
@@ -268,7 +403,14 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-surface-1/70 p-4">
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className={cn("mt-0.5 font-display text-2xl font-bold tabular-nums", accent && "text-primary")}>{value}</p>
+      <p
+        className={cn(
+          "mt-0.5 font-display text-2xl font-bold tabular-nums",
+          accent && "text-primary",
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -282,10 +424,23 @@ function InfoCard({ titulo, children }: { titulo: string; children: React.ReactN
   );
 }
 
-function InfoLinha({ icon: Icon, label, valor }: { icon: any; label: string; valor: string | null }) {
+function InfoLinha({
+  icon: Icon,
+  label,
+  valor,
+}: {
+  icon: any;
+  label: string;
+  valor: string | null;
+}) {
   return (
     <div className="flex items-center gap-2 text-xs">
-      <Icon size={13} color="currentColor" variant="Linear" className="shrink-0 text-muted-foreground" />
+      <Icon
+        size={13}
+        color="currentColor"
+        variant="Linear"
+        className="shrink-0 text-muted-foreground"
+      />
       <span className="text-muted-foreground">{label}:</span>
       <span className="truncate text-foreground/90">{valor || "—"}</span>
     </div>

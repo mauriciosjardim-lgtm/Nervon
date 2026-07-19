@@ -1,10 +1,23 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { agendaActions } from "@/lib/hooks/useAgenda";
 import { TIPOS, type Evento, type TipoEvento } from "@/lib/mock/agenda";
 import { format } from "date-fns";
@@ -45,12 +58,17 @@ export function EventoModal({ open, onClose, evento, dataInicial }: Props) {
       setParticipantes((evento.participantes ?? []).join(", "));
     } else {
       const base = dataInicial ?? new Date();
-      const ini = new Date(base); ini.setHours(base.getHours() === 0 ? 9 : base.getHours(), 0, 0, 0);
-      const f = new Date(ini); f.setHours(ini.getHours() + 1);
-      setTitulo(""); setTipo("reuniao");
+      const ini = new Date(base);
+      ini.setHours(base.getHours() === 0 ? 9 : base.getHours(), 0, 0, 0);
+      const f = new Date(ini);
+      f.setHours(ini.getHours() + 1);
+      setTitulo("");
+      setTipo("reuniao");
       setInicio(toLocalInput(ini.toISOString()));
       setFim(toLocalInput(f.toISOString()));
-      setLocal(""); setDescricao(""); setParticipantes("");
+      setLocal("");
+      setDescricao("");
+      setParticipantes("");
     }
   }, [open, evento, dataInicial]);
 
@@ -63,7 +81,10 @@ export function EventoModal({ open, onClose, evento, dataInicial }: Props) {
       fim: new Date(fim).toISOString(),
       local: local.trim() || undefined,
       descricao: descricao.trim() || undefined,
-      participantes: participantes.split(",").map(p => p.trim()).filter(Boolean),
+      participantes: participantes
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean),
     };
     if (editando && evento) agendaActions.atualizar(evento.id, payload);
     else agendaActions.criar(payload);
@@ -78,21 +99,29 @@ export function EventoModal({ open, onClose, evento, dataInicial }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display">{editando ? "Editar evento" : "Novo evento"}</DialogTitle>
+          <DialogTitle className="font-display">
+            {editando ? "Editar evento" : "Novo evento"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs">Título</Label>
-            <Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Reunião com cliente" />
+            <Input
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              placeholder="Ex: Reunião com cliente"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Tipo</Label>
-              <Select value={tipo} onValueChange={v => setTipo(v as TipoEvento)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as TipoEvento)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(TIPOS).map(([id, t]) => (
                     <SelectItem key={id} value={id}>
@@ -107,36 +136,58 @@ export function EventoModal({ open, onClose, evento, dataInicial }: Props) {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Local</Label>
-              <Input value={local} onChange={e => setLocal(e.target.value)} placeholder="Sala, link, endereço…" />
+              <Input
+                value={local}
+                onChange={(e) => setLocal(e.target.value)}
+                placeholder="Sala, link, endereço…"
+              />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-xs">Início</Label>
-              <Input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} />
+              <DateTimePicker value={inicio} onChange={setInicio} placeholder="Data de início" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Fim</Label>
-              <Input type="datetime-local" value={fim} onChange={e => setFim(e.target.value)} />
+              <DateTimePicker value={fim} onChange={setFim} placeholder="Data de término" />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Participantes (separe por vírgula)</Label>
-            <Input value={participantes} onChange={e => setParticipantes(e.target.value)} placeholder="Você, Ana, Pedro" />
+            <Input
+              value={participantes}
+              onChange={(e) => setParticipantes(e.target.value)}
+              placeholder="Você, Ana, Pedro"
+            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Descrição</Label>
-            <Textarea value={descricao} onChange={e => setDescricao(e.target.value)} rows={3} placeholder="Pauta, notas, links…" />
+            <Textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              rows={3}
+              placeholder="Pauta, notas, links…"
+            />
           </div>
         </div>
         <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
           {editando ? (
-            <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={remover}
+              className="text-destructive hover:text-destructive"
+            >
               <Trash size={16} color="currentColor" variant="Linear" /> Remover
             </Button>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
             <Button onClick={salvar}>{editando ? "Salvar" : "Criar evento"}</Button>
           </div>
         </DialogFooter>

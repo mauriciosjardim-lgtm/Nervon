@@ -27,6 +27,10 @@ const titles: Record<string, { title: string; subtitle: string }> = {
   "/propostas": { title: "Propostas", subtitle: "Criadas, enviadas e aprovadas" },
   "/contratos": { title: "Contratos", subtitle: "Documentos e assinaturas" },
   "/projetos": { title: "Projetos", subtitle: "Operação em andamento" },
+  "/area-cliente": {
+    title: "Área do cliente",
+    subtitle: "Makers Members — portais, revisões e aprovações",
+  },
   "/eventos": { title: "Eventos", subtitle: "Produções e operações em campo" },
   "/novo-evento": { title: "Novo evento", subtitle: "Estrutura inicial da operação" },
   "/operacao-evento": { title: "Operação do evento", subtitle: "Centro de comando" },
@@ -78,7 +82,7 @@ export function Topbar() {
             MakersHub
           </span>
           <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-            v0.7.3
+            v0.8.0
           </span>
         </div>
 

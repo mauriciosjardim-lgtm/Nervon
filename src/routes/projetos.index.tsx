@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProjetoModal } from "@/components/projetos/projeto-modal";
+import { ClienteModal } from "@/components/projetos/cliente-modal";
 import { CentralAtencao } from "@/components/projetos/central-atencao";
 import { NovidadesProjetosV7 } from "@/components/projetos/novidades-projetos-v7";
 import { FASES, getFaseInfo, resolverCorProjeto, type FaseProjeto, type Projeto, type Tarefa } from "@/lib/mock/projetos";
-import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
+import { useProjetos } from "@/lib/hooks/useProjetos";
+import { useComercialSupa } from "@/lib/hooks/useComercial";
 import { calcularResumoProgresso, SAUDE_ESTILO } from "@/lib/projetos/progresso";
 import { consumeCreate } from "@/lib/pendingCreate";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const mesmoMembro = (a: string, b: string) => normalizarNome(a) === normalizarNo
 
 function ProjetosPage() {
   const { projetos, tarefas, marcos, entregaveis } = useProjetos();
+  const { empresas: crmClients } = useComercialSupa();
   const navigate = useNavigate();
   const [visao, setVisao] = useState<Visao>("semana");
   const [cliente, setCliente] = useState("todos");
@@ -47,21 +49,38 @@ function ProjetosPage() {
   const [clienteArrastado, setClienteArrastado] = useState<string | null>(null);
   const ignorarCliqueAposArraste = useRef(false);
   const [busca, setBusca] = useState("");
-  const [modal, setModal] = useState(false);
+  const [clientModal, setClientModal] = useState(false);
   const [centralAberta, setCentralAberta] = useState(false);
   const [mostrarFechados, setMostrarFechados] = useState(false);
 
   useEffect(() => {
-    if (consumeCreate("projeto")) { setModal(true); return; }
-    const abrir = (e: Event) => { if ((e as CustomEvent).detail === "projeto") setModal(true); };
+    if (consumeCreate("projeto")) { setClientModal(true); return; }
+    const abrir = (e: Event) => {
+      if ((e as CustomEvent).detail === "projeto") setClientModal(true);
+    };
     window.addEventListener("nervon:criar", abrir);
     return () => window.removeEventListener("nervon:criar", abrir);
   }, []);
 
-  const clientes = useMemo(
-    () => [...new Set(projetos.filter((p) => Boolean(p.arquivado) === mostrarFechados).map((p) => p.cliente))].sort(),
-    [projetos, mostrarFechados],
-  );
+  const clientes = useMemo(() => {
+    const nomes = new Map<string, string>();
+
+    projetos
+      .filter((project) => Boolean(project.arquivado) === mostrarFechados)
+      .forEach((project) => {
+        const nome = project.cliente.trim();
+        if (nome) nomes.set(normalizarNome(nome), nome);
+      });
+
+    if (!mostrarFechados) {
+      crmClients.forEach((item) => {
+        const nome = item.nome.trim();
+        if (nome) nomes.set(normalizarNome(nome), nome);
+      });
+    }
+
+    return [...nomes.values()].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [crmClients, projetos, mostrarFechados]);
   const clientesOrdenados = useMemo(() => {
     const presentes = new Set(clientes);
     const salvos = ordemClientes.filter(c => presentes.has(c));
@@ -117,7 +136,7 @@ function ProjetosPage() {
         <div><span className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Operação</span><h1 className="mt-1 font-display text-3xl font-semibold">Projetos</h1><p className="text-sm text-muted-foreground">Clientes, produções e próximos passos no mesmo lugar.</p></div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setCentralAberta(v => !v)} className={cn(centralAberta && "border-primary/35 text-primary")}><Notification size={15} color="currentColor" /> Atenção{atrasadas > 0 && <span className="ml-1 rounded-full bg-destructive/15 px-1.5 text-[9px] font-bold text-destructive">{atrasadas}</span>}</Button>
-          <Button size="sm" onClick={() => setModal(true)}><Add size={16} color="currentColor" /> Novo projeto</Button>
+          <Button size="sm" onClick={() => setClientModal(true)}><Add size={16} color="currentColor" /> Novo cliente</Button>
         </div>
       </header>
 
@@ -134,11 +153,20 @@ function ProjetosPage() {
             <div className="mb-3 flex items-end justify-between"><div><h2 className="font-display text-base font-semibold">Clientes ativos</h2><p className="text-xs text-muted-foreground">Clique para abrir o workspace do cliente.</p></div><button className="text-xs font-medium text-primary" onClick={() => setCliente("todos")}>Limpar filtro</button></div>
             <div className="flex gap-2 overflow-x-auto px-0.5 py-1.5">
               {clientesOrdenados.map(nome => {
-                const ps = projetos.filter(p => p.cliente === nome && !p.arquivado);
+                const clientRecord = crmClients.find(
+                  (item) => item.nome.toLowerCase() === nome.toLowerCase(),
+                );
+                const ps = projetos.filter(
+                  (project) =>
+                    !project.arquivado &&
+                    (project.clienteId === clientRecord?.id || project.cliente === nome),
+                );
                 const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
-                const cor = ps[0] ? resolverCorProjeto(ps[0].cor, ps[0].id) : corCliente(nome);
+                const cor =
+                  clientRecord?.accentColor ??
+                  (ps[0] ? resolverCorProjeto(ps[0].cor, ps[0].id) : corCliente(nome));
                 const destino = ps.find(p => !["concluido", "pausado"].includes(p.fase)) ?? ps[0];
-                return <button key={nome} draggable onDragStart={() => { ignorarCliqueAposArraste.current = true; setClienteArrastado(nome); }} onDragOver={e => e.preventDefault()} onDrop={() => { if (clienteArrastado) moverCliente(clienteArrastado, nome); setClienteArrastado(null); }} onDragEnd={() => { setClienteArrastado(null); window.setTimeout(() => { ignorarCliqueAposArraste.current = false; }, 0); }} onClick={() => { if (ignorarCliqueAposArraste.current) return; if (destino) navigate({ to: "/projetos/$id", params: { id: destino.id } }); }} style={{ "--cliente": cor } as React.CSSProperties} className={cn("group relative min-w-[240px] rounded-xl border bg-surface-1/40 p-4 text-left transition-[transform,border-color,background-color,box-shadow,opacity] duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--cliente)] hover:bg-surface-1/65 hover:shadow-[0_12px_30px_-18px_var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border", clienteArrastado === nome && "opacity-45") }>
+                return <button key={nome} draggable onDragStart={() => { ignorarCliqueAposArraste.current = true; setClienteArrastado(nome); }} onDragOver={e => e.preventDefault()} onDrop={() => { if (clienteArrastado) moverCliente(clienteArrastado, nome); setClienteArrastado(null); }} onDragEnd={() => { setClienteArrastado(null); window.setTimeout(() => { ignorarCliqueAposArraste.current = false; }, 0); }} onClick={() => { if (ignorarCliqueAposArraste.current) return; const workspaceId = clientRecord?.id ?? destino?.id; if (workspaceId) navigate({ to: "/projetos/$id", params: { id: workspaceId } }); }} style={{ "--cliente": cor } as React.CSSProperties} className={cn("group relative min-w-[240px] rounded-xl border bg-surface-1/40 p-4 text-left transition-[transform,border-color,background-color,box-shadow,opacity] duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--cliente)] hover:bg-surface-1/65 hover:shadow-[0_12px_30px_-18px_var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border", clienteArrastado === nome && "opacity-45") }>
                   <span className="absolute right-2.5 top-2.5 cursor-grab text-muted-foreground/45 transition group-hover:text-muted-foreground active:cursor-grabbing" aria-label="Arrastar para reordenar"><GripVertical size={16} /></span><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-xs font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0 pr-4"><p className="truncate text-sm font-semibold">{nome}</p><p className="text-[11px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
                   <div className="mt-3.5 flex justify-between border-t border-border/40 pt-2.5 text-[11px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
                 </button>;
@@ -168,7 +196,15 @@ function ProjetosPage() {
           onAbrir={id => navigate({ to: "/projetos/$id", params: { id } })}
         />}
       </div>
-      <ProjetoModal open={modal} onClose={() => setModal(false)} />
+      <ClienteModal
+        open={clientModal}
+        onClose={() => setClientModal(false)}
+        onCreated={(client) => {
+          setClientModal(false);
+          sessionStorage.setItem("makershub:novo-projeto-cliente", client.id);
+          navigate({ to: "/projetos/$id", params: { id: client.id } });
+        }}
+      />
     </div>
   );
 }

@@ -52,6 +52,13 @@ export interface Projeto {
   criadoEm: string;
   notas?: string;
   links?: ProjetoLink[];
+  portalVisible?: boolean;
+  portalPhase?: string;
+  portalProgress?: number;
+  portalUpdate?: string;
+  portalNextMilestone?: string;
+  portalCoverUrl?: string;
+  portalUpdatedAt?: string;
 }
 
 export interface Tarefa {

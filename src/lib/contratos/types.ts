@@ -25,6 +25,11 @@ export interface ClientVault {
   zip_code: string | null;
   responsible_name: string | null;
   notes: string | null;
+  cliente_id: string | null;
+  portal_enabled: boolean;
+  portal_token: string | null;
+  portal_welcome_message: string | null;
+  portal_last_access_at: string | null;
   created_at: string;
   updated_at: string;
 }

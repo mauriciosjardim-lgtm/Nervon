@@ -32,6 +32,7 @@ import { Route as ComercialRouteImport } from './routes/comercial'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as AreaClienteRouteImport } from './routes/area-cliente'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AceitarConviteRouteImport } from './routes/aceitar-convite'
 import { Route as IndexRouteImport } from './routes/index'
@@ -45,6 +46,9 @@ import { Route as BibliotecaIndexRouteImport } from './routes/biblioteca.index'
 import { Route as PropostasNovaRouteImport } from './routes/propostas.nova'
 import { Route as PropostasIdRouteImport } from './routes/propostas.$id'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
+import { Route as PortalRedefinirSenhaRouteImport } from './routes/portal.redefinir-senha'
+import { Route as PortalLoginRouteImport } from './routes/portal.login'
+import { Route as PortalTokenRouteImport } from './routes/portal.$token'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as OrcamentosNovoRouteImport } from './routes/orcamentos.novo'
 import { Route as OrcamentosIdRouteImport } from './routes/orcamentos.$id'
@@ -64,6 +68,7 @@ import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ContratosVaultIdIndexRouteImport } from './routes/contratos.$vaultId.index'
 import { Route as ContratosVaultIdNovoRouteImport } from './routes/contratos.$vaultId.novo'
+import { Route as ApiPortalUsuariosRouteImport } from './routes/api/portal/usuarios'
 import { Route as ApiEquipeConvidarRouteImport } from './routes/api/equipe/convidar'
 import { Route as ApiAsaasWebhookRouteImport } from './routes/api/asaas/webhook'
 import { Route as ContratosVaultIdContratoContractIdRouteImport } from './routes/contratos.$vaultId.contrato.$contractId'
@@ -183,6 +188,11 @@ const AssistantRoute = AssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AreaClienteRoute = AreaClienteRouteImport.update({
+  id: '/area-cliente',
+  path: '/area-cliente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgendaRoute = AgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -247,6 +257,21 @@ const ProjetosIdRoute = ProjetosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ProjetosRoute,
+} as any)
+const PortalRedefinirSenhaRoute = PortalRedefinirSenhaRouteImport.update({
+  id: '/portal/redefinir-senha',
+  path: '/portal/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalLoginRoute = PortalLoginRouteImport.update({
+  id: '/portal/login',
+  path: '/portal/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalTokenRoute = PortalTokenRouteImport.update({
+  id: '/portal/$token',
+  path: '/portal/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PSlugRoute = PSlugRouteImport.update({
   id: '/p/$slug',
@@ -343,6 +368,11 @@ const ContratosVaultIdNovoRoute = ContratosVaultIdNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => ContratosVaultIdRoute,
 } as any)
+const ApiPortalUsuariosRoute = ApiPortalUsuariosRouteImport.update({
+  id: '/api/portal/usuarios',
+  path: '/api/portal/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEquipeConvidarRoute = ApiEquipeConvidarRouteImport.update({
   id: '/api/equipe/convidar',
   path: '/api/equipe/convidar',
@@ -364,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/area-cliente': typeof AreaClienteRoute
   '/assistant': typeof AssistantRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/checkout': typeof CheckoutRoute
@@ -404,6 +435,9 @@ export interface FileRoutesByFullPath {
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
+  '/portal/$token': typeof PortalTokenRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/redefinir-senha': typeof PortalRedefinirSenhaRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/propostas/$id': typeof PropostasIdRoute
   '/propostas/nova': typeof PropostasNovaRoute
@@ -416,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/propostas/': typeof PropostasIndexRoute
   '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
   '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
+  '/api/portal/usuarios': typeof ApiPortalUsuariosRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -424,6 +459,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/area-cliente': typeof AreaClienteRoute
   '/assistant': typeof AssistantRoute
   '/checkout': typeof CheckoutRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -456,6 +492,9 @@ export interface FileRoutesByTo {
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
+  '/portal/$token': typeof PortalTokenRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/redefinir-senha': typeof PortalRedefinirSenhaRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/propostas/$id': typeof PropostasIdRoute
   '/propostas/nova': typeof PropostasNovaRoute
@@ -468,6 +507,7 @@ export interface FileRoutesByTo {
   '/propostas': typeof PropostasIndexRoute
   '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
   '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
+  '/api/portal/usuarios': typeof ApiPortalUsuariosRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -477,6 +517,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/aceitar-convite': typeof AceitarConviteRoute
   '/agenda': typeof AgendaRoute
+  '/area-cliente': typeof AreaClienteRoute
   '/assistant': typeof AssistantRoute
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/checkout': typeof CheckoutRoute
@@ -517,6 +558,9 @@ export interface FileRoutesById {
   '/orcamentos/$id': typeof OrcamentosIdRoute
   '/orcamentos/novo': typeof OrcamentosNovoRoute
   '/p/$slug': typeof PSlugRoute
+  '/portal/$token': typeof PortalTokenRoute
+  '/portal/login': typeof PortalLoginRoute
+  '/portal/redefinir-senha': typeof PortalRedefinirSenhaRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/propostas/$id': typeof PropostasIdRoute
   '/propostas/nova': typeof PropostasNovaRoute
@@ -529,6 +573,7 @@ export interface FileRoutesById {
   '/propostas/': typeof PropostasIndexRoute
   '/api/asaas/webhook': typeof ApiAsaasWebhookRoute
   '/api/equipe/convidar': typeof ApiEquipeConvidarRoute
+  '/api/portal/usuarios': typeof ApiPortalUsuariosRoute
   '/contratos/$vaultId/novo': typeof ContratosVaultIdNovoRoute
   '/contratos/$vaultId/': typeof ContratosVaultIdIndexRoute
   '/contratos/$vaultId/contrato/$contractId': typeof ContratosVaultIdContratoContractIdRoute
@@ -539,6 +584,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/area-cliente'
     | '/assistant'
     | '/biblioteca'
     | '/checkout'
@@ -579,6 +625,9 @@ export interface FileRouteTypes {
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
+    | '/portal/$token'
+    | '/portal/login'
+    | '/portal/redefinir-senha'
     | '/projetos/$id'
     | '/propostas/$id'
     | '/propostas/nova'
@@ -591,6 +640,7 @@ export interface FileRouteTypes {
     | '/propostas/'
     | '/api/asaas/webhook'
     | '/api/equipe/convidar'
+    | '/api/portal/usuarios'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId/'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -599,6 +649,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/area-cliente'
     | '/assistant'
     | '/checkout'
     | '/configuracoes'
@@ -631,6 +682,9 @@ export interface FileRouteTypes {
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
+    | '/portal/$token'
+    | '/portal/login'
+    | '/portal/redefinir-senha'
     | '/projetos/$id'
     | '/propostas/$id'
     | '/propostas/nova'
@@ -643,6 +697,7 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/api/asaas/webhook'
     | '/api/equipe/convidar'
+    | '/api/portal/usuarios'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -651,6 +706,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aceitar-convite'
     | '/agenda'
+    | '/area-cliente'
     | '/assistant'
     | '/biblioteca'
     | '/checkout'
@@ -691,6 +747,9 @@ export interface FileRouteTypes {
     | '/orcamentos/$id'
     | '/orcamentos/novo'
     | '/p/$slug'
+    | '/portal/$token'
+    | '/portal/login'
+    | '/portal/redefinir-senha'
     | '/projetos/$id'
     | '/propostas/$id'
     | '/propostas/nova'
@@ -703,6 +762,7 @@ export interface FileRouteTypes {
     | '/propostas/'
     | '/api/asaas/webhook'
     | '/api/equipe/convidar'
+    | '/api/portal/usuarios'
     | '/contratos/$vaultId/novo'
     | '/contratos/$vaultId/'
     | '/contratos/$vaultId/contrato/$contractId'
@@ -712,6 +772,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AceitarConviteRoute: typeof AceitarConviteRoute
   AgendaRoute: typeof AgendaRoute
+  AreaClienteRoute: typeof AreaClienteRoute
   AssistantRoute: typeof AssistantRoute
   BibliotecaRoute: typeof BibliotecaRouteWithChildren
   CheckoutRoute: typeof CheckoutRoute
@@ -740,8 +801,12 @@ export interface RootRouteChildren {
   EventoLiveIdRoute: typeof EventoLiveIdRoute
   OperacaoEventoIdRoute: typeof OperacaoEventoIdRoute
   PSlugRoute: typeof PSlugRoute
+  PortalTokenRoute: typeof PortalTokenRoute
+  PortalLoginRoute: typeof PortalLoginRoute
+  PortalRedefinirSenhaRoute: typeof PortalRedefinirSenhaRoute
   ApiAsaasWebhookRoute: typeof ApiAsaasWebhookRoute
   ApiEquipeConvidarRoute: typeof ApiEquipeConvidarRoute
+  ApiPortalUsuariosRoute: typeof ApiPortalUsuariosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -907,6 +972,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/area-cliente': {
+      id: '/area-cliente'
+      path: '/area-cliente'
+      fullPath: '/area-cliente'
+      preLoaderRoute: typeof AreaClienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agenda': {
       id: '/agenda'
       path: '/agenda'
@@ -997,6 +1069,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/projetos/$id'
       preLoaderRoute: typeof ProjetosIdRouteImport
       parentRoute: typeof ProjetosRoute
+    }
+    '/portal/redefinir-senha': {
+      id: '/portal/redefinir-senha'
+      path: '/portal/redefinir-senha'
+      fullPath: '/portal/redefinir-senha'
+      preLoaderRoute: typeof PortalRedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/login': {
+      id: '/portal/login'
+      path: '/portal/login'
+      fullPath: '/portal/login'
+      preLoaderRoute: typeof PortalLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/$token': {
+      id: '/portal/$token'
+      path: '/portal/$token'
+      fullPath: '/portal/$token'
+      preLoaderRoute: typeof PortalTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/p/$slug': {
       id: '/p/$slug'
@@ -1130,6 +1223,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contratos/$vaultId/novo'
       preLoaderRoute: typeof ContratosVaultIdNovoRouteImport
       parentRoute: typeof ContratosVaultIdRoute
+    }
+    '/api/portal/usuarios': {
+      id: '/api/portal/usuarios'
+      path: '/api/portal/usuarios'
+      fullPath: '/api/portal/usuarios'
+      preLoaderRoute: typeof ApiPortalUsuariosRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/equipe/convidar': {
       id: '/api/equipe/convidar'
@@ -1289,6 +1389,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AceitarConviteRoute: AceitarConviteRoute,
   AgendaRoute: AgendaRoute,
+  AreaClienteRoute: AreaClienteRoute,
   AssistantRoute: AssistantRoute,
   BibliotecaRoute: BibliotecaRouteWithChildren,
   CheckoutRoute: CheckoutRoute,
@@ -1317,8 +1418,12 @@ const rootRouteChildren: RootRouteChildren = {
   EventoLiveIdRoute: EventoLiveIdRoute,
   OperacaoEventoIdRoute: OperacaoEventoIdRoute,
   PSlugRoute: PSlugRoute,
+  PortalTokenRoute: PortalTokenRoute,
+  PortalLoginRoute: PortalLoginRoute,
+  PortalRedefinirSenhaRoute: PortalRedefinirSenhaRoute,
   ApiAsaasWebhookRoute: ApiAsaasWebhookRoute,
   ApiEquipeConvidarRoute: ApiEquipeConvidarRoute,
+  ApiPortalUsuariosRoute: ApiPortalUsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

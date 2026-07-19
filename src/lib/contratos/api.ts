@@ -4,8 +4,15 @@
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
 import type {
-  ClientVault, Contract, ContractClause, ContractTemplate,
-  ClientFile, ContractEvent, ContractStatus, ContractFormData, FileCategory,
+  ClientVault,
+  Contract,
+  ContractClause,
+  ContractTemplate,
+  ClientFile,
+  ContractEvent,
+  ContractStatus,
+  ContractFormData,
+  FileCategory,
 } from "./types";
 
 // supabase tipado só conhece as tabelas antigas; confinamos o cast aqui
@@ -14,7 +21,9 @@ const sb = supabase as any;
 // ── Cofres ──────────────────────────────────────────────────
 export async function listVaults(): Promise<ClientVault[]> {
   const { data, error } = await sb
-    .from("client_vaults").select("*").order("created_at", { ascending: false });
+    .from("client_vaults")
+    .select("*")
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as ClientVault[];
 }
@@ -30,9 +39,14 @@ export async function createVault(input: Partial<ClientVault>): Promise<ClientVa
   const { data, error } = await sb
     .from("client_vaults")
     .insert({ ...input, empresa_id })
-    .select("*").single();
+    .select("*")
+    .single();
   if (error) throw error;
-  await logEvent({ client_vault_id: data.id, event_type: "cofre_criado", description: `Cofre de ${data.name} criado` });
+  await logEvent({
+    client_vault_id: data.id,
+    event_type: "cofre_criado",
+    description: `Cofre de ${data.name} criado`,
+  });
   return data as ClientVault;
 }
 
@@ -52,14 +66,20 @@ export async function deleteVault(id: string): Promise<void> {
 // ── Biblioteca (modelos + cláusulas) ────────────────────────
 export async function listTemplates(): Promise<ContractTemplate[]> {
   const { data, error } = await sb
-    .from("contract_templates").select("*").eq("active", true).order("name");
+    .from("contract_templates")
+    .select("*")
+    .eq("active", true)
+    .order("name");
   if (error) throw error;
   return (data ?? []) as ContractTemplate[];
 }
 
 export async function listClauses(): Promise<ContractClause[]> {
   const { data, error } = await sb
-    .from("contract_clauses").select("*").eq("active", true).order("order_base");
+    .from("contract_clauses")
+    .select("*")
+    .eq("active", true)
+    .order("order_base");
   if (error) throw error;
   return (data ?? []) as ContractClause[];
 }
@@ -67,7 +87,8 @@ export async function listClauses(): Promise<ContractClause[]> {
 // ── Contratos ───────────────────────────────────────────────
 export async function listContracts(vaultId: string): Promise<Contract[]> {
   const { data, error } = await sb
-    .from("contracts").select("*")
+    .from("contracts")
+    .select("*")
     .eq("client_vault_id", vaultId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -82,7 +103,8 @@ export async function getContract(id: string): Promise<Contract | null> {
 
 async function proximoNumero(empresa_id: string): Promise<number> {
   const { data } = await sb
-    .from("contracts").select("numero")
+    .from("contracts")
+    .select("numero")
     .eq("empresa_id", empresa_id)
     .order("numero", { ascending: false })
     .limit(1);
@@ -105,10 +127,12 @@ export async function createContract(input: {
   const { data, error } = await sb
     .from("contracts")
     .insert({ ...input, empresa_id, numero })
-    .select("*").single();
+    .select("*")
+    .single();
   if (error) throw error;
   await logEvent({
-    client_vault_id: input.client_vault_id, contract_id: data.id,
+    client_vault_id: input.client_vault_id,
+    contract_id: data.id,
     event_type: input.status === "rascunho" ? "contrato_criado" : "contrato_gerado",
     description: `Contrato "${data.title}" ${input.status === "rascunho" ? "salvo como rascunho" : "gerado"}`,
   });
@@ -131,8 +155,10 @@ export async function setContractStatus(c: Contract, status: ContractStatus): Pr
   const { error } = await sb.from("contracts").update(patch).eq("id", c.id);
   if (error) throw error;
   await logEvent({
-    client_vault_id: c.client_vault_id, contract_id: c.id,
-    event_type: "status_alterado", description: `Status alterado para ${status}`,
+    client_vault_id: c.client_vault_id,
+    contract_id: c.id,
+    event_type: "status_alterado",
+    description: `Status alterado para ${status}`,
   });
 }
 
@@ -144,7 +170,8 @@ export async function deleteContract(c: Contract): Promise<void> {
 // ── Arquivos ────────────────────────────────────────────────
 export async function listFiles(vaultId: string): Promise<ClientFile[]> {
   const { data, error } = await sb
-    .from("client_files").select("*")
+    .from("client_files")
+    .select("*")
     .eq("client_vault_id", vaultId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -160,15 +187,20 @@ export async function addFile(input: {
   category: FileCategory;
 }): Promise<ClientFile> {
   const empresa_id = await getEmpresaId();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data, error } = await sb
     .from("client_files")
     .insert({ ...input, empresa_id, uploaded_by: user?.id ?? null })
-    .select("*").single();
+    .select("*")
+    .single();
   if (error) throw error;
   await logEvent({
-    client_vault_id: input.client_vault_id, contract_id: input.contract_id ?? null,
-    event_type: "upload_manual", description: `Arquivo "${input.name}" anexado`,
+    client_vault_id: input.client_vault_id,
+    contract_id: input.contract_id ?? null,
+    event_type: "upload_manual",
+    description: `Arquivo "${input.name}" anexado`,
   });
   return data as ClientFile;
 }
@@ -176,7 +208,8 @@ export async function addFile(input: {
 // ── Histórico ───────────────────────────────────────────────
 export async function listEvents(vaultId: string): Promise<ContractEvent[]> {
   const { data, error } = await sb
-    .from("contract_events").select("*")
+    .from("contract_events")
+    .select("*")
     .eq("client_vault_id", vaultId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -200,5 +233,7 @@ export async function logEvent(input: {
       description: input.description ?? null,
       metadata: input.metadata ?? {},
     });
-  } catch { /* histórico é best-effort */ }
+  } catch {
+    /* histórico é best-effort */
+  }
 }

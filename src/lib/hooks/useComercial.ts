@@ -285,8 +285,29 @@ export const comercial = {
   // onde o cliente já é conhecido e vira produção logo de cara.
   async criarCliente(input: { nome: string; accentColor?: string }) {
     const empresa_id = await getEmpresaId();
+    const nome = input.nome.trim();
+    const existenteLocal = store.empresas.find(
+      (empresa) => empresa.nome.toLocaleLowerCase("pt-BR") === nome.toLocaleLowerCase("pt-BR"),
+    );
+    if (existenteLocal) return existenteLocal;
+
+    const { data: existentes, error: lookupError } = await supabase
+      .from("clientes_comercial")
+      .select("*")
+      .eq("empresa_id", empresa_id)
+      .ilike("nome", nome)
+      .limit(1);
+    if (dbErro(lookupError, "buscar cliente")) return null;
+    if (existentes?.[0]) {
+      const existente = rowToEmpresa(existentes[0]);
+      if (!store.empresas.some((empresa) => empresa.id === existente.id)) {
+        setStore({ empresas: [...store.empresas, existente] });
+      }
+      return existente;
+    }
+
     const { data, error } = await supabase.from("clientes_comercial").insert({
-      empresa_id, nome: input.nome.trim(),
+      empresa_id, nome,
       segmento: "Não informado", cidade: "Não informado",
       accent_color: input.accentColor ?? null,
     }).select().single();

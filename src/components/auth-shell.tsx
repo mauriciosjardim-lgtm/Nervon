@@ -18,7 +18,7 @@ export function AuthShell({ trialExpirado, sidebarStyle }: AuthShellProps) {
       <AppSidebar />
       <SidebarInset className="flex min-h-screen w-full flex-col">
         <Topbar />
-        <main className="flex-1 overflow-x-hidden">
+        <main className="flex-1 overflow-x-hidden px-2 pb-3 sm:px-3 lg:px-4">
           <Outlet />
         </main>
       </SidebarInset>
