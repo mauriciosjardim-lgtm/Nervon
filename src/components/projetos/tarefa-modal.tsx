@@ -64,16 +64,16 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases, faseInici
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle className="font-display">{editando ? "Editar tarefa" : "Nova tarefa"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
+      <DialogContent className="max-w-lg grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0">
+        <DialogHeader className="px-4 pt-5 sm:px-6 sm:pt-6"><DialogTitle className="font-display">{editando ? "Editar tarefa" : "Nova tarefa"}</DialogTitle></DialogHeader>
+        <div className="space-y-3 overflow-y-auto px-4 pb-3 sm:px-6">
           <div className="space-y-1.5"><Label className="text-xs">O que precisa ser feito?</Label><Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Editar criativo Dia das Mães" /><p className="text-[10px] text-muted-foreground">Use uma ação concreta. A etapa da produção é definida separadamente abaixo.</p></div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5"><Label className="text-xs">Responsável</Label><ResponsavelSelect value={responsavel} onChange={setResponsavel} /></div>
             <div className="space-y-1.5"><div className="flex items-center justify-between"><Label className="text-xs">Agenda (opcional)</Label><label className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><input type="checkbox" checked={diaTodo} onChange={e => setDiaTodo(e.target.checked)} className="accent-primary" /> Dia todo</label></div><DateTimePicker value={prazo} onChange={setPrazo} hideTime={diaTodo} /><p className="text-[10px] text-muted-foreground">{diaTodo ? "Ocupa o dia inteiro na agenda." : "Defina início e término da atividade."}</p></div>
           </div>
-          {!diaTodo && prazo && <div className="grid grid-cols-2 gap-3 -mt-1"><div /><div className="space-y-1.5"><Label className="text-xs">Término</Label><DateTimePicker value={prazoFim} onChange={setPrazoFim} /></div></div>}
-          <div className="grid grid-cols-2 gap-3">
+          {!diaTodo && prazo && <div className="-mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2"><div className="hidden sm:block" /><div className="space-y-1.5"><Label className="text-xs">Término</Label><DateTimePicker value={prazoFim} onChange={setPrazoFim} /></div></div>}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5"><Label className="text-xs">Prioridade</Label>
               <Select value={prioridade} onValueChange={v => setPrioridade(v as Prioridade)}><SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(PRIORIDADES).map(([id, p]) => <SelectItem key={id} value={id}>{p.label}</SelectItem>)}</SelectContent>
@@ -96,7 +96,7 @@ export function TarefaModal({ open, onClose, projetoId, tarefa, fases, faseInici
           </div>
           {prazo && <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-[11px] text-primary">📅 Esta tarefa aparecerá na Agenda automaticamente</p>}
         </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t border-border/60 bg-background px-4 py-3 sm:justify-between sm:px-6 sm:py-4">
           {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button></div>
         </DialogFooter>

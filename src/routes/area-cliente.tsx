@@ -30,7 +30,7 @@ export const Route = createFileRoute("/area-cliente")({
 
 function ClientAreaManager() {
   const { projetos, loading } = useProjetos();
-  const { empresas: clients } = useComercialSupa();
+  const { empresas: clients, loading: clientsLoading } = useComercialSupa();
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -89,8 +89,9 @@ function ClientAreaManager() {
   const clientChanges = clientReviews.filter(
     (review) => review.status === "changes_requested",
   ).length;
+  const dataLoading = loading || clientsLoading;
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6 py-6 md:py-8">
+    <div className="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 md:px-8 md:py-8">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 text-primary">
@@ -107,10 +108,10 @@ function ClientAreaManager() {
           </p>
         </div>
         <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-border bg-surface-1/35 sm:w-auto sm:grid-cols-4">
-          <CompactMetric label="Publicados" value={published.length} tone="text-primary" />
-          <CompactMetric label="Aguardando" value={pending.length} tone="text-warning" />
-          <CompactMetric label="Ajustes" value={changes.length} tone="text-destructive" />
-          <CompactMetric label="Aprovados" value={approved.length} tone="text-success" />
+          <CompactMetric label="Publicados" value={dataLoading ? "—" : published.length} tone="text-primary" />
+          <CompactMetric label="Aguardando" value={dataLoading ? "—" : pending.length} tone="text-warning" />
+          <CompactMetric label="Ajustes" value={dataLoading ? "—" : changes.length} tone="text-destructive" />
+          <CompactMetric label="Aprovados" value={dataLoading ? "—" : approved.length} tone="text-success" />
         </div>
       </header>
 
@@ -129,7 +130,7 @@ function ClientAreaManager() {
                 </p>
               </div>
               <span className="rounded-full border border-border/70 bg-background/25 px-2.5 py-1 text-[9px] text-muted-foreground">
-                {canonicalClients.length} clientes
+                {dataLoading ? "Carregando…" : `${canonicalClients.length} clientes`}
               </span>
             </div>
 
@@ -140,7 +141,7 @@ function ClientAreaManager() {
                   role="combobox"
                   aria-expanded={clientPickerOpen}
                   className="h-auto w-full justify-between rounded-xl border-border/80 bg-background/35 px-3 py-3 text-left hover:border-primary/30 hover:bg-surface-2/45"
-                  disabled={loading || canonicalClients.length === 0}
+                  disabled={dataLoading || canonicalClients.length === 0}
                 >
                   {selectedClient ? (
                     <span className="flex min-w-0 items-center gap-3">
@@ -165,7 +166,9 @@ function ClientAreaManager() {
                       </span>
                     </span>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Selecione um cliente</span>
+                    <span className="text-sm text-muted-foreground">
+                      {dataLoading ? "Carregando clientes…" : "Selecione um cliente"}
+                    </span>
                   )}
                   <ChevronsUpDown className="ml-3 size-4 shrink-0 text-muted-foreground" />
                 </Button>
@@ -350,7 +353,7 @@ function ClientAreaManager() {
   );
 }
 
-function CompactMetric({ label, value, tone }: { label: string; value: number; tone: string }) {
+function CompactMetric({ label, value, tone }: { label: string; value: number | string; tone: string }) {
   return (
     <div className="min-w-0 border-b border-r border-border/60 px-3 py-2.5 text-center even:border-r-0 sm:min-w-[82px] sm:border-b-0 sm:even:border-r sm:last:border-r-0">
       <p className={cn("font-display text-lg font-semibold tabular-nums", tone)}>{value}</p>

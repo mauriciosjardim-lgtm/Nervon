@@ -210,7 +210,7 @@ export function ClientPortalUsersPanel({
                 <div
                   key={user.id}
                   className={cn(
-                    "flex items-center justify-between gap-3 rounded-xl border p-3",
+                    "flex flex-col items-stretch justify-between gap-3 rounded-xl border p-3 sm:flex-row sm:items-center",
                     user.status === "active"
                       ? "border-success/20 bg-success/[0.04]"
                       : "border-border/60 bg-background/20 opacity-65",
@@ -241,11 +241,12 @@ export function ClientPortalUsersPanel({
                     variant="ghost"
                     size="sm"
                     onClick={() => void toggleUser(user)}
-                    className={
+                    className={cn(
+                      "self-end sm:self-auto",
                       user.status === "active"
                         ? "text-muted-foreground hover:text-destructive"
-                        : "text-success"
-                    }
+                        : "text-success",
+                    )}
                   >
                     {user.status === "active" ? (
                       <>

@@ -69,7 +69,7 @@ export function Topbar() {
     >
       <SidebarTrigger className="size-10 rounded-xl border border-border/50 bg-surface-1/40 text-muted-foreground transition hover:border-primary/30 hover:bg-surface-2 hover:text-primary [&>svg]:!size-5 [&>svg]:transition-transform hover:[&>svg]:scale-110" />
 
-      <div className="hidden min-w-0 flex-col leading-tight md:flex">
+      <div className="hidden min-w-0 max-w-[220px] flex-col leading-tight md:flex lg:max-w-[280px] xl:max-w-none">
         <h1 className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">
           {info.title}
         </h1>
@@ -77,16 +77,16 @@ export function Topbar() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <span className="font-display text-sm font-light tracking-tight text-muted-foreground">
             MakersHub
           </span>
           <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-            v0.8.0
+            v0.8.1
           </span>
         </div>
 
-        <button className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-surface-1/60 px-3 text-xs text-muted-foreground transition hover:border-border hover:bg-surface-2 hover:text-foreground md:flex">
+        <button className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-surface-1/60 px-3 text-xs text-muted-foreground transition hover:border-border hover:bg-surface-2 hover:text-foreground lg:flex">
           <SearchNormal size={14} color="currentColor" variant="Linear" />
           <span>Buscar em tudo</span>
           <span className="ml-6 flex items-center gap-1 rounded-md border border-border bg-background/60 px-1.5 py-0.5 text-[10px] font-medium">

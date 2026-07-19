@@ -78,9 +78,9 @@ export function ProjetoModal({ open, onClose, projeto, clienteInicial, clienteId
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader><DialogTitle className="font-display">{editando ? "Editar projeto" : "Novo projeto"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
+      <DialogContent className="max-w-xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0">
+        <DialogHeader className="px-4 pt-5 sm:px-6 sm:pt-6"><DialogTitle className="font-display">{editando ? "Editar projeto" : "Novo projeto"}</DialogTitle></DialogHeader>
+        <div className="space-y-3 overflow-y-auto px-4 pb-3 sm:px-6">
           <div className="space-y-1.5"><Label className="text-xs">Nome do projeto</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Campanha verão" /></div>
           <div className="space-y-1.5">
             <Label className="text-xs">Cliente</Label>
@@ -113,7 +113,7 @@ export function ProjetoModal({ open, onClose, projeto, clienteInicial, clienteId
             </div>
             <p className="text-[10px] text-muted-foreground">{modoData === "sem_data" ? "O calendário será definido pelos prazos de cada tarefa." : modoData === "entrega" ? "Informe apenas o prazo final. O início será a data de criação." : "Use quando a produção tiver uma janela definida de início e entrega."}</p>
           </div>
-          {modoData !== "sem_data" && <div className={`grid gap-3 ${modoData === "periodo" ? "grid-cols-2" : "grid-cols-1"}`}>
+          {modoData !== "sem_data" && <div className={`grid gap-3 ${modoData === "periodo" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
             {modoData === "periodo" && <div className="space-y-1.5"><Label className="text-xs">Início</Label><Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} /></div>}
             <div className="space-y-1.5"><Label className="text-xs">Entrega prevista <span className="font-normal text-muted-foreground">(opcional)</span></Label><Input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} /></div>
           </div>}
@@ -123,7 +123,7 @@ export function ProjetoModal({ open, onClose, projeto, clienteInicial, clienteId
           )}
           <div className="space-y-1.5"><Label className="text-xs">Descrição</Label><Textarea rows={3} value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Briefing, escopo, observações…" /></div>
         </div>
-        <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t border-border/60 bg-background px-4 py-3 sm:justify-between sm:px-6 sm:py-4">
           {editando ? <Button variant="ghost" size="sm" onClick={remover} className="text-destructive hover:text-destructive"><Trash size={16} color="currentColor" variant="Linear" /> Remover</Button> : <span />}
           <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={salvar} disabled={salvando}>{editando ? "Salvar" : "Criar projeto"}</Button></div>
         </DialogFooter>

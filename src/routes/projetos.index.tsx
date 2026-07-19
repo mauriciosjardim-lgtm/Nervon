@@ -128,6 +128,12 @@ function ProjetosPage() {
     setOrdemClientes(atual);
     localStorage.setItem("makershub:projetos:ordem-clientes", JSON.stringify(atual));
   };
+  const limparFiltros = () => {
+    setCliente("todos");
+    setResponsavel("todos");
+    setBusca("");
+    setMostrarFechados(false);
+  };
 
   return (
     <div className="space-y-5 px-4 py-5 md:px-8 md:py-7">
@@ -150,7 +156,21 @@ function ProjetosPage() {
           </section>
 
           <section>
-            <div className="mb-3 flex items-end justify-between"><div><h2 className="font-display text-base font-semibold">Clientes ativos</h2><p className="text-xs text-muted-foreground">Clique para abrir o workspace do cliente.</p></div><button className="text-xs font-medium text-primary" onClick={() => setCliente("todos")}>Limpar filtro</button></div>
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="font-display text-base font-semibold">
+                  {mostrarFechados ? "Clientes com projetos fechados" : "Clientes ativos"}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {mostrarFechados
+                    ? "Consulte produções já encerradas."
+                    : "Clique para abrir o workspace do cliente."}
+                </p>
+              </div>
+              <button className="shrink-0 text-xs font-medium text-primary" onClick={limparFiltros}>
+                Limpar filtros
+              </button>
+            </div>
             <div className="flex gap-2 overflow-x-auto px-0.5 py-1.5">
               {clientesOrdenados.map(nome => {
                 const clientRecord = crmClients.find(
@@ -168,7 +188,7 @@ function ProjetosPage() {
                 const destino = ps.find(p => !["concluido", "pausado"].includes(p.fase)) ?? ps[0];
                 return <button key={nome} draggable onDragStart={() => { ignorarCliqueAposArraste.current = true; setClienteArrastado(nome); }} onDragOver={e => e.preventDefault()} onDrop={() => { if (clienteArrastado) moverCliente(clienteArrastado, nome); setClienteArrastado(null); }} onDragEnd={() => { setClienteArrastado(null); window.setTimeout(() => { ignorarCliqueAposArraste.current = false; }, 0); }} onClick={() => { if (ignorarCliqueAposArraste.current) return; const workspaceId = clientRecord?.id ?? destino?.id; if (workspaceId) navigate({ to: "/projetos/$id", params: { id: workspaceId } }); }} style={{ "--cliente": cor } as React.CSSProperties} className={cn("group relative min-w-[240px] rounded-xl border bg-surface-1/40 p-4 text-left transition-[transform,border-color,background-color,box-shadow,opacity] duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--cliente)] hover:bg-surface-1/65 hover:shadow-[0_12px_30px_-18px_var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border", clienteArrastado === nome && "opacity-45") }>
                   <span className="absolute right-2.5 top-2.5 cursor-grab text-muted-foreground/45 transition group-hover:text-muted-foreground active:cursor-grabbing" aria-label="Arrastar para reordenar"><GripVertical size={16} /></span><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-xs font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0 pr-4"><p className="truncate text-sm font-semibold">{nome}</p><p className="text-[11px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
-                  <div className="mt-3.5 flex justify-between border-t border-border/40 pt-2.5 text-[11px] text-muted-foreground"><span>{pendentes} tarefas abertas</span><span className="text-[var(--cliente)]">Abrir →</span></div>
+                  <div className="mt-3.5 flex justify-between border-t border-border/40 pt-2.5 text-[11px] text-muted-foreground"><span>{pendentes} tarefa{pendentes === 1 ? "" : "s"} aberta{pendentes === 1 ? "" : "s"}</span><span className="text-[var(--cliente)]">Abrir →</span></div>
                 </button>;
               })}
             </div>
@@ -177,7 +197,7 @@ function ProjetosPage() {
           <section className="rounded-xl border border-border bg-surface-1/25">
             <div className="flex flex-wrap items-center gap-2 border-b border-border p-2">
               <Tabs value={visao} onValueChange={v => setVisao(v as Visao)}><TabsList className="h-9"><TabsTrigger value="pipeline" className="text-sm">Pipeline</TabsTrigger><TabsTrigger value="semana" className="text-sm">Semana</TabsTrigger><TabsTrigger value="lista" className="text-sm">Lista</TabsTrigger></TabsList></Tabs>
-              <button type="button" onClick={() => { setMostrarFechados(v => !v); setCliente("todos"); setVisao("lista"); }} className={cn("inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs transition", mostrarFechados ? "border-primary/40 bg-primary/10 text-primary" : "border-border/60 text-muted-foreground hover:text-foreground")}><Archive className="size-3.5" />Fechados{fechados.length > 0 && <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[9px]">{fechados.length}</span>}</button>
+              <button type="button" onClick={() => { setMostrarFechados(v => !v); setCliente("todos"); setVisao("lista"); }} className={cn("inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs transition", mostrarFechados ? "border-primary/40 bg-primary/10 text-primary" : "border-border/60 text-muted-foreground hover:text-foreground")}><Archive className="size-3.5" />{mostrarFechados ? "Ver ativos" : "Fechados"}{fechados.length > 0 && <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[9px]">{fechados.length}</span>}</button>
               <div className="relative min-w-[180px] flex-1"><SearchNormal size={15} color="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar projeto ou cliente…" className="h-9 pl-9 text-sm" /></div>
               {visao === "semana" && <div className="order-first flex h-9 items-center gap-1 rounded-lg border border-border/60 bg-surface-1/35 p-1"><button type="button" aria-label="Semana anterior" onClick={() => setSemanaOffset(v => v - 1)} className="grid size-7 place-items-center rounded-md text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"><ArrowLeft2 size={15} color="currentColor" /></button><button type="button" onClick={() => setSemanaOffset(0)} className="min-w-[150px] rounded-md px-2 text-xs font-medium tabular-nums hover:bg-surface-2">{format(semanaInicio, "dd MMM", { locale: ptBR })} — {format(semanaFim, "dd MMM", { locale: ptBR })}</button><button type="button" aria-label="Próxima semana" onClick={() => setSemanaOffset(v => v + 1)} className="grid size-7 place-items-center rounded-md text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"><ArrowRight2 size={15} color="currentColor" /></button></div>}
               <Select value={responsavel} onValueChange={setResponsavel}><SelectTrigger className="h-9 w-[170px] text-sm"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Toda a equipe</SelectItem>{equipe.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
@@ -219,6 +239,162 @@ function ProjetoCard({ p, tarefas, onAbrir }: { p: Projeto; tarefas: Tarefa[]; o
 
 function Pipeline({ projetos, tarefas, onAbrir }: { projetos: Projeto[]; tarefas: Tarefa[]; onAbrir: (id: string) => void }) { return <div className="flex gap-3 overflow-x-auto p-3">{ORDEM_FASES.filter(f => f !== "pausado").map(fase => { const ps = projetos.filter(p => p.fase === fase); return <div key={fase} className="w-[260px] shrink-0 rounded-xl border border-border/60 bg-surface-1/35 p-3"><div className="mb-3 flex items-center justify-between px-1"><h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{FASES[fase].label}</h3><span className="rounded bg-surface-2 px-2 py-0.5 text-xs text-muted-foreground">{ps.length}</span></div><div className="space-y-2.5">{ps.map(p => <ProjetoCard key={p.id} p={p} tarefas={tarefas} onAbrir={() => onAbrir(p.id)} />)}{!ps.length && <p className="rounded-lg border border-dashed border-border/40 p-5 text-center text-xs text-muted-foreground/60">Nenhuma produção</p>}</div></div>; })}</div>; }
 
-function Semana({ projetos, tarefas, semanaInicio, onAbrir }: { projetos: Projeto[]; tarefas: Tarefa[]; semanaInicio: Date; onAbrir: (id: string) => void }) { const dias = Array.from({ length: 5 }, (_, i) => addDays(semanaInicio, i)); const ids = new Set(projetos.map(p => p.id)); return <div className="grid min-w-[1050px] grid-cols-5 gap-3 overflow-x-auto p-3">{dias.map(d => { const ts = tarefas.filter(t => ids.has(t.projetoId) && t.prazo && isSameDay(new Date(t.prazo), d)); return <div key={d.toISOString()} className="min-h-[360px] rounded-xl border border-border/60 bg-surface-1/30 p-3"><div className="mb-3 flex items-center justify-between"><span className="text-[11px] font-medium uppercase text-muted-foreground">{format(d, "EEE", { locale: ptBR })}</span><span className={cn("grid size-7 place-items-center rounded-md text-sm", isSameDay(d, new Date()) && "bg-primary font-bold text-primary-foreground")}>{format(d, "dd")}</span></div><div className="space-y-2.5">{ts.map(t => { const p = projetos.find(x => x.id === t.projetoId)!; const cor = resolverCorProjeto(p.cor, p.id); const atrasada = !t.concluida && new Date(t.prazo!) < new Date(); return <button key={t.id} onClick={() => onAbrir(p.id)} style={{ "--projeto": cor } as React.CSSProperties} className={cn("relative w-full overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 pl-4 text-left transition duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--projeto)] hover:shadow-lg", t.concluida && "opacity-55")}><span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--projeto)]" /><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-medium tabular-nums text-muted-foreground">{format(new Date(t.prazo!), "HH:mm")}</p>{t.concluida ? <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase text-success"><TickCircle size={11} color="currentColor" />Feita</span> : atrasada ? <span className="text-[9px] font-semibold uppercase text-destructive">Atrasada</span> : null}</div><p className={cn("mt-2 text-xs font-semibold leading-snug", t.concluida && "text-muted-foreground line-through decoration-muted-foreground/70")}>{t.titulo}</p><div className="mt-2.5 flex flex-wrap gap-1.5"><span className="rounded bg-surface-2 px-2 py-0.5 text-[9px] text-muted-foreground">{p.cliente}</span><span className="rounded px-2 py-0.5 text-[9px]" style={{ color: cor, backgroundColor: `${cor}14` }}>{getFaseInfo(t.status).label}</span></div><p className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><Profile2User size={11} color="currentColor" />{t.responsavel}</p></button>; })}{!ts.length && <p className="py-8 text-center text-[11px] text-muted-foreground/50">Sem ações</p>}</div></div>; })}</div>; }
+function Semana({ projetos, tarefas, semanaInicio, onAbrir }: { projetos: Projeto[]; tarefas: Tarefa[]; semanaInicio: Date; onAbrir: (id: string) => void }) {
+  const dias = Array.from({ length: 5 }, (_, i) => addDays(semanaInicio, i));
+  const ids = new Set(projetos.map(p => p.id));
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const moverSemana = (direcao: -1 | 1) => {
+    scrollRef.current?.scrollBy({ left: direcao * 360, behavior: "smooth" });
+  };
 
-function Lista({ projetos, tarefas, onAbrir }: { projetos: Projeto[]; tarefas: Tarefa[]; onAbrir: (id: string) => void }) { return <div className="divide-y divide-border/60">{projetos.map(p => { const r = calcularResumoProgresso(p, tarefas); return <button key={p.id} onClick={() => onAbrir(p.id)} className={cn("grid w-full grid-cols-[1fr_auto] items-center gap-4 p-4 text-left transition hover:bg-surface-2/30", p.arquivado && "opacity-45 hover:opacity-80")}><div><p className="text-sm font-medium">{p.nome}</p><p className="mt-0.5 text-xs text-muted-foreground">{p.cliente} · {p.arquivado ? "Fechado" : FASES[p.fase].label}</p></div><div className="flex items-center gap-4 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1.5">{p.arquivado ? <Archive className="size-3" /> : <Clock size={12} color="currentColor" />}{p.arquivado ? "Arquivado" : p.dataEntrega ? format(new Date(p.dataEntrega), "dd MMM") : "Sem prazo geral"}</span><span>{r.percentual}%</span></div></button>; })}</div>; }
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-3 py-2 xl:hidden">
+        <p className="text-[10px] text-muted-foreground">
+          Navegue horizontalmente para ver todos os dias
+        </p>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            aria-label="Rolar semana para a esquerda"
+            onClick={() => moverSemana(-1)}
+            className="grid size-7 place-items-center rounded-md border border-border/60 bg-surface-1/50 text-muted-foreground transition hover:border-primary/30 hover:text-primary"
+          >
+            <ArrowLeft2 size={14} color="currentColor" />
+          </button>
+          <button
+            type="button"
+            aria-label="Rolar semana para a direita"
+            onClick={() => moverSemana(1)}
+            className="grid size-7 place-items-center rounded-md border border-border/60 bg-surface-1/50 text-muted-foreground transition hover:border-primary/30 hover:text-primary"
+          >
+            <ArrowRight2 size={14} color="currentColor" />
+          </button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="max-w-full overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]"
+      >
+        <div className="grid min-w-[1050px] grid-cols-5 gap-3 p-3">
+          {dias.map(d => {
+            const ts = tarefas.filter(
+              t => ids.has(t.projetoId) && t.prazo && isSameDay(new Date(t.prazo), d),
+            );
+            return (
+              <div
+                key={d.toISOString()}
+                className="min-h-[360px] rounded-xl border border-border/60 bg-surface-1/30 p-3"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[11px] font-medium uppercase text-muted-foreground">
+                    {format(d, "EEE", { locale: ptBR })}
+                  </span>
+                  <span
+                    className={cn(
+                      "grid size-7 place-items-center rounded-md text-sm",
+                      isSameDay(d, new Date()) && "bg-primary font-bold text-primary-foreground",
+                    )}
+                  >
+                    {format(d, "dd")}
+                  </span>
+                </div>
+                <div className="space-y-2.5">
+                  {ts.map(t => {
+                    const p = projetos.find(x => x.id === t.projetoId)!;
+                    const cor = resolverCorProjeto(p.cor, p.id);
+                    const atrasada = !t.concluida && new Date(t.prazo!) < new Date();
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => onAbrir(p.id)}
+                        style={{ "--projeto": cor } as React.CSSProperties}
+                        className={cn(
+                          "relative w-full overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 pl-4 text-left transition duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--projeto)] hover:shadow-lg",
+                          t.concluida && "opacity-55",
+                        )}
+                      >
+                        <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--projeto)]" />
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[10px] font-medium tabular-nums text-muted-foreground">
+                            {format(new Date(t.prazo!), "HH:mm")}
+                          </p>
+                          {t.concluida ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase text-success">
+                              <TickCircle size={11} color="currentColor" />Feita
+                            </span>
+                          ) : atrasada ? (
+                            <span className="text-[9px] font-semibold uppercase text-destructive">
+                              Atrasada
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className={cn("mt-2 text-xs font-semibold leading-snug", t.concluida && "text-muted-foreground line-through decoration-muted-foreground/70")}>
+                          {t.titulo}
+                        </p>
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          <span className="rounded bg-surface-2 px-2 py-0.5 text-[9px] text-muted-foreground">{p.cliente}</span>
+                          <span className="rounded px-2 py-0.5 text-[9px]" style={{ color: cor, backgroundColor: `${cor}14` }}>{getFaseInfo(t.status).label}</span>
+                        </div>
+                        <p className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <Profile2User size={11} color="currentColor" />{t.responsavel}
+                        </p>
+                      </button>
+                    );
+                  })}
+                  {!ts.length && <p className="py-8 text-center text-[11px] text-muted-foreground/50">Sem ações</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Lista({ projetos, tarefas, onAbrir }: { projetos: Projeto[]; tarefas: Tarefa[]; onAbrir: (id: string) => void }) {
+  if (!projetos.length) {
+    return (
+      <div className="grid min-h-48 place-items-center px-5 py-10 text-center">
+        <div>
+          <p className="text-sm font-medium">Nenhum projeto encontrado</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ajuste os filtros ou volte para os projetos ativos.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="divide-y divide-border/60">
+      {projetos.map(p => {
+        const r = calcularResumoProgresso(p, tarefas);
+        return (
+          <button
+            key={p.id}
+            onClick={() => onAbrir(p.id)}
+            className={cn(
+              "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 text-left transition hover:bg-surface-2/30",
+              p.arquivado && "opacity-45 hover:opacity-80",
+            )}
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{p.nome}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {p.cliente} · {p.arquivado ? "Fechado" : FASES[p.fase].label}
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="hidden items-center gap-1.5 sm:inline-flex">
+                {p.arquivado ? <Archive className="size-3" /> : <Clock size={12} color="currentColor" />}
+                {p.arquivado ? "Arquivado" : p.dataEntrega ? format(new Date(p.dataEntrega), "dd MMM") : "Sem prazo geral"}
+              </span>
+              <span>{r.percentual}%</span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}

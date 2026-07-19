@@ -141,7 +141,7 @@ export function ClientPortalWorkspace({ project }: { project: Projeto }) {
       </header>
 
       <nav
-        className="relative grid border-b border-border/60 bg-background/15 sm:grid-cols-2 lg:grid-cols-4"
+        className="relative flex overflow-x-auto border-b border-border/60 bg-background/15 sm:grid sm:grid-cols-2 lg:grid-cols-4"
         aria-label="Gestão da área do cliente"
       >
         {NAVIGATION.map((item, index) => {
@@ -153,7 +153,7 @@ export function ClientPortalWorkspace({ project }: { project: Projeto }) {
               type="button"
               onClick={() => setView(item.id)}
               className={cn(
-                "group relative flex min-h-[76px] items-center gap-3 border-b border-border/50 px-4 text-left transition-colors sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0",
+                "group relative flex min-h-[76px] min-w-[176px] flex-1 items-center gap-3 border-r border-border/50 px-4 text-left transition-colors last:border-r-0 sm:min-w-0 sm:border-b sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0",
                 selected ? "bg-surface-2/70" : "hover:bg-surface-2/35",
               )}
             >

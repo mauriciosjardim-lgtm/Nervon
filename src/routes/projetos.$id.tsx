@@ -174,12 +174,12 @@ function ProjetoDetalhe() {
           <div className="min-w-0">
             <h2 className="truncate font-display text-lg font-semibold">{clientName}</h2>
             <p className="text-[11px] text-muted-foreground">
-              {projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"} ativo
+              {projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"} cadastrado
               {projetosDoCliente.length === 1 ? "" : "s"}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
           <Button variant="outline" size="sm" onClick={() => setEditandoCliente(true)}>
             <Edit2 size={14} color="currentColor" variant="Linear" /> Editar cliente
           </Button>
@@ -436,24 +436,30 @@ function ProjetoConteudo({
               valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`}
             />
           )}
-          <StatCard icon={Profile2User} label="Equipe" valor={`${projeto.equipe.length} pessoas`} />
+          <StatCard
+            icon={Profile2User}
+            label="Equipe"
+            valor={`${projeto.equipe.length} pessoa${projeto.equipe.length === 1 ? "" : "s"}`}
+          />
         </div>
 
         <ResumoProgresso projeto={projeto} tarefas={minhasTarefas} />
       </header>
 
       <Tabs defaultValue="tarefas">
-        <TabsList>
-          <TabsTrigger value="tarefas">Tarefas ({minhasTarefas.length})</TabsTrigger>
-          <TabsTrigger value="entregaveis">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
-          <TabsTrigger value="marcos">Marcos ({meusMarcos.length})</TabsTrigger>
-          <TabsTrigger value="cliente">Área do cliente</TabsTrigger>
-          <TabsTrigger value="info">Informações</TabsTrigger>
-          <TabsTrigger value="equipe">Equipe</TabsTrigger>
-        </TabsList>
+        <div className="max-w-full overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full justify-start">
+            <TabsTrigger value="tarefas">Tarefas ({minhasTarefas.length})</TabsTrigger>
+            <TabsTrigger value="entregaveis">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
+            <TabsTrigger value="marcos">Marcos ({meusMarcos.length})</TabsTrigger>
+            <TabsTrigger value="cliente">Área do cliente</TabsTrigger>
+            <TabsTrigger value="info">Informações</TabsTrigger>
+            <TabsTrigger value="equipe">Equipe</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="tarefas" className="mt-3">
-          <div className="mb-3 flex items-center gap-3">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
             <Button size="sm" onClick={() => setTarefaModal({ open: true })}>
               <Add size={16} color="currentColor" variant="Linear" /> Nova tarefa
             </Button>
@@ -472,7 +478,7 @@ function ProjetoConteudo({
         </TabsContent>
 
         <TabsContent value="entregaveis" className="mt-3">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
               Cada item representa um vídeo, foto, doc ou peça que você precisa entregar — com link
               pro Drive e status.
@@ -488,7 +494,7 @@ function ProjetoConteudo({
         </TabsContent>
 
         <TabsContent value="marcos" className="mt-3">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
               Marcos importantes do projeto. Sempre aparecem na Agenda.
             </p>
