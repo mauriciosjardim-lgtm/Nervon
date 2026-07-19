@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft2, TickCircle, ShieldTick, Flash, Eye, EyeSlash, CloseCircle, Lock1, InfoCircle } from "iconsax-react";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { AuthBackground } from "@/components/auth-background";
@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { iniciarPix, checarPedido, pagarCartao } from "@/lib/api/asaas.functions";
 import { trackMetaInitiateCheckout, trackMetaPurchaseBrowser } from "@/lib/meta-pixel";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
 
 export const Route = createFileRoute("/checkout")({ component: Checkout });
 
@@ -220,6 +223,8 @@ function Checkout() {
   const [numero, setNumero] = useState("");
   const [telefone, setTelefone] = useState("");
   const [pagando, setPagando] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   useEffect(() => {
     trackMetaInitiateCheckout();
@@ -308,6 +313,10 @@ function Checkout() {
     if (cep.replace(/\D/g, "").length !== 8) { setErro("CEP inválido."); return; }
     if (!numero.trim()) { setErro("Informe o número do endereço."); return; }
     if (telefone.replace(/\D/g, "").length < 10) { setErro("Informe um telefone com DDD."); return; }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErro("Confirme que você é humano.");
+      return;
+    }
     setErro(null);
     setPagando(true);
     try {
@@ -319,11 +328,13 @@ function Checkout() {
         },
       });
       trackMetaPurchaseBrowser(result.paymentId);
-      const { error } = await signIn(email.trim(), senha);
+      const { error } = await signIn(email.trim(), senha, turnstileToken ?? undefined);
       if (error) { navigate({ to: "/login" }); return; }
       navigate({ to: "/" });
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Não foi possível processar o cartão.");
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       setPagando(false);
     }
   }
@@ -683,9 +694,25 @@ function Checkout() {
                         </div>
                       </div>
 
+                      {TURNSTILE_SITE_KEY && (
+                        <Turnstile
+                          ref={turnstileRef}
+                          siteKey={TURNSTILE_SITE_KEY}
+                          onSuccess={setTurnstileToken}
+                          onExpire={() => setTurnstileToken(null)}
+                          options={{ theme: "dark", language: "pt-BR", size: "flexible" }}
+                          className="mt-1"
+                        />
+                      )}
+
                       {erro && <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-center text-xs text-red-400">{erro}</p>}
 
-                      <Button type="submit" size="lg" className="w-full gap-2" disabled={pagando}>
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full gap-2"
+                        disabled={pagando || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+                      >
                         <Lock1 size={15} color="currentColor" variant="Bold" />
                         {pagando ? "Processando…" : "Pagar com segurança · R$ 97"}
                       </Button>

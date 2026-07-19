@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { AuthBackground } from "@/components/auth-background";
 import { TickCircle, Sms, Eye, EyeSlash } from "iconsax-react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
 
 export const Route = createFileRoute("/aceitar-convite")({
   validateSearch: (s: Record<string, unknown>) => ({ token: (s.token as string) ?? "" }),
@@ -36,6 +39,8 @@ function AceitarConvitePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailEnviado, setEmailEnviado] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   // Carrega info do convite
   useEffect(() => {
@@ -91,6 +96,10 @@ function AceitarConvitePage() {
     setErro(null);
     if (!nome.trim()) { setErro("Informe seu nome."); return; }
     if (senha.length < 6) { setErro("Senha deve ter pelo menos 6 caracteres."); return; }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErro("Confirme que você é humano.");
+      return;
+    }
     if (info === null || info === "invalido") return;
 
     setLoading(true);
@@ -102,10 +111,17 @@ function AceitarConvitePage() {
       options: {
         data: { nome: nome.trim() },
         emailRedirectTo: `${window.location.origin}/aceitar-convite?token=${token}`,
+        captchaToken: turnstileToken ?? undefined,
       },
     });
 
-    if (error) { setErro(error.message); setLoading(false); return; }
+    if (error) {
+      setErro(error.message);
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
+      setLoading(false);
+      return;
+    }
     setEmailEnviado(true);
     setLoading(false);
   };
@@ -210,11 +226,26 @@ function AceitarConvitePage() {
                 </div>
               </div>
 
+              {TURNSTILE_SITE_KEY && (
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={setTurnstileToken}
+                  onExpire={() => setTurnstileToken(null)}
+                  options={{ theme: "dark", language: "pt-BR", size: "flexible" }}
+                  className="mt-1"
+                />
+              )}
+
               {erro && (
                 <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{erro}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              >
                 {loading ? "Aguarde…" : "Entrar no MakersHub →"}
               </Button>
             </form>

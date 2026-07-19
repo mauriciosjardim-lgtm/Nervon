@@ -18,6 +18,9 @@ export default defineConfig({
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify("https://smsqhbbbyjacatxvihks.supabase.co"),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
       "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify("sb_publishable_Kcsq5BKG5RWrv7S9RuoD1w_0b6MS6CU"),
+      "import.meta.env.VITE_TURNSTILE_SITE_KEY": JSON.stringify(
+        "0x4AAAAAAD5JtHvdBJAwRVHa",
+      ),
     },
     build: {
       rollupOptions: {
