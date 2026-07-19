@@ -17,12 +17,17 @@ interface AuthState {
 }
 
 interface AuthContext extends AuthState {
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (
+    email: string,
+    password: string,
+    captchaToken?: string,
+  ) => Promise<{ error: string | null }>;
   signUp: (
     email: string,
     password: string,
     nome: string,
     meta?: { whatsapp?: string; tipo?: string },
+    captchaToken?: string,
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshEmpresa: () => Promise<void>;
@@ -219,8 +224,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    });
     // O evento onAuthStateChange aplica a sessão de forma assíncrona. Gravar a
     // dica já no retorno do login garante que uma navegação/reload imediato da
     // raiz seja renderizado como dashboard, não como landing pública.
@@ -233,6 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     nome: string,
     meta?: { whatsapp?: string; tipo?: string },
+    captchaToken?: string,
   ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -240,6 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: {
         data: { nome, ...meta },
         emailRedirectTo: window.location.origin,
+        captchaToken,
       },
     });
     if (error || !data.user) return { error: error?.message ?? "Erro ao criar conta" };

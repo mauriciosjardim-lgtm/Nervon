@@ -10,7 +10,6 @@ import { Sms, Eye, EyeSlash, Gift } from "iconsax-react";
 import { AuthBackground } from "@/components/auth-background";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { verifyTurnstile } from "@/lib/api/turnstile.functions";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
 
@@ -64,19 +63,17 @@ function Convite() {
       return;
     }
     setLoading(true);
-    if (TURNSTILE_SITE_KEY && turnstileToken) {
-      const verified = await verifyTurnstile({ data: { token: turnstileToken } });
-      if (!verified.success) {
-        setErro("Validação de segurança falhou. Tente novamente.");
-        setTurnstileToken(null);
-        turnstileRef.current?.reset();
-        setLoading(false);
-        return;
-      }
-    }
-    const { error } = await signUp(email, senha, nome, { whatsapp, tipo });
+    const { error } = await signUp(
+      email,
+      senha,
+      nome,
+      { whatsapp, tipo },
+      turnstileToken ?? undefined,
+    );
     if (error) {
       setErro(traduzirErro(error));
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       setLoading(false);
       return;
     }

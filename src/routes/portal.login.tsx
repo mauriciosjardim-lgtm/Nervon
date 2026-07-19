@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, Eye, EyeOff, Loader2, LockKeyhole, Mail, MailCheck } from "lucide-react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { portalSupabase } from "@/lib/portal-supabase";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
 
 export const Route = createFileRoute("/portal/login")({
   ssr: false,
@@ -19,17 +22,26 @@ function PortalLogin() {
   const [error, setError] = useState("");
   const [recovering, setRecovering] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError("Confirme que você é humano.");
+      return;
+    }
     setLoading(true);
     const { error: signInError } = await portalSupabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
+      options: turnstileToken ? { captchaToken: turnstileToken } : undefined,
     });
     if (signInError) {
       setError("E-mail ou senha incorretos.");
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       setLoading(false);
       return;
     }
@@ -46,7 +58,7 @@ function PortalLogin() {
     const next = new URLSearchParams(window.location.search).get("next");
     const safeNext =
       next?.startsWith("/portal/") && !next.startsWith("/portal/login") ? next : null;
-    window.location.assign(safeNext || `/portal/${token}`);
+    window.location.assign(safeNext || "/portal/acesso");
   };
 
   const sendRecovery = async (event: React.FormEvent) => {
@@ -56,14 +68,23 @@ function PortalLogin() {
       setError("Informe seu e-mail.");
       return;
     }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError("Confirme que você é humano.");
+      return;
+    }
     setLoading(true);
     const { error: recoveryError } = await portalSupabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
-      { redirectTo: `${window.location.origin}/portal/redefinir-senha` },
+      {
+        redirectTo: `${window.location.origin}/portal/redefinir-senha`,
+        captchaToken: turnstileToken ?? undefined,
+      },
     );
     setLoading(false);
     if (recoveryError) {
       setError("Não foi possível enviar a recuperação agora. Tente novamente.");
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       return;
     }
     setRecoverySent(true);
@@ -157,12 +178,29 @@ function PortalLogin() {
                 Se este e-mail possui acesso ao portal, você receberá o link de recuperação.
               </p>
             )}
+            {TURNSTILE_SITE_KEY && !recoverySent && (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={setTurnstileToken}
+                onExpire={() => setTurnstileToken(null)}
+                options={{ theme: "dark", language: "pt-BR", size: "flexible" }}
+              />
+            )}
             {error && (
               <p className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">
                 {error}
               </p>
             )}
-            <Button type="submit" disabled={loading || recoverySent} className="h-11 w-full">
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                recoverySent ||
+                (!!TURNSTILE_SITE_KEY && !turnstileToken)
+              }
+              className="h-11 w-full"
+            >
               {loading && <Loader2 className="size-4 animate-spin" />}
               {recovering ? "Enviar link de recuperação" : "Entrar no portal"}
             </Button>
@@ -173,6 +211,8 @@ function PortalLogin() {
                   setRecovering(false);
                   setRecoverySent(false);
                   setError("");
+                  setTurnstileToken(null);
+                  turnstileRef.current?.reset();
                 }}
                 className="mx-auto flex items-center gap-1.5 text-xs text-white/40 transition hover:text-white"
               >

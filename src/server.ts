@@ -119,14 +119,33 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' https://connect.facebook.net https://challenges.cloudflare.com https://js.stripe.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: https:",
+  "connect-src 'self' https://smsqhbbbyjacatxvihks.supabase.co wss://smsqhbbbyjacatxvihks.supabase.co https://connect.facebook.net https://www.facebook.com https://challenges.cloudflare.com https://api.stripe.com",
+  "frame-src 'self' https://drive.google.com https://docs.google.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com",
+  "worker-src 'self' blob:",
+  "upgrade-insecure-requests",
+].join("; ");
+
 // Headers de segurança aplicados a TODAS as respostas do Worker.
-// (Sem CSP nesta fase — scripts/estilos precisam ser inventariados antes.)
 function withSecurityHeaders(response: Response, isHttps: boolean): Response {
   const headers = new Headers(response.headers);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // Primeiro em observação: permite inventariar violações reais sem interromper
+  // login, fontes, previews do Drive/Vimeo/YouTube ou propostas existentes.
+  headers.set("Content-Security-Policy-Report-Only", CONTENT_SECURITY_POLICY_REPORT_ONLY);
   if (isHttps) {
     // só em produção HTTPS — HSTS em http local atrapalharia o dev
     headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
@@ -153,6 +172,19 @@ export default {
         status: 301,
         headers: { Location: url.toString() },
       });
+    }
+
+    // Links antigos podiam carregar o segredo do cofre no path. O portal já
+    // resolve o acesso pela sessão autenticada, portanto removemos o token antes
+    // de renderizar a aplicação ou disparar recursos externos.
+    if (/^\/portal\/[a-f0-9]{24,64}$/i.test(url.pathname)) {
+      return withSecurityHeaders(
+        new Response(null, {
+          status: 302,
+          headers: { Location: `${url.origin}/portal/acesso${url.search}` },
+        }),
+        isHttps,
+      );
     }
 
     if (url.pathname === "/api/asaas/webhook" && request.method === "POST") {

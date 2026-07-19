@@ -25,7 +25,7 @@ function mapUser(row: any): PortalClientUser {
 export async function listPortalClientUsers(clientId: string): Promise<PortalClientUser[]> {
   const { data, error } = await (supabase as any)
     .from("portal_client_users")
-    .select("*")
+    .select("id, cliente_id, nome, email, status, last_access_at, created_at")
     .eq("cliente_id", clientId)
     .order("created_at", { ascending: true });
   if (error) {
@@ -69,4 +69,3 @@ export async function setPortalClientUserStatus(
 ) {
   return authenticatedRequest("PATCH", { userId, status });
 }
-

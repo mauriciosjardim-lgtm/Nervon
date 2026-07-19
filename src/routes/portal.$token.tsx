@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   Check,
@@ -146,6 +146,16 @@ function ClientPortalPage() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [view, setView] = useState<PortalView>("overview");
+
+  useLayoutEffect(() => {
+    if (/^[a-f0-9]{24,64}$/i.test(token)) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `/portal/acesso${window.location.hash}`,
+      );
+    }
+  }, [token]);
 
   const load = useCallback(async () => {
     try {
