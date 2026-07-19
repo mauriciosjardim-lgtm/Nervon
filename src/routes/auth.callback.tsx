@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { LogoMakersHub } from "@/components/logo-makershub";
+import { consumeAuthSessionFromUrl } from "@/lib/auth-url-session";
 
 export const Route = createFileRoute("/auth/callback")({ component: AuthCallback });
 
@@ -9,13 +10,17 @@ function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase processa o hash (#access_token=...) automaticamente ao chamar getSession.
-    // Aqui só esperamos a sessão ser processada e mandamos pro root que vai decidir
-    // se vai pro onboarding ou pro dashboard.
-    supabase.auth.getSession().then(() => {
-      navigate({ to: "/" });
+    let active = true;
+
+    void consumeAuthSessionFromUrl(supabase).then(({ data, error }) => {
+      if (!active) return;
+      navigate({ to: error || !data.session ? "/login" : "/" });
     });
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">

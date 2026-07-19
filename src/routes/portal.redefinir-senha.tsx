@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoMakersHub } from "@/components/logo-makershub";
 import { portalSupabase } from "@/lib/portal-supabase";
+import { consumeAuthSessionFromUrl } from "@/lib/auth-url-session";
 
 export const Route = createFileRoute("/portal/redefinir-senha")({
   ssr: false,
@@ -27,9 +28,10 @@ function PortalPasswordRecovery() {
     const validateSession = async () => {
       const {
         data: { session },
-      } = await portalSupabase.auth.getSession();
+        error: sessionError,
+      } = await consumeAuthSessionFromUrl(portalSupabase);
       if (!active) return;
-      if (!session) {
+      if (sessionError || !session) {
         setState("invalid");
         return;
       }
@@ -48,17 +50,9 @@ function PortalPasswordRecovery() {
     };
 
     void validateSession();
-    const {
-      data: { subscription },
-    } = portalSupabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        window.setTimeout(() => void validateSession(), 0);
-      }
-    });
 
     return () => {
       active = false;
-      subscription.unsubscribe();
     };
   }, []);
 

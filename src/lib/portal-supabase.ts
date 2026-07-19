@@ -10,5 +10,7 @@ export const portalSupabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY,
     storageKey: "makershub-portal-auth",
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: false,
+    flowType: "pkce",
   },
 });
