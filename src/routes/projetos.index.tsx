@@ -3,21 +3,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { addDays, addWeeks, format, isSameDay, startOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Add, ArrowLeft2, ArrowRight2, Calendar, Clock, Notification, SearchNormal, TickCircle } from "iconsax-react";
-import { Archive, GripVertical } from "lucide-react";
+import { Archive, ArchiveRestore, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ClienteModal } from "@/components/projetos/cliente-modal";
 import { CentralAtencao } from "@/components/projetos/central-atencao";
 import { NovidadesProjetosV7 } from "@/components/projetos/novidades-projetos-v7";
 import { FASES, FASES_PADRAO, getFaseInfo, type FaseProjeto, type Projeto, type Tarefa } from "@/lib/mock/projetos";
 import { useProjetos } from "@/lib/hooks/useProjetos";
-import { useComercialSupa } from "@/lib/hooks/useComercial";
+import { comercial, useComercialSupa, type Empresa } from "@/lib/hooks/useComercial";
 import { calcularResumoProgresso, SAUDE_ESTILO } from "@/lib/projetos/progresso";
 import { consumeCreate } from "@/lib/pendingCreate";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/projetos/")({ component: ProjetosPage });
 
@@ -52,6 +54,8 @@ function ProjetosPage() {
   const [clientModal, setClientModal] = useState(false);
   const [centralAberta, setCentralAberta] = useState(false);
   const [mostrarFechados, setMostrarFechados] = useState(false);
+  const [mostrarClientesArquivados, setMostrarClientesArquivados] = useState(false);
+  const [clienteParaArquivar, setClienteParaArquivar] = useState<Empresa | null>(null);
 
   useEffect(() => {
     if (consumeCreate("projeto")) { setClientModal(true); return; }
@@ -69,18 +73,25 @@ function ProjetosPage() {
       .filter((project) => Boolean(project.arquivado) === mostrarFechados)
       .forEach((project) => {
         const nome = project.cliente.trim();
-        if (nome) nomes.set(normalizarNome(nome), nome);
+        const cadastro = crmClients.find((item) =>
+          item.id === project.clienteId || normalizarNome(item.nome) === normalizarNome(nome),
+        );
+        if (nome && Boolean(cadastro?.arquivado) === mostrarClientesArquivados) {
+          nomes.set(normalizarNome(nome), nome);
+        }
       });
 
     if (!mostrarFechados) {
       crmClients.forEach((item) => {
         const nome = item.nome.trim();
-        if (nome) nomes.set(normalizarNome(nome), nome);
+        if (nome && Boolean(item.arquivado) === mostrarClientesArquivados) {
+          nomes.set(normalizarNome(nome), nome);
+        }
       });
     }
 
     return [...nomes.values()].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [crmClients, projetos, mostrarFechados]);
+  }, [crmClients, projetos, mostrarFechados, mostrarClientesArquivados]);
   const clientesOrdenados = useMemo(() => {
     const presentes = new Set(clientes);
     const salvos = ordemClientes.filter(c => presentes.has(c));
@@ -92,11 +103,26 @@ function ProjetosPage() {
       return [normalizarNome(nome), clientRecord?.accentColor ?? corCliente(nome)] as const;
     }),
   ), [clientes, crmClients]);
+  const clientesArquivadosIds = useMemo(
+    () => new Set(crmClients.filter((item) => item.arquivado).map((item) => item.id)),
+    [crmClients],
+  );
+  const clientesArquivadosNomes = useMemo(
+    () => new Set(crmClients.filter((item) => item.arquivado).map((item) => normalizarNome(item.nome))),
+    [crmClients],
+  );
+  const projetosOperacionais = useMemo(
+    () => projetos.filter((project) =>
+      !(project.clienteId && clientesArquivadosIds.has(project.clienteId)) &&
+      !clientesArquivadosNomes.has(normalizarNome(project.cliente)),
+    ),
+    [clientesArquivadosIds, clientesArquivadosNomes, projetos],
+  );
   const equipe = useMemo(() => [...new Set([
     ...projetos.flatMap(p => p.equipe),
     ...tarefas.map(t => t.responsavel).filter(Boolean),
   ])].sort(), [projetos, tarefas]);
-  const filtrados = useMemo(() => projetos.filter(p => {
+  const filtrados = useMemo(() => projetosOperacionais.filter(p => {
     if (mostrarFechados ? !p.arquivado : p.arquivado) return false;
     if (cliente !== "todos" && p.cliente !== cliente) return false;
     if (responsavel !== "todos") {
@@ -106,15 +132,16 @@ function ProjetosPage() {
     }
     const q = busca.trim().toLowerCase();
     return !q || p.nome.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q);
-  }), [projetos, tarefas, cliente, responsavel, busca, mostrarFechados]);
+  }), [projetosOperacionais, tarefas, cliente, responsavel, busca, mostrarFechados]);
   const tarefasVisiveis = useMemo(() => responsavel === "todos"
     ? tarefas
     : tarefas.filter(t => mesmoMembro(t.responsavel, responsavel)), [tarefas, responsavel]);
 
-  const ativos = projetos.filter(p => !p.arquivado && !["concluido", "pausado"].includes(p.fase));
+  const ativos = projetosOperacionais.filter(p => !p.arquivado && !["concluido", "pausado"].includes(p.fase));
   const fechados = projetos.filter(p => p.arquivado);
-  const atrasadas = tarefas.filter(t => !t.concluida && t.prazo && new Date(t.prazo) < new Date()).length;
-  const emAprovacao = projetos.filter(p => p.fase === "revisao").length;
+  const projetosOperacionaisIds = new Set(projetosOperacionais.map((project) => project.id));
+  const atrasadas = tarefas.filter(t => projetosOperacionaisIds.has(t.projetoId) && !t.concluida && t.prazo && new Date(t.prazo) < new Date()).length;
+  const emAprovacao = projetosOperacionais.filter(p => p.fase === "revisao").length;
   const semanaInicio = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), semanaOffset);
   const semanaFim = addDays(semanaInicio, 4);
 
@@ -173,9 +200,21 @@ function ProjetosPage() {
                     : "Clique para abrir o workspace do cliente."}
                 </p>
               </div>
-              <button className="shrink-0 text-xs font-medium text-primary" onClick={limparFiltros}>
-                Limpar filtros
-              </button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMostrarClientesArquivados((valor) => !valor)}
+                >
+                  {mostrarClientesArquivados ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />}
+                  {mostrarClientesArquivados
+                    ? "Ver ativos"
+                    : `Arquivados (${crmClients.filter((item) => item.arquivado).length})`}
+                </Button>
+                <button className="shrink-0 text-xs font-medium text-primary" onClick={limparFiltros}>
+                  Limpar filtros
+                </button>
+              </div>
             </div>
             <div className="flex gap-2 overflow-x-auto px-0.5 py-1.5">
               {clientesOrdenados.map(nome => {
@@ -190,10 +229,30 @@ function ProjetosPage() {
                 const pendentes = tarefas.filter(t => ps.some(p => p.id === t.projetoId) && !t.concluida).length;
                 const cor = coresClientes.get(normalizarNome(nome)) ?? corCliente(nome);
                 const destino = ps.find(p => !["concluido", "pausado"].includes(p.fase)) ?? ps[0];
-                return <button key={nome} draggable onDragStart={() => { ignorarCliqueAposArraste.current = true; setClienteArrastado(nome); }} onDragOver={e => e.preventDefault()} onDrop={() => { if (clienteArrastado) moverCliente(clienteArrastado, nome); setClienteArrastado(null); }} onDragEnd={() => { setClienteArrastado(null); window.setTimeout(() => { ignorarCliqueAposArraste.current = false; }, 0); }} onClick={() => { if (ignorarCliqueAposArraste.current) return; const workspaceId = clientRecord?.id ?? destino?.id; if (workspaceId) navigate({ to: "/projetos/$id", params: { id: workspaceId } }); }} style={{ "--cliente": cor } as React.CSSProperties} className={cn("group relative min-w-[240px] rounded-xl border bg-surface-1/40 p-4 text-left transition-[transform,border-color,background-color,box-shadow,opacity] duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--cliente)] hover:bg-surface-1/65 hover:shadow-[0_12px_30px_-18px_var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border", clienteArrastado === nome && "opacity-45") }>
-                  <span className="absolute right-2.5 top-2.5 cursor-grab text-muted-foreground/45 transition group-hover:text-muted-foreground active:cursor-grabbing" aria-label="Arrastar para reordenar"><GripVertical size={16} /></span><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-xs font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0 pr-4"><p className="truncate text-sm font-semibold">{nome}</p><p className="text-[11px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
+                const abrirCliente = () => { if (ignorarCliqueAposArraste.current) return; const workspaceId = clientRecord?.id ?? destino?.id; if (workspaceId) navigate({ to: "/projetos/$id", params: { id: workspaceId } }); };
+                return <div key={nome} role="button" tabIndex={0} draggable onDragStart={() => { ignorarCliqueAposArraste.current = true; setClienteArrastado(nome); }} onDragOver={e => e.preventDefault()} onDrop={() => { if (clienteArrastado) moverCliente(clienteArrastado, nome); setClienteArrastado(null); }} onDragEnd={() => { setClienteArrastado(null); window.setTimeout(() => { ignorarCliqueAposArraste.current = false; }, 0); }} onClick={abrirCliente} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") abrirCliente(); }} style={{ "--cliente": cor } as React.CSSProperties} className={cn("group relative min-w-[240px] cursor-pointer rounded-xl border bg-surface-1/40 p-4 text-left transition-[transform,border-color,background-color,box-shadow,opacity] duration-200 hover:z-10 hover:scale-[1.015] hover:border-[var(--cliente)] hover:bg-surface-1/65 hover:shadow-[0_12px_30px_-18px_var(--cliente)]", cliente === nome ? "border-[var(--cliente)] bg-surface-1/70" : "border-border", clienteArrastado === nome && "opacity-45") }>
+                  {clientRecord && (
+                    <button
+                      type="button"
+                      className="absolute right-2.5 top-2.5 z-10 grid size-6 place-items-center rounded-md text-muted-foreground/55 transition hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={clientRecord.arquivado ? `Restaurar ${nome}` : `Arquivar ${nome}`}
+                      title={clientRecord.arquivado ? "Restaurar cliente" : "Arquivar cliente"}
+                      onClick={async (event) => {
+                        event.stopPropagation();
+                        if (clientRecord.arquivado) {
+                          const restaurado = await comercial.arquivarEmpresa(clientRecord.id, false);
+                          if (restaurado) toast.success(`${nome} foi restaurado`);
+                        } else {
+                          setClienteParaArquivar(clientRecord);
+                        }
+                      }}
+                    >
+                      {clientRecord.arquivado ? <ArchiveRestore className="size-3.5" /> : <X className="size-3.5" />}
+                    </button>
+                  )}
+                  <span className="absolute right-9 top-3 cursor-grab text-muted-foreground/35 transition group-hover:text-muted-foreground active:cursor-grabbing" aria-label="Arrastar para reordenar"><GripVertical size={15} /></span><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-xs font-bold text-[var(--cliente)]">{iniciais(nome)}</span><div className="min-w-0 pr-12"><p className="truncate text-sm font-semibold">{nome}</p><p className="text-[11px] text-muted-foreground">{ps.length} projeto{ps.length === 1 ? "" : "s"} ativo{ps.length === 1 ? "" : "s"}</p></div></div>
                   <div className="mt-3.5 flex justify-between border-t border-border/40 pt-2.5 text-[11px] text-muted-foreground"><span>{pendentes} tarefa{pendentes === 1 ? "" : "s"} aberta{pendentes === 1 ? "" : "s"}</span><span className="text-[var(--cliente)]">Abrir →</span></div>
-                </button>;
+                </div>;
               })}
             </div>
           </section>
@@ -231,7 +290,52 @@ function ProjetosPage() {
           navigate({ to: "/projetos/$id", params: { id: client.id } });
         }}
       />
+      <ArquivarClienteDialog
+        cliente={clienteParaArquivar}
+        onClose={() => setClienteParaArquivar(null)}
+      />
     </div>
+  );
+}
+
+function ArquivarClienteDialog({ cliente, onClose }: { cliente: Empresa | null; onClose: () => void }) {
+  const [confirmacao, setConfirmacao] = useState("");
+  const [arquivando, setArquivando] = useState(false);
+  const fechar = () => {
+    if (arquivando) return;
+    setConfirmacao("");
+    onClose();
+  };
+  const confirmar = async () => {
+    if (!cliente || confirmacao.trim() !== cliente.nome) return;
+    setArquivando(true);
+    const arquivado = await comercial.arquivarEmpresa(cliente.id, true);
+    setArquivando(false);
+    if (!arquivado) return;
+    toast.success(`${cliente.nome} foi arquivado`);
+    fechar();
+  };
+  return (
+    <Dialog open={Boolean(cliente)} onOpenChange={(open) => !open && fechar()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">Arquivar cliente</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/[.07] p-3 text-xs leading-5 text-muted-foreground">
+            O cliente sairá das listas ativas. Projetos, tarefas, jornada comercial, contatos, contratos, portal e lançamentos financeiros continuarão intactos. Você poderá restaurá-lo depois.
+          </div>
+          <label className="space-y-1.5">
+            <span className="text-[11px] text-muted-foreground">Digite <strong className="text-foreground">{cliente?.nome}</strong> para confirmar.</span>
+            <Input value={confirmacao} onChange={(event) => setConfirmacao(event.target.value)} placeholder={cliente?.nome} autoFocus />
+          </label>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar} disabled={arquivando}>Cancelar</Button>
+          <Button onClick={confirmar} disabled={arquivando || confirmacao.trim() !== cliente?.nome}>
+            <Archive className="size-4" />{arquivando ? "Arquivando…" : "Arquivar cliente"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

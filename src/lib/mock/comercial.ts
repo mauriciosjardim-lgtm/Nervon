@@ -17,6 +17,7 @@ export interface Empresa {
   instagram?: string;
   observacoes?: string;
   accentColor?: string;
+  arquivado?: boolean;
 }
 
 export interface Contato {

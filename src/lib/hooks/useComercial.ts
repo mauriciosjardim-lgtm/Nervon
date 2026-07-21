@@ -47,6 +47,7 @@ function rowToEmpresa(r: any): Empresa {
     id: r.id, nome: r.nome, segmento: r.segmento, cidade: r.cidade,
     site: r.site ?? undefined, instagram: r.instagram ?? undefined, observacoes: r.observacoes ?? undefined,
     accentColor: r.accent_color ?? undefined,
+    arquivado: r.arquivado ?? false,
   };
 }
 
@@ -277,6 +278,7 @@ export const comercial = {
     if (patch.instagram !== undefined) payload.instagram = patch.instagram;
     if (patch.observacoes !== undefined) payload.observacoes = patch.observacoes;
     if (patch.accentColor !== undefined) payload.accent_color = patch.accentColor;
+    if (patch.arquivado !== undefined) payload.arquivado = patch.arquivado;
     await supabase.from("clientes_comercial").update(payload).eq("id", empresaId);
     setStore({ empresas: store.empresas.map(e => e.id === empresaId ? { ...e, ...patch } : e) });
   },
@@ -287,6 +289,20 @@ export const comercial = {
     setStore({
       empresas: store.empresas.filter((empresa) => empresa.id !== empresaId),
       contatos: store.contatos.filter((contato) => contato.empresaId !== empresaId),
+    });
+    return true;
+  },
+
+  async arquivarEmpresa(empresaId: string, arquivado: boolean) {
+    const { error } = await supabase
+      .from("clientes_comercial")
+      .update({ arquivado })
+      .eq("id", empresaId);
+    if (dbErro(error, arquivado ? "arquivar cliente" : "restaurar cliente")) return false;
+    setStore({
+      empresas: store.empresas.map((empresa) =>
+        empresa.id === empresaId ? { ...empresa, arquivado } : empresa,
+      ),
     });
     return true;
   },

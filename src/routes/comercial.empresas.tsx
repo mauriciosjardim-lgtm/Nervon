@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { comercial, useComercial, getContatosDaEmpresa, fmtBRL, type Empresa } from "@/lib/hooks/useComercial";
-import { useProjetos } from "@/lib/hooks/useProjetos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Buildings2, Location, Profile2User, Trash } from "iconsax-react";
+import { Buildings2, Location, Profile2User } from "iconsax-react";
+import { Archive, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/comercial/empresas")({
@@ -15,8 +15,9 @@ export const Route = createFileRoute("/comercial/empresas")({
 function EmpresasPage() {
   const empresas = useComercial(s => s.empresas);
   const leads = useComercial(s => s.leads);
-  const { projetos } = useProjetos();
-  const [empresaParaExcluir, setEmpresaParaExcluir] = useState<Empresa | null>(null);
+  const [empresaParaArquivar, setEmpresaParaArquivar] = useState<Empresa | null>(null);
+  const [mostrarArquivadas, setMostrarArquivadas] = useState(false);
+  const empresasVisiveis = empresas.filter((empresa) => Boolean(empresa.arquivado) === mostrarArquivadas);
 
   if (empresas.length === 0) {
     return (
@@ -27,8 +28,15 @@ function EmpresasPage() {
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-      {empresas.map(e => {
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => setMostrarArquivadas((valor) => !valor)}>
+          {mostrarArquivadas ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />}
+          {mostrarArquivadas ? "Ver empresas ativas" : `Arquivadas (${empresas.filter((empresa) => empresa.arquivado).length})`}
+        </Button>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      {empresasVisiveis.map(e => {
         const contatos = getContatosDaEmpresa(e.id);
         const leadsEmp = leads.filter(l => l.empresaId === e.id);
         const valor = leadsEmp.reduce((s, l) => s + l.valor, 0);
@@ -47,11 +55,11 @@ function EmpresasPage() {
                 variant="ghost"
                 size="icon"
                 className="size-8 shrink-0 text-muted-foreground opacity-60 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                onClick={() => setEmpresaParaExcluir(e)}
-                aria-label={`Excluir ${e.nome}`}
-                title="Excluir empresa"
+                onClick={() => e.arquivado ? void restaurarEmpresa(e) : setEmpresaParaArquivar(e)}
+                aria-label={e.arquivado ? `Restaurar ${e.nome}` : `Arquivar ${e.nome}`}
+                title={e.arquivado ? "Restaurar empresa" : "Arquivar empresa"}
               >
-                <Trash size={16} color="currentColor" variant="Linear" />
+                {e.arquivado ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />}
               </Button>
             </div>
             <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
@@ -65,47 +73,48 @@ function EmpresasPage() {
           </div>
         );
       })}
-      <ExcluirEmpresaDialog
-        empresa={empresaParaExcluir}
-        quantidadeOportunidades={empresaParaExcluir ? leads.filter((lead) => lead.empresaId === empresaParaExcluir.id).length : 0}
-        quantidadeProjetos={empresaParaExcluir ? projetos.filter((projeto) =>
-          projeto.clienteId === empresaParaExcluir.id ||
-          projeto.cliente.toLocaleLowerCase("pt-BR") === empresaParaExcluir.nome.toLocaleLowerCase("pt-BR")
-        ).length : 0}
-        onClose={() => setEmpresaParaExcluir(null)}
+      {empresasVisiveis.length === 0 && (
+        <div className="col-span-full rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+          {mostrarArquivadas ? "Nenhuma empresa arquivada." : "Nenhuma empresa ativa."}
+        </div>
+      )}
+      </div>
+      <ArquivarEmpresaDialog
+        empresa={empresaParaArquivar}
+        onClose={() => setEmpresaParaArquivar(null)}
       />
     </div>
   );
 }
 
-function ExcluirEmpresaDialog({
+async function restaurarEmpresa(empresa: Empresa) {
+  const restaurada = await comercial.arquivarEmpresa(empresa.id, false);
+  if (restaurada) toast.success(`${empresa.nome} foi restaurada`);
+}
+
+function ArquivarEmpresaDialog({
   empresa,
-  quantidadeOportunidades,
-  quantidadeProjetos,
   onClose,
 }: {
   empresa: Empresa | null;
-  quantidadeOportunidades: number;
-  quantidadeProjetos: number;
   onClose: () => void;
 }) {
   const [confirmacao, setConfirmacao] = useState("");
-  const [excluindo, setExcluindo] = useState(false);
-  const possuiVinculos = quantidadeProjetos > 0 || quantidadeOportunidades > 0;
+  const [arquivando, setArquivando] = useState(false);
 
   const fechar = () => {
-    if (excluindo) return;
+    if (arquivando) return;
     setConfirmacao("");
     onClose();
   };
 
-  const excluir = async () => {
-    if (!empresa || possuiVinculos || confirmacao.trim() !== empresa.nome) return;
-    setExcluindo(true);
-    const removida = await comercial.removerEmpresa(empresa.id);
-    setExcluindo(false);
-    if (!removida) return;
-    toast.success("Empresa excluída");
+  const arquivar = async () => {
+    if (!empresa || confirmacao.trim() !== empresa.nome) return;
+    setArquivando(true);
+    const arquivada = await comercial.arquivarEmpresa(empresa.id, true);
+    setArquivando(false);
+    if (!arquivada) return;
+    toast.success(`${empresa.nome} foi arquivada`);
     fechar();
   };
 
@@ -113,21 +122,11 @@ function ExcluirEmpresaDialog({
     <Dialog open={Boolean(empresa)} onOpenChange={(open) => !open && fechar()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-display">Excluir empresa</DialogTitle>
+          <DialogTitle className="font-display">Arquivar empresa</DialogTitle>
         </DialogHeader>
-        {possuiVinculos ? (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-destructive/35 bg-destructive/[.07] p-3 text-xs leading-5 text-muted-foreground">
-              Esta empresa não pode ser excluída enquanto possuir histórico comercial ou projetos vinculados.
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Bloqueado: {quantidadeProjetos} projeto(s) e {quantidadeOportunidades} oportunidade(s) vinculada(s).
-            </p>
-          </div>
-        ) : (
           <div className="space-y-4">
-            <div className="rounded-xl border border-destructive/35 bg-destructive/[.07] p-3 text-xs leading-5 text-muted-foreground">
-              Esta ação remove definitivamente o cadastro da empresa e seus contatos. Ela não poderá ser desfeita.
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/[.07] p-3 text-xs leading-5 text-muted-foreground">
+              A empresa sairá das listas ativas, mas projetos, tarefas, contatos, histórico comercial, contratos, portal e lançamentos financeiros serão preservados. Você poderá restaurá-la depois.
             </div>
             <label className="space-y-1.5">
               <span className="text-[11px] text-muted-foreground">
@@ -141,19 +140,15 @@ function ExcluirEmpresaDialog({
               />
             </label>
           </div>
-        )}
         <DialogFooter>
-          <Button variant="outline" onClick={fechar} disabled={excluindo}>Cancelar</Button>
-          {!possuiVinculos && (
+          <Button variant="outline" onClick={fechar} disabled={arquivando}>Cancelar</Button>
             <Button
-              variant="destructive"
-              onClick={excluir}
-              disabled={excluindo || confirmacao.trim() !== empresa?.nome}
+              onClick={arquivar}
+              disabled={arquivando || confirmacao.trim() !== empresa?.nome}
             >
-              <Trash size={15} color="currentColor" variant="Linear" />
-              {excluindo ? "Excluindo…" : "Excluir definitivamente"}
+              <Archive className="size-4" />
+              {arquivando ? "Arquivando…" : "Arquivar cliente"}
             </Button>
-          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

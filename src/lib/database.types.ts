@@ -290,6 +290,7 @@ export interface Database {
           instagram: string | null;
           observacoes: string | null;
           accent_color: string | null;
+          arquivado: boolean;
           criado_em: string;
         };
         Insert: {
@@ -302,6 +303,7 @@ export interface Database {
           instagram?: string | null;
           observacoes?: string | null;
           accent_color?: string | null;
+          arquivado?: boolean;
           criado_em?: string;
         };
         Update: Partial<Database["public"]["Tables"]["clientes_comercial"]["Insert"]>;
