@@ -18,6 +18,7 @@ import {
   Images,
   ListChecks,
   Loader2,
+  LogOut,
   LockKeyhole,
   MessageSquareText,
   Milestone,
@@ -215,6 +216,11 @@ function ClientPortalPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const signOut = async () => {
+    await portalSupabase.auth.signOut();
+    window.location.replace("/portal/login");
+  };
+
   const respond = async (
     deliverable: PortalDeliverable,
     decision: "approved" | "changes_requested",
@@ -308,11 +314,18 @@ function ClientPortalPage() {
         project={activeProject}
         activeView={view}
         onNavigate={navigate}
+        onSignOut={signOut}
         accent={accent}
       />
 
       <div className="min-w-0 lg:pl-[272px]">
-        <PortalTopbar portal={portal} view={view} onNavigate={navigate} accent={accent} />
+        <PortalTopbar
+          portal={portal}
+          view={view}
+          onNavigate={navigate}
+          onSignOut={signOut}
+          accent={accent}
+        />
 
         <main className="mx-auto max-w-[1380px] px-5 py-8 md:px-8 md:py-10 xl:px-12">
           <PageHeading
@@ -338,9 +351,9 @@ function ClientPortalPage() {
               accent={accent}
             />
           )}
-          {view === "approvals" && activeProject && (
+          {view === "approvals" && (
             <ApprovalsView
-              project={activeProject}
+              projects={portal.projects}
               approvingId={approvingId}
               onRespond={respond}
               accent={accent}
@@ -363,17 +376,24 @@ function PortalSidebar({
   project,
   activeView,
   onNavigate,
+  onSignOut,
   accent,
 }: {
   portal: ClientPortalSnapshot;
   project?: PortalProject;
   activeView: PortalView;
   onNavigate: (view: PortalView) => void;
+  onSignOut: () => Promise<void>;
   accent: string;
 }) {
-  const approvals =
-    project?.deliverables.filter((item) => item.kind !== "delivery" && item.status === "revisao")
-      .length ?? 0;
+  const approvals = portal.projects.reduce(
+    (total, item) =>
+      total +
+      item.deliverables.filter(
+        (deliverable) => deliverable.kind !== "delivery" && deliverable.status === "revisao",
+      ).length,
+    0,
+  );
   const menu: Array<{ id: PortalView; label: string; icon: typeof Home; badge?: number }> = [
     { id: "overview", label: "Visão geral", icon: Home },
     { id: "production", label: "Produção atual", icon: Video },
@@ -473,6 +493,13 @@ function PortalSidebar({
         <p className="mt-3 flex items-center gap-2 px-2 text-[9px] uppercase tracking-[.13em] text-white/18">
           <LockKeyhole className="size-3" /> Ambiente privado
         </p>
+        <button
+          type="button"
+          onClick={() => void onSignOut()}
+          className="mt-2 flex h-10 w-full items-center gap-2 rounded-xl px-2 text-[10px] text-white/38 transition hover:bg-white/[0.04] hover:text-white"
+        >
+          <LogOut className="size-3.5" /> Sair do portal
+        </button>
       </div>
     </aside>
   );
@@ -482,11 +509,13 @@ function PortalTopbar({
   portal,
   view,
   onNavigate,
+  onSignOut,
   accent,
 }: {
   portal: ClientPortalSnapshot;
   view: PortalView;
   onNavigate: (view: PortalView) => void;
+  onSignOut: () => Promise<void>;
   accent: string;
 }) {
   const mobileViews: PortalView[] = [
@@ -516,6 +545,15 @@ function PortalTopbar({
         <div className="flex items-center gap-2">
           <button className="hidden h-9 items-center gap-2 rounded-xl border border-white/[0.08] px-3 text-[11px] text-white/45 transition hover:bg-white/[0.04] sm:flex">
             <MessageSquareText className="size-3.5" /> Falar com a equipe
+          </button>
+          <button
+            type="button"
+            onClick={() => void onSignOut()}
+            className="grid size-9 place-items-center rounded-xl border border-white/[0.08] text-white/45 transition hover:bg-white/[0.04] hover:text-white"
+            aria-label="Sair do portal"
+            title="Sair do portal"
+          >
+            <LogOut className="size-3.5" />
           </button>
           <span className="grid size-9 place-items-center rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold">
             {portal.client.name.slice(0, 2).toUpperCase()}
@@ -581,8 +619,10 @@ function OverviewView({
   accent: string;
 }) {
   if (!project) return <EmptyState />;
-  const approvals = project.deliverables.filter(
-    (item) => item.kind !== "delivery" && item.status === "revisao",
+  const approvals = portal.projects.flatMap((item) =>
+    item.deliverables.filter(
+      (deliverable) => deliverable.kind !== "delivery" && deliverable.status === "revisao",
+    ),
   );
   const changesRequested = project.deliverables.filter(
     (item) => item.kind !== "delivery" && item.status === "ajustes",
@@ -1051,12 +1091,12 @@ function ProductionStatus({ project, accent }: { project: PortalProject; accent:
 }
 
 function ApprovalsView({
-  project,
+  projects,
   approvingId,
   onRespond,
   accent,
 }: {
-  project: PortalProject;
+  projects: PortalProject[];
   approvingId: string | null;
   onRespond: (
     item: PortalDeliverable,
@@ -1065,11 +1105,12 @@ function ApprovalsView({
   ) => void;
   accent: string;
 }) {
-  const pending = project.deliverables.filter(
-    (item) => item.kind !== "delivery" && item.status === "revisao",
+  const items = projects.flatMap((project) =>
+    project.deliverables.map((item) => ({ item, project })),
   );
-  const history = project.deliverables.filter(
-    (item) =>
+  const pending = items.filter(({ item }) => item.kind !== "delivery" && item.status === "revisao");
+  const history = items.filter(
+    ({ item }) =>
       item.kind !== "delivery" &&
       (item.status === "aprovado" || item.status === "entregue" || item.status === "ajustes"),
   );
@@ -1095,7 +1136,7 @@ function ApprovalsView({
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {pending.map((item) => (
+            {pending.map(({ item, project }) => (
               <ApprovalCard
                 key={item.id}
                 item={item}
@@ -1111,14 +1152,21 @@ function ApprovalsView({
       <section>
         <h2 className="mb-4 text-sm font-semibold">Histórico de aprovações</h2>
         <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
-          {history.map((item) => (
+          {history.map(({ item, project }) => (
             <div key={item.id} className="flex items-center gap-3 px-5 py-4">
               {item.status === "ajustes" ? (
                 <MessageSquareText className="size-4 text-red-300" />
               ) : (
                 <CheckCircle2 className="size-4" style={{ color: accent }} />
               )}
-              <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm">{item.title}</span>
+                {projects.length > 1 && (
+                  <span className="mt-0.5 block truncate text-[9px] text-white/25">
+                    {project.name}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] uppercase tracking-[.12em] text-white/25">
                 {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
               </span>
