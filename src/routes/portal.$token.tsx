@@ -466,6 +466,18 @@ function PortalSidebar({
             </button>
           );
         })}
+        <div className="mt-3 border-t border-white/[0.07] pt-3">
+          <button
+            type="button"
+            onClick={() => void onSignOut()}
+            className="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium text-white/48 transition hover:bg-red-400/[0.08] hover:text-red-200"
+          >
+            <span className="grid size-7 place-items-center rounded-lg bg-white/[0.04]">
+              <LogOut className="size-3.5" />
+            </span>
+            <span>Sair do portal</span>
+          </button>
+        </div>
       </nav>
 
       <div className="mt-auto">
@@ -486,20 +498,16 @@ function PortalSidebar({
             </span>
           </div>
           <p className="mt-3 text-xs font-medium">Podemos ajudar?</p>
-          <button className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 text-[11px] text-white/55 transition hover:bg-white/[0.05] hover:text-white">
+          <a
+            href="mailto:equipe@makershub.app.br?subject=Ajuda%20no%20portal%20do%20cliente"
+            className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 text-[11px] text-white/55 transition hover:bg-white/[0.05] hover:text-white"
+          >
             <Headphones className="size-3.5" /> Falar com a equipe
-          </button>
+          </a>
         </div>
         <p className="mt-3 flex items-center gap-2 px-2 text-[9px] uppercase tracking-[.13em] text-white/18">
           <LockKeyhole className="size-3" /> Ambiente privado
         </p>
-        <button
-          type="button"
-          onClick={() => void onSignOut()}
-          className="mt-2 flex h-10 w-full items-center gap-2 rounded-xl px-2 text-[10px] text-white/38 transition hover:bg-white/[0.04] hover:text-white"
-        >
-          <LogOut className="size-3.5" /> Sair do portal
-        </button>
       </div>
     </aside>
   );
@@ -543,9 +551,12 @@ function PortalTopbar({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="hidden h-9 items-center gap-2 rounded-xl border border-white/[0.08] px-3 text-[11px] text-white/45 transition hover:bg-white/[0.04] sm:flex">
+          <a
+            href="mailto:equipe@makershub.app.br?subject=Ajuda%20no%20portal%20do%20cliente"
+            className="hidden h-9 items-center gap-2 rounded-xl border border-white/[0.08] px-3 text-[11px] text-white/45 transition hover:bg-white/[0.04] sm:flex"
+          >
             <MessageSquareText className="size-3.5" /> Falar com a equipe
-          </button>
+          </a>
           <button
             type="button"
             onClick={() => void onSignOut()}
@@ -560,7 +571,7 @@ function PortalTopbar({
           </span>
         </div>
       </header>
-      <nav className="flex gap-2 overflow-x-auto border-b border-white/[0.05] bg-[#080a09] px-5 py-3 lg:hidden">
+      <nav className="relative z-20 flex gap-2 overflow-x-auto border-b border-white/[0.05] bg-[#080a09] px-5 py-3 lg:hidden">
         {mobileViews.map((item) => (
           <button
             key={item}
@@ -1349,8 +1360,13 @@ function DeliveriesArchive({
     const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     groups.set(key, [...(groups.get(key) || []), item]);
   });
-  const years = [...groups.keys()].map((key) => key.slice(0, 4));
-  const selectedYear = years.sort().reverse()[0] || String(new Date().getFullYear());
+  const years = [...new Set([...groups.keys()].map((key) => key.slice(0, 4)))].sort().reverse();
+  const [selectedYear, setSelectedYear] = useState(years[0] || String(new Date().getFullYear()));
+  useEffect(() => {
+    if (years.length > 0 && !years.includes(selectedYear)) {
+      setSelectedYear(years[0]);
+    }
+  }, [selectedYear, years]);
   const months = [...groups.entries()]
     .filter(([key]) => key.startsWith(selectedYear))
     .sort(([a], [b]) => b.localeCompare(a));
@@ -1358,19 +1374,26 @@ function DeliveriesArchive({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex gap-2">
-          {[...new Set(years)]
-            .sort()
-            .reverse()
-            .map((year) => (
-              <span
-                key={year}
-                className="rounded-full bg-[var(--portal-accent)] px-4 py-2 text-xs font-semibold text-black"
-              >
-                {year}
-              </span>
-            ))}
+          {years.map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => setSelectedYear(year)}
+              aria-pressed={year === selectedYear}
+              className={cn(
+                "rounded-full border px-4 py-2 text-xs font-semibold transition",
+                year === selectedYear
+                  ? "border-transparent bg-[var(--portal-accent)] text-black"
+                  : "border-white/10 text-white/45 hover:border-white/20 hover:text-white",
+              )}
+            >
+              {year}
+            </button>
+          ))}
         </div>
-        <span className="text-xs text-white/25">{delivered.length} materiais entregues</span>
+        <span className="text-xs text-white/25">
+          {delivered.length} {delivered.length === 1 ? "material entregue" : "materiais entregues"}
+        </span>
       </div>
       {months.length === 0 ? (
         <EmptyPanel
@@ -1412,7 +1435,6 @@ function ArchiveFolder({
   items: Array<PortalDeliverable & { project: string }>;
   accent: string;
 }) {
-  const firstUrl = items.find((item) => item.url)?.url;
   const content = (
     <>
       <div className="portal-folder portal-folder-lime">
@@ -1428,18 +1450,26 @@ function ArchiveFolder({
       </div>
     </>
   );
-  return firstUrl ? (
-    <a
-      href={firstUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="portal-folder-card rounded-3xl border border-white/[0.08] bg-white/[0.025] p-5 transition hover:-translate-y-1 hover:border-[var(--portal-accent)]/30"
-    >
+  const downloadableItems = items.filter((item) => item.url);
+  return (
+    <div className="portal-folder-card rounded-3xl border border-white/[0.08] bg-white/[0.025] p-5 transition hover:border-[var(--portal-accent)]/30">
       {content}
-    </a>
-  ) : (
-    <div className="portal-folder-card rounded-3xl border border-white/[0.08] bg-white/[0.025] p-5">
-      {content}
+      {downloadableItems.length > 0 ? (
+        <div className="mt-4 space-y-1 border-t border-white/[0.07] pt-3">
+          {downloadableItems.map((item, index) => (
+            <a
+              key={item.id}
+              href={item.url || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-[11px] text-white/45 transition hover:bg-white/[0.04] hover:text-white"
+            >
+              <span className="truncate">{item.title || `Arquivo ${index + 1}`}</span>
+              <ExternalLink className="size-3 shrink-0" style={{ color: accent }} />
+            </a>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
