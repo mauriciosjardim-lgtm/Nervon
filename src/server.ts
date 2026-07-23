@@ -9,6 +9,10 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+type ExecutionContext = {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -22,7 +26,35 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 const PAGO = new Set(["PAYMENT_RECEIVED", "PAYMENT_CONFIRMED", "PAYMENT_RECEIVED_IN_CASH"]);
 
-async function handleAsaasWebhook(request: Request): Promise<Response> {
+async function processAsaasPayment(paymentId: string): Promise<void> {
+  const sb = createClient(supabaseUrl(), supabaseKey());
+
+  const { data: order, error: orderErr } = await sb
+    .from("pending_orders")
+    .select("*")
+    .eq("asaas_payment_id", paymentId)
+    .single();
+
+  if (orderErr || !order) {
+    console.log("[webhook] pedido não encontrado para paymentId:", paymentId);
+    return;
+  }
+
+  if (order.status === "completed") return;
+
+  // Sem senha: o fluxo Pix nunca envia/persiste senha. processarPagamento
+  // cria o usuário com senha temporária aleatória e envia link seguro de
+  // definição de senha por e-mail. (Senhas antigas em pending_orders são
+  // ignoradas de propósito — nunca mais são usadas.)
+  await processarPagamento({
+    paymentId: order.asaas_payment_id,
+    nome: order.nome,
+    email: order.email,
+    empresa: order.empresa_nome,
+  });
+}
+
+async function handleAsaasWebhook(request: Request, ctx: ExecutionContext): Promise<Response> {
   const json = <T>(body: T, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
@@ -32,7 +64,10 @@ async function handleAsaasWebhook(request: Request): Promise<Response> {
     if (token !== expectedToken) return json({ error: "Unauthorized" }, 401);
   }
 
-  let body: any;
+  let body: {
+    event?: string;
+    payment?: { id?: string; status?: string };
+  };
   try {
     const ct = request.headers.get("content-type") ?? "";
     if (ct.includes("application/x-www-form-urlencoded")) {
@@ -48,7 +83,7 @@ async function handleAsaasWebhook(request: Request): Promise<Response> {
     return json({ ok: true, warning: "parse failed" });
   }
 
-  const event   = body?.event as string | undefined;
+  const event = body?.event as string | undefined;
   const payment = body?.payment;
 
   // Aceita PAYMENT_RECEIVED ou payment.status RECEIVED/CONFIRMED
@@ -62,42 +97,19 @@ async function handleAsaasWebhook(request: Request): Promise<Response> {
   }
 
   const paymentId = payment.id as string;
-  const sb = createClient(supabaseUrl(), supabaseKey());
 
-  const { data: order, error: orderErr } = await sb
-    .from("pending_orders")
-    .select("*")
-    .eq("asaas_payment_id", paymentId)
-    .single();
+  // O Asaas precisa receber o 2xx rapidamente. Consultas ao banco, criação da
+  // conta e envio de e-mail continuam após a resposta no runtime do Cloudflare.
+  // processarPagamento é idempotente e o polling do checkout é a rede de
+  // segurança caso esse processamento assíncrono falhe.
+  ctx.waitUntil(
+    processAsaasPayment(paymentId).catch((err) => {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      console.error(`[webhook] erro ao processar ${paymentId}:`, msg);
+    }),
+  );
 
-  if (orderErr || !order) {
-    console.log("[webhook] pedido não encontrado para paymentId:", paymentId);
-    return json({ ok: true, skipped: "no order" });
-  }
-
-  if (order.status === "completed") {
-    return json({ ok: true, skipped: "already completed" });
-  }
-
-  try {
-    // Sem senha: o fluxo Pix nunca envia/persiste senha. processarPagamento
-    // cria o usuário com senha temporária aleatória e envia link seguro de
-    // definição de senha por e-mail. (Senhas antigas em pending_orders são
-    // ignoradas de propósito — nunca mais são usadas.)
-    await processarPagamento({
-      paymentId:  order.asaas_payment_id,
-      nome:       order.nome,
-      email:      order.email,
-      empresa:    order.empresa_nome,
-    });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    console.error(`[webhook] erro ao processar ${paymentId}:`, msg);
-    // Retorna 500 para o Asaas retentar
-    return json({ error: msg }, 500);
-  }
-
-  return json({ ok: true });
+  return json({ ok: true, accepted: true });
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -158,7 +170,7 @@ function withSecurityHeaders(response: Response, isHttps: boolean): Response {
 }
 
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(request: Request, env: unknown, ctx: ExecutionContext) {
     const url = new URL(request.url);
     const isHttps = url.protocol === "https:";
 
@@ -188,7 +200,7 @@ export default {
     }
 
     if (url.pathname === "/api/asaas/webhook" && request.method === "POST") {
-      return withSecurityHeaders(await handleAsaasWebhook(request), isHttps);
+      return withSecurityHeaders(await handleAsaasWebhook(request, ctx), isHttps);
     }
 
     try {
