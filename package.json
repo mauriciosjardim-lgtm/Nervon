@@ -19,7 +19,8 @@
     "check": "bun run typecheck && bun run lint:changed && bun run test && bun run test:integration",
     "format": "prettier --write .",
     "check:schema": "bun run scripts/check-schema.ts",
-    "deploy": "bun run check:schema && bun run build && bunx wrangler deploy"
+    "release:preflight": "bun scripts/release-preflight.mjs",
+    "deploy": "bun run release:preflight && bun run check:schema && bun run check && bun run build && bunx wrangler deploy"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

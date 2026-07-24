@@ -1,5 +1,29 @@
 # Release readiness
 
+## Release source of truth
+
+- Develop one concern per `codex/*` branch and one worktree.
+- Merge only through a pull request with the Quality workflow green.
+- Deploy only the exact commit published as `origin/main`.
+- Keep `package.json` as the version source and tag that commit as `v<version>`.
+- Never deploy from a dirty worktree, a feature branch, or an untagged commit.
+
+The official `bun run deploy` command enforces those repository checks before
+running schema validation, the complete quality gate, the production build, and
+Wrangler. Do not call `wrangler deploy` directly.
+
+## Release sequence
+
+1. Merge the approved pull request into `main`.
+2. Update the version in `package.json` and `bun.lock` in a dedicated release
+   commit.
+3. Run `bun install --frozen-lockfile`, `bun run check`, and `bun run build`.
+4. Push `main` and wait for the Quality workflow to pass.
+5. Create and push the annotated tag matching the package version.
+6. Pull the exact published `main` into a clean worktree.
+7. Run `bun run deploy`.
+8. Record the tag and Git SHA with the deployment evidence.
+
 ## Required gates
 
 - Install exactly `bun.lock` with `bun install --frozen-lockfile`.
