@@ -1,0 +1,52 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install frozen dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint pull-request changes
+        if: github.event_name == 'pull_request'
+        env:
+          LINT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: bun run lint:changed
+
+      - name: Lint latest main commit
+        if: github.event_name == 'push'
+        run: bun run lint:changed
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Integration and contract tests
+        run: bun run test:integration
+
+      - name: Production build
+        run: bun run build
