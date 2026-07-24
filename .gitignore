@@ -38,3 +38,7 @@ dist-ssr
 *.sln
 *.sw?
 package-lock.json
+
+# Browser test artifacts
+playwright-report/
+test-results/

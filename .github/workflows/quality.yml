@@ -48,5 +48,11 @@ jobs:
       - name: Integration and contract tests
         run: bun run test:integration
 
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Browser smoke tests
+        run: bun run test:e2e
+
       - name: Production build
         run: bun run build

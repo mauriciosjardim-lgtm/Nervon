@@ -11,7 +11,8 @@ effect. CI and clean checkouts must install with `bun install --frozen-lockfile`
 - `bun run typecheck`: TypeScript without emit.
 - `bun run test`: deterministic unit tests.
 - `bun run test:integration`: integration and contract tests only.
-- `bun run test:e2e`: critical browser smoke tests only.
+- `bun run test:e2e`: critical Chromium smoke tests at desktop and mobile
+  viewports.
 - `bun run lint:changed`: ESLint only for JavaScript/TypeScript files changed
   relative to `LINT_BASE` (defaults to `HEAD^`).
 - `bun run check`: typecheck, changed-file lint, unit tests, and integration
