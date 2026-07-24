@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { processarPagamento, supabaseUrl, supabaseKey } from "./lib/api/asaas.functions";
+import { isValidAsaasWebhookToken } from "./lib/asaas-webhook-auth";
 import { createClient } from "@supabase/supabase-js";
 
 type ServerEntry = {
@@ -59,9 +60,9 @@ async function handleAsaasWebhook(request: Request, ctx: ExecutionContext): Prom
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
   const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
-  if (expectedToken) {
-    const token = request.headers.get("asaas-access-token");
-    if (token !== expectedToken) return json({ error: "Unauthorized" }, 401);
+  const token = request.headers.get("asaas-access-token");
+  if (!isValidAsaasWebhookToken(expectedToken, token)) {
+    return json({ error: "Unauthorized" }, 401);
   }
 
   let body: {
