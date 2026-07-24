@@ -31,7 +31,6 @@ tests use injected fakes by default and live services only when explicitly
 enabled. E2E tests run against an isolated test tenant and must never reuse
 production credentials.
 
-The canonical Asaas webhook is the early intercept in `src/server.ts`. The file
-route at `src/routes/api/asaas/webhook.ts` is currently shadowed and is retained
-only as documented divergence until it can be removed in a coordinated routing
-change.
+The canonical Asaas webhook implementation is
+`src/lib/asaas-webhook-handler.server.ts`. Both the early intercept in
+`src/server.ts` and the file-route fallback delegate to that implementation.

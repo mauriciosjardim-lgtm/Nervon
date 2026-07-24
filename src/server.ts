@@ -2,13 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { processarPagamento, supabaseUrl, supabaseKey } from "./lib/api/asaas.functions";
-import {
-  handleAsaasWebhook as handleCanonicalAsaasWebhook,
-  type AsaasPendingOrder,
-  type AsaasOrderClaim,
-} from "./lib/asaas-webhook";
-import { createClient } from "@supabase/supabase-js";
+import { handleCanonicalAsaasWebhook } from "./lib/asaas-webhook-handler.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -23,43 +17,6 @@ async function getServerEntry(): Promise<ServerEntry> {
     );
   }
   return serverEntryPromise;
-}
-
-async function handleAsaasWebhook(request: Request): Promise<Response> {
-  const sb = createClient(supabaseUrl(), supabaseKey());
-  const claimClient = sb as unknown as {
-    rpc: (
-      name: "claim_pending_order",
-      args: { p_payment_id: string },
-    ) => Promise<{ data: AsaasPendingOrder[] | null; error: { message: string } | null }>;
-  };
-  return handleCanonicalAsaasWebhook(request, {
-    expectedToken: process.env.ASAAS_WEBHOOK_TOKEN,
-    claimOrder: async (paymentId): Promise<AsaasOrderClaim> => {
-      const { data: claimed, error: claimError } = await claimClient.rpc("claim_pending_order", {
-        p_payment_id: paymentId,
-      });
-      if (claimError) throw new Error("Unable to claim pending order.");
-      if (claimed?.[0]) return { state: "claimed", order: claimed[0] };
-
-      const { data: current, error: currentError } = await sb
-        .from("pending_orders")
-        .select("status")
-        .eq("asaas_payment_id", paymentId)
-        .single();
-      if (currentError || !current) return { state: "missing" };
-      if (current.status === "completed") return { state: "completed" };
-      return { state: "in_progress" };
-    },
-    processOrder: async (order) => {
-      await processarPagamento({
-        paymentId: order.asaas_payment_id,
-        nome: order.nome,
-        email: order.email,
-        empresa: order.empresa_nome,
-      });
-    },
-  });
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -150,7 +107,7 @@ export default {
     }
 
     if (url.pathname === "/api/asaas/webhook" && request.method === "POST") {
-      return withSecurityHeaders(await handleAsaasWebhook(request), isHttps);
+      return withSecurityHeaders(await handleCanonicalAsaasWebhook(request), isHttps);
     }
 
     try {
