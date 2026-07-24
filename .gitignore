@@ -26,6 +26,13 @@ dist-ssr
 
 # Package manager local store
 .pnpm-store/
+/pnpm-workspace.yaml
+
+# Local research and generated artifacts
+/.video-tools/
+/downloads/
+/public/ads/
+/supabase/.temp/
 
 # Editor directories and files
 .vscode/*

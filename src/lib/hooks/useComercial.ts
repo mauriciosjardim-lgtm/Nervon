@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
 import { dbErro } from "@/lib/dbError";
 import { registerSessionDisposer } from "@/lib/sessionScope";
+import type { Database, Json } from "@/lib/database.types";
 import type {
   EtapaJornada,
   Temperatura,
@@ -15,6 +16,15 @@ import type {
   ProximaAcao,
 } from "@/lib/mock/comercial";
 import { ETAPAS, labelEtapa } from "@/lib/mock/comercial";
+
+type EmpresaRow = Database["public"]["Tables"]["clientes_comercial"]["Row"];
+type EmpresaUpdate = Database["public"]["Tables"]["clientes_comercial"]["Update"];
+type ContatoRow = Database["public"]["Tables"]["contatos_comercial"]["Row"];
+type ContatoUpdate = Database["public"]["Tables"]["contatos_comercial"]["Update"];
+type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+type LeadUpdate = Database["public"]["Tables"]["leads"]["Update"];
+type TimelineRow = Database["public"]["Tables"]["timeline_lead"]["Row"];
+type TarefaRow = Database["public"]["Tables"]["tarefas_lead"]["Row"];
 
 // re-exporta constantes/helpers para que componentes só importem daqui
 export { ETAPAS, labelEtapa };
@@ -63,7 +73,7 @@ export function leadScore(lead: Lead): { score: number; estrelas: number; rotulo
 
 // ─── converters ──────────────────────────────────────────────────────────────
 
-function rowToEmpresa(r: any): Empresa {
+function rowToEmpresa(r: EmpresaRow): Empresa {
   return {
     id: r.id,
     nome: r.nome,
@@ -77,7 +87,7 @@ function rowToEmpresa(r: any): Empresa {
   };
 }
 
-function rowToContato(r: any): Contato {
+function rowToContato(r: ContatoRow): Contato {
   return {
     id: r.id,
     empresaId: r.cliente_id,
@@ -89,7 +99,20 @@ function rowToContato(r: any): Contato {
   };
 }
 
-function rowToLead(r: any): Lead {
+function rowToProximaAcao(value: Json): ProximaAcao | null {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof value.titulo === "string" &&
+    typeof value.data === "string"
+  ) {
+    return { titulo: value.titulo, data: value.data };
+  }
+  return null;
+}
+
+function rowToLead(r: LeadRow): Lead {
   return {
     id: r.id,
     empresaId: r.cliente_id,
@@ -99,7 +122,7 @@ function rowToLead(r: any): Lead {
     responsavel: r.responsavel,
     temperatura: r.temperatura as Temperatura,
     origem: r.origem,
-    proximaAcao: r.proxima_acao ?? null,
+    proximaAcao: rowToProximaAcao(r.proxima_acao),
     observacoes: r.observacoes ?? undefined,
     criadoEm: r.criado_em,
     propostasIds: [],
@@ -109,7 +132,7 @@ function rowToLead(r: any): Lead {
   };
 }
 
-function rowToTimeline(r: any): TimelineEvent {
+function rowToTimeline(r: TimelineRow): TimelineEvent {
   return {
     id: r.id,
     leadId: r.lead_id,
@@ -121,7 +144,7 @@ function rowToTimeline(r: any): TimelineEvent {
   };
 }
 
-function rowToTarefa(r: any): Tarefa {
+function rowToTarefa(r: TarefaRow): Tarefa {
   return {
     id: r.id,
     leadId: r.lead_id,
@@ -433,7 +456,7 @@ export const comercial = {
     leadId: string,
     patch: Partial<Pick<Lead, "valor" | "responsavel" | "origem" | "temperatura">>,
   ) {
-    const payload: any = {};
+    const payload: LeadUpdate = {};
     if (patch.valor !== undefined) payload.valor = patch.valor;
     if (patch.responsavel !== undefined) payload.responsavel = patch.responsavel;
     if (patch.origem !== undefined) payload.origem = patch.origem;
@@ -443,7 +466,7 @@ export const comercial = {
   },
 
   async updateEmpresa(empresaId: string, patch: Partial<Omit<Empresa, "id">>) {
-    const payload: any = {};
+    const payload: EmpresaUpdate = {};
     if (patch.nome !== undefined) payload.nome = patch.nome;
     if (patch.segmento !== undefined) payload.segmento = patch.segmento;
     if (patch.cidade !== undefined) payload.cidade = patch.cidade;
@@ -535,7 +558,7 @@ export const comercial = {
   },
 
   async updateContato(contatoId: string, patch: Partial<Omit<Contato, "id" | "empresaId">>) {
-    const payload: any = {};
+    const payload: ContatoUpdate = {};
     if (patch.nome !== undefined) payload.nome = patch.nome;
     if (patch.cargo !== undefined) payload.cargo = patch.cargo;
     if (patch.email !== undefined) payload.email = patch.email;
