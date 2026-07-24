@@ -28,6 +28,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getPublicClientPortal,
   portalCoverUrl,
   portalDisplayProgress,
@@ -231,14 +241,7 @@ function ClientPortalPage() {
     deliverable: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => {
-    if (
-      decision === "approved" &&
-      !confirm(
-        `Aprovar definitivamente “${deliverable.title}” (${deliverable.version_label || "versão atual"})?`,
-      )
-    )
-      return;
+  ): Promise<boolean> => {
     setApprovingId(deliverable.id);
     try {
       const success = await respondPortalReview(
@@ -276,8 +279,10 @@ function ClientPortalPage() {
       } else {
         await load();
       }
+      return true;
     } catch {
       toast.error("Não foi possível registrar sua decisão");
+      return false;
     } finally {
       setApprovingId(null);
     }
@@ -1142,7 +1147,7 @@ function ApprovalsView({
     item: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => void;
+  ) => Promise<boolean>;
   accent: string;
 }) {
   const pending = project.deliverables.filter(
@@ -1190,31 +1195,40 @@ function ApprovalsView({
       </section>
       <section>
         <h2 className="mb-4 text-sm font-semibold">Histórico de aprovações</h2>
-        <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
-          {history.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 px-5 py-4">
-              {item.status === "ajustes" ? (
-                <MessageSquareText className="size-4 text-red-300" />
-              ) : (
-                <CheckCircle2 className="size-4" style={{ color: accent }} />
-              )}
-              <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
-              <span className="text-[10px] uppercase tracking-[.12em] text-white/25">
-                {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
-              </span>
-              {item.url && (
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg p-2 text-white/30 hover:bg-white/[0.05] hover:text-white"
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
+        {history.length === 0 ? (
+          <EmptyPanel
+            icon={ClipboardCheck}
+            title="O histórico começa aqui"
+            description="As decisões deste projeto aparecerão nesta seção."
+          />
+        ) : (
+          <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
+            {history.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 px-5 py-4">
+                {item.status === "ajustes" ? (
+                  <MessageSquareText className="size-4 text-red-300" />
+                ) : (
+                  <CheckCircle2 className="size-4" style={{ color: accent }} />
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+                <span className="text-[10px] uppercase tracking-[.12em] text-white/25">
+                  {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
+                </span>
+                {item.url && (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Abrir ${item.title}`}
+                    className="rounded-lg p-2 text-white/30 hover:bg-white/[0.05] hover:text-white"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
@@ -1233,14 +1247,34 @@ function ApprovalCard({
     item: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => void;
+  ) => Promise<boolean>;
   accent: string;
   cover?: string | null;
 }) {
   const [requestingChanges, setRequestingChanges] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [confirmingApproval, setConfirmingApproval] = useState(false);
+
+  const requestChanges = async () => {
+    if (!feedback.trim() || approving) return;
+    const success = await onRespond(item, "changes_requested", feedback.trim());
+    if (success) {
+      setFeedback("");
+      setRequestingChanges(false);
+    }
+  };
+
+  const approve = async () => {
+    if (approving) return;
+    const success = await onRespond(item, "approved");
+    if (success) setConfirmingApproval(false);
+  };
+
   return (
-    <article className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] transition hover:border-[var(--portal-accent)]/25">
+    <article
+      className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] transition hover:border-[var(--portal-accent)]/25"
+      aria-busy={approving}
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-black sm:aspect-video">
         {item.embed_url ? (
           <iframe
@@ -1314,31 +1348,44 @@ function ApprovalCard({
             />
             <div className="mt-2 flex gap-2">
               <button
+                type="button"
                 onClick={() => setRequestingChanges(false)}
+                disabled={approving}
                 className="h-9 flex-1 rounded-xl border border-white/10 text-xs text-white/45"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 disabled={!feedback.trim() || approving}
-                onClick={() => onRespond(item, "changes_requested", feedback)}
+                onClick={() => void requestChanges()}
                 className="h-9 flex-1 rounded-xl bg-white text-xs font-semibold text-black disabled:opacity-40"
               >
-                Enviar alterações
+                {approving ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Enviando…
+                  </span>
+                ) : (
+                  "Enviar alterações"
+                )}
               </button>
             </div>
           </div>
         ) : (
           <div className="mt-5 flex gap-2">
             <button
+              type="button"
               onClick={() => setRequestingChanges(true)}
+              disabled={approving}
               className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 px-3 text-xs font-medium text-white/55 transition hover:bg-white/[0.05] hover:text-white"
             >
               <MessageSquareText className="size-3.5" /> Solicitar ajustes
             </button>
             <button
+              type="button"
               disabled={approving}
-              onClick={() => onRespond(item, "approved")}
+              onClick={() => setConfirmingApproval(true)}
               className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold text-black shadow-[0_8px_24px_-8px_var(--portal-accent)] transition hover:brightness-105 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
@@ -1352,6 +1399,58 @@ function ApprovalCard({
           </div>
         )}
       </div>
+      <AlertDialog open={confirmingApproval} onOpenChange={setConfirmingApproval}>
+        <AlertDialogContent className="border-white/[0.09] bg-[#101210] text-white shadow-2xl sm:rounded-3xl">
+          <AlertDialogHeader>
+            <div
+              className="mb-2 grid size-11 place-items-center rounded-2xl text-black"
+              style={{ backgroundColor: accent }}
+            >
+              <CheckCircle2 className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-xl tracking-[-.025em]">
+              Confirmar aprovação
+            </AlertDialogTitle>
+            <AlertDialogDescription className="leading-6 text-white/45">
+              Você está aprovando <strong className="font-medium text-white">{item.title}</strong>,{" "}
+              {item.version_label || "na versão atual"}. A produtora receberá sua decisão e seguirá
+              para a próxima etapa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-xs text-white/42">
+            Verifique se imagem, texto, áudio e informações estão corretos antes de confirmar.
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={approving}
+              className="border-white/10 bg-transparent text-white/55 hover:bg-white/[0.05] hover:text-white"
+            >
+              Revisar novamente
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={approving}
+              onClick={(event) => {
+                event.preventDefault();
+                void approve();
+              }}
+              className="text-black hover:brightness-105"
+              style={{ backgroundColor: accent }}
+            >
+              {approving ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Confirmando…
+                </>
+              ) : (
+                <>
+                  <Check className="size-3.5" />
+                  Confirmar aprovação
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
   );
 }
