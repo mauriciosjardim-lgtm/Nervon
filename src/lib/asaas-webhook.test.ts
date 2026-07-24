@@ -27,7 +27,7 @@ function request(body: unknown, token = "secret"): Request {
 function dependencies(overrides: Partial<AsaasWebhookDependencies> = {}): AsaasWebhookDependencies {
   return {
     expectedToken: "secret",
-    findOrder: async () => order,
+    claimOrder: async () => ({ state: "claimed", order }),
     processOrder: async () => {},
     ...overrides,
   };
@@ -39,9 +39,9 @@ describe("canonical Asaas webhook", () => {
     const response = await handleAsaasWebhook(
       request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }, "invalid"),
       dependencies({
-        findOrder: async () => {
+        claimOrder: async () => {
           queried = true;
-          return order;
+          return { state: "claimed", order };
         },
       }),
     );
@@ -63,7 +63,7 @@ describe("canonical Asaas webhook", () => {
   test("skips a payment without a pending order", async () => {
     const response = await handleAsaasWebhook(
       request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_missing" } }),
-      dependencies({ findOrder: async () => null }),
+      dependencies({ claimOrder: async () => ({ state: "missing" }) }),
     );
 
     expect(await response.json()).toEqual({ ok: true, skipped: "no order" });
@@ -72,7 +72,7 @@ describe("canonical Asaas webhook", () => {
   test("skips an order already completed", async () => {
     const response = await handleAsaasWebhook(
       request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }),
-      dependencies({ findOrder: async () => ({ ...order, status: "completed" }) }),
+      dependencies({ claimOrder: async () => ({ state: "completed" }) }),
     );
 
     expect(await response.json()).toEqual({ ok: true, skipped: "already completed" });
@@ -90,6 +90,29 @@ describe("canonical Asaas webhook", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(processed).toBe(1);
+  });
+
+  test("processes concurrent deliveries only once", async () => {
+    let processed = 0;
+    let claimed = false;
+    const deps = dependencies({
+      claimOrder: async () => {
+        if (claimed) return { state: "in_progress" };
+        claimed = true;
+        return { state: "claimed", order };
+      },
+      processOrder: async () => {
+        processed += 1;
+        await Promise.resolve();
+      },
+    });
+
+    await Promise.all([
+      handleAsaasWebhook(request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }), deps),
+      handleAsaasWebhook(request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }), deps),
+    ]);
+
     expect(processed).toBe(1);
   });
 

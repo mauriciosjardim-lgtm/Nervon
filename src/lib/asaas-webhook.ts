@@ -13,9 +13,15 @@ export type AsaasPendingOrder = {
 
 export type AsaasWebhookDependencies = {
   expectedToken: string | undefined;
-  findOrder: (paymentId: string) => Promise<AsaasPendingOrder | null>;
+  claimOrder: (paymentId: string) => Promise<AsaasOrderClaim>;
   processOrder: (order: AsaasPendingOrder) => Promise<void>;
 };
+
+export type AsaasOrderClaim =
+  | { state: "claimed"; order: AsaasPendingOrder }
+  | { state: "missing" }
+  | { state: "completed" }
+  | { state: "in_progress" };
 
 type AsaasWebhookBody = {
   event?: string;
@@ -70,16 +76,19 @@ export async function handleAsaasWebhook(
     return json({ ok: true, ignored: true });
   }
 
-  const order = await dependencies.findOrder(payment.id);
-  if (!order) {
+  const claim = await dependencies.claimOrder(payment.id);
+  if (claim.state === "missing") {
     return json({ ok: true, skipped: "no order" });
   }
-  if (order.status === "completed") {
+  if (claim.state === "completed") {
     return json({ ok: true, skipped: "already completed" });
+  }
+  if (claim.state === "in_progress") {
+    return json({ ok: true, skipped: "in progress" });
   }
 
   try {
-    await dependencies.processOrder(order);
+    await dependencies.processOrder(claim.order);
   } catch {
     return json({ error: "Provisioning failed" }, 500);
   }
