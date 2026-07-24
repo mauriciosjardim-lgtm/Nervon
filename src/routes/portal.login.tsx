@@ -46,9 +46,7 @@ function PortalLogin() {
       return;
     }
 
-    const { data: token, error: tokenError } = await (portalSupabase as any).rpc(
-      "meu_portal_token",
-    );
+    const { data: token, error: tokenError } = await portalSupabase.rpc("meu_portal_token");
     if (tokenError || !token) {
       await portalSupabase.auth.signOut({ scope: "local" });
       setError("Este usuário não possui acesso ativo ao portal.");
