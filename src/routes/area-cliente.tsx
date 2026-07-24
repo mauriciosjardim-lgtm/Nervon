@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -19,9 +19,11 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ClientPortalWorkspace } from "@/components/projetos/client-portal-workspace";
+import { ProjetosErrorState } from "@/components/projetos/projetos-error-state";
 import { useProjetos } from "@/lib/hooks/useProjetos";
 import { useComercialSupa } from "@/lib/hooks/useComercial";
 import { listClientReviews, type ClientReview } from "@/lib/client-reviews";
+import { normalizeClientName, projectBelongsToClient } from "@/lib/projetos/cliente";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/area-cliente")({
@@ -29,18 +31,37 @@ export const Route = createFileRoute("/area-cliente")({
 });
 
 function ClientAreaManager() {
-  const { projetos, loading } = useProjetos();
-  const { empresas: clients, loading: clientsLoading } = useComercialSupa();
+  const { projetos, loading, error, retry } = useProjetos();
+  const {
+    empresas: clients,
+    loading: clientsLoading,
+    error: clientsError,
+    retry: retryClients,
+  } = useComercialSupa();
   const [reviews, setReviews] = useState<ClientReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
 
-  useEffect(() => {
-    void listClientReviews()
-      .then(setReviews)
-      .catch(() => setReviews([]));
+  const loadReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      setReviews(await listClientReviews());
+    } catch (loadError) {
+      setReviewsError(
+        loadError instanceof Error ? loadError.message : "Não foi possível carregar as aprovações.",
+      );
+    } finally {
+      setReviewsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
 
   const activeProjects = useMemo(
     () => projetos.filter((project) => !project.arquivado),
@@ -49,30 +70,28 @@ function ClientAreaManager() {
   const canonicalClients = useMemo(() => {
     const unique = new Map<string, (typeof clients)[number]>();
 
-    clients.forEach((client) => {
-      const key = client.nome.trim().toLocaleLowerCase("pt-BR");
-      const current = unique.get(key);
-      const clientHasLinkedProject = activeProjects.some(
-        (project) => project.clienteId === client.id,
-      );
-      const currentHasLinkedProject = current
-        ? activeProjects.some((project) => project.clienteId === current.id)
-        : false;
+    clients
+      .filter((client) => !client.arquivado)
+      .forEach((client) => {
+        const key = normalizeClientName(client.nome);
+        const current = unique.get(key);
+        const clientHasLinkedProject = activeProjects.some((project) =>
+          projectBelongsToClient(project, client),
+        );
+        const currentHasLinkedProject = current
+          ? activeProjects.some((project) => projectBelongsToClient(project, current))
+          : false;
 
-      if (!current || (clientHasLinkedProject && !currentHasLinkedProject)) {
-        unique.set(key, client);
-      }
-    });
+        if (!current || (clientHasLinkedProject && !currentHasLinkedProject)) {
+          unique.set(key, client);
+        }
+      });
 
     return [...unique.values()];
   }, [activeProjects, clients]);
   const selectedClient = canonicalClients.find((client) => client.id === selectedClientId);
   const clientProjects = selectedClient
-    ? activeProjects.filter(
-        (project) =>
-          project.clienteId === selectedClient.id ||
-          project.cliente.toLowerCase() === selectedClient.nome.toLowerCase(),
-      )
+    ? activeProjects.filter((project) => projectBelongsToClient(project, selectedClient))
     : [];
   const selectedProject =
     clientProjects.find((project) => project.id === selectedProjectId) ?? clientProjects[0];
@@ -89,7 +108,22 @@ function ClientAreaManager() {
   const clientChanges = clientReviews.filter(
     (review) => review.status === "changes_requested",
   ).length;
-  const dataLoading = loading || clientsLoading;
+  const dataLoading = loading || clientsLoading || reviewsLoading;
+  const dataError = error || clientsError || reviewsError;
+
+  if (dataError) {
+    return (
+      <div className="px-4 py-6 md:px-8 md:py-8">
+        <ProjetosErrorState
+          message={dataError}
+          onRetry={async () => {
+            await Promise.all([retry(), retryClients(), loadReviews()]);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 md:px-8 md:py-8">
       <header className="flex flex-wrap items-end justify-between gap-5">
@@ -108,10 +142,26 @@ function ClientAreaManager() {
           </p>
         </div>
         <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-border bg-surface-1/35 sm:w-auto sm:grid-cols-4">
-          <CompactMetric label="Publicados" value={dataLoading ? "—" : published.length} tone="text-primary" />
-          <CompactMetric label="Aguardando" value={dataLoading ? "—" : pending.length} tone="text-warning" />
-          <CompactMetric label="Ajustes" value={dataLoading ? "—" : changes.length} tone="text-destructive" />
-          <CompactMetric label="Aprovados" value={dataLoading ? "—" : approved.length} tone="text-success" />
+          <CompactMetric
+            label="Publicados"
+            value={dataLoading ? "—" : published.length}
+            tone="text-primary"
+          />
+          <CompactMetric
+            label="Aguardando"
+            value={dataLoading ? "—" : pending.length}
+            tone="text-warning"
+          />
+          <CompactMetric
+            label="Ajustes"
+            value={dataLoading ? "—" : changes.length}
+            tone="text-destructive"
+          />
+          <CompactMetric
+            label="Aprovados"
+            value={dataLoading ? "—" : approved.length}
+            tone="text-success"
+          />
         </div>
       </header>
 
@@ -183,10 +233,8 @@ function ClientAreaManager() {
                     <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
                     <CommandGroup heading="Portais de clientes">
                       {canonicalClients.map((client) => {
-                        const projects = activeProjects.filter(
-                          (project) =>
-                            project.clienteId === client.id ||
-                            project.cliente.toLowerCase() === client.nome.toLowerCase(),
+                        const projects = activeProjects.filter((project) =>
+                          projectBelongsToClient(project, client),
                         );
                         const reviewCount = reviews.filter(
                           (review) =>
@@ -322,7 +370,12 @@ function ClientAreaManager() {
                   ))}
                 </div>
               </section>
-              <ClientPortalWorkspace project={selectedProject} />
+              <ClientPortalWorkspace
+                key={selectedClient.id}
+                project={selectedProject}
+                clientId={selectedClient.id}
+                clientName={selectedClient.nome}
+              />
             </div>
           ) : (
             <div className="grid min-h-72 place-items-center rounded-2xl border border-dashed border-border bg-surface-1/20 text-center">
@@ -353,7 +406,15 @@ function ClientAreaManager() {
   );
 }
 
-function CompactMetric({ label, value, tone }: { label: string; value: number | string; tone: string }) {
+function CompactMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  tone: string;
+}) {
   return (
     <div className="min-w-0 border-b border-r border-border/60 px-3 py-2.5 text-center even:border-r-0 sm:min-w-[82px] sm:border-b-0 sm:even:border-r sm:last:border-r-0">
       <p className={cn("font-display text-lg font-semibold tabular-nums", tone)}>{value}</p>

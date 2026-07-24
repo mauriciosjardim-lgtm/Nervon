@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
 import { dbErro } from "@/lib/dbError";
+import type { Database } from "@/lib/database.types";
 import { registerSessionDisposer } from "@/lib/sessionScope";
 import type {
   FaseProjeto,
@@ -17,6 +19,15 @@ import { FASES_PADRAO } from "@/lib/mock/projetos";
 import { agendaActions } from "./useAgenda";
 import { calcularPercentualFluxo } from "@/lib/projetos/progresso";
 
+type ProjetoRow = Database["public"]["Tables"]["projetos"]["Row"];
+type ProjetoUpdate = Database["public"]["Tables"]["projetos"]["Update"];
+type TarefaRow = Database["public"]["Tables"]["tarefas"]["Row"];
+type TarefaUpdate = Database["public"]["Tables"]["tarefas"]["Update"];
+type MarcoRow = Database["public"]["Tables"]["marcos"]["Row"];
+type MarcoUpdate = Database["public"]["Tables"]["marcos"]["Update"];
+type EntregavelRow = Database["public"]["Tables"]["entregaveis"]["Row"];
+type EntregavelUpdate = Database["public"]["Tables"]["entregaveis"]["Update"];
+
 const tipoAgendaDaTarefa = (status?: string) =>
   status === "captacao"
     ? ("gravacao" as const)
@@ -28,7 +39,7 @@ const tipoAgendaDaTarefa = (status?: string) =>
 
 // ─── helpers de conversão snake_case ↔ camelCase ───────────────────────────
 
-function rowToProjeto(r: any): Projeto {
+function rowToProjeto(r: ProjetoRow): Projeto {
   return {
     id: r.id,
     nome: r.nome,
@@ -57,7 +68,7 @@ function rowToProjeto(r: any): Projeto {
   };
 }
 
-function rowToTarefa(r: any): Tarefa {
+function rowToTarefa(r: TarefaRow): Tarefa {
   return {
     id: r.id,
     projetoId: r.projeto_id,
@@ -75,11 +86,17 @@ function rowToTarefa(r: any): Tarefa {
   };
 }
 
-function rowToMarco(r: any): Marco {
-  return { id: r.id, projetoId: r.projeto_id, titulo: r.titulo, data: r.data, status: r.status };
+function rowToMarco(r: MarcoRow): Marco {
+  return {
+    id: r.id,
+    projetoId: r.projeto_id,
+    titulo: r.titulo,
+    data: r.data,
+    status: r.status === "concluido" ? "concluido" : "pendente",
+  };
 }
 
-function rowToEntregavel(r: any): Entregavel {
+function rowToEntregavel(r: EntregavelRow): Entregavel {
   return {
     id: r.id,
     projetoId: r.projeto_id,
@@ -100,9 +117,17 @@ type Store = {
   marcos: Marco[];
   entregaveis: Entregavel[];
   loading: boolean;
+  error: string | null;
 };
 
-let store: Store = { projetos: [], tarefas: [], marcos: [], entregaveis: [], loading: true };
+let store: Store = {
+  projetos: [],
+  tarefas: [],
+  marcos: [],
+  entregaveis: [],
+  loading: true,
+  error: null,
+};
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((fn) => fn());
 const setStore = (patch: Partial<Store>) => {
@@ -110,48 +135,77 @@ const setStore = (patch: Partial<Store>) => {
   emit();
 };
 
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return fallback;
+}
+
 let initialized = false;
 let channel: ReturnType<typeof supabase.channel> | null = null;
 
 async function init() {
   if (initialized) return;
   initialized = true;
+  setStore({ loading: true, error: null });
 
-  const [p, t, m, e] = await Promise.all([
-    supabase.from("projetos").select("*").order("criado_em", { ascending: false }),
-    supabase.from("tarefas").select("*").order("criado_em", { ascending: true }),
-    supabase.from("marcos").select("*").order("data", { ascending: true }),
-    supabase.from("entregaveis").select("*").order("criado_em", { ascending: true }),
-  ]);
+  try {
+    const [p, t, m, e] = await Promise.all([
+      supabase.from("projetos").select("*").order("criado_em", { ascending: false }),
+      supabase.from("tarefas").select("*").order("criado_em", { ascending: true }),
+      supabase.from("marcos").select("*").order("data", { ascending: true }),
+      supabase.from("entregaveis").select("*").order("criado_em", { ascending: true }),
+    ]);
+    const queryError = p.error ?? t.error ?? m.error ?? e.error;
+    if (queryError) throw queryError;
 
-  const tarefasCarregadas = (t.data ?? []).map(rowToTarefa);
-  const projetosCarregados = (p.data ?? []).map(rowToProjeto);
-  setStore({
-    projetos: projetosCarregados.map((projeto) => ({
-      ...projeto,
-      progresso: calcularPercentualFluxo(projeto, tarefasCarregadas),
-    })),
-    tarefas: tarefasCarregadas,
-    marcos: (m.data ?? []).map(rowToMarco),
-    entregaveis: (e.data ?? []).map(rowToEntregavel),
-    loading: false,
-  });
+    const tarefasCarregadas = (t.data ?? []).map(rowToTarefa);
+    const projetosCarregados = (p.data ?? []).map(rowToProjeto);
+    setStore({
+      projetos: projetosCarregados.map((projeto) => ({
+        ...projeto,
+        progresso: calcularPercentualFluxo(projeto, tarefasCarregadas),
+      })),
+      tarefas: tarefasCarregadas,
+      marcos: (m.data ?? []).map(rowToMarco),
+      entregaveis: (e.data ?? []).map(rowToEntregavel),
+      loading: false,
+      error: null,
+    });
 
-  // Tempo real — aplicação INCREMENTAL por evento (sem refetch completo).
-  // Cada evento atualiza só o registro afetado e recalcula o progresso do
-  // projeto correspondente. Dedup por id evita duplicar o que já foi inserido
-  // otimisticamente pelas actions.
-  channel = supabase
-    .channel("projetos_realtime")
-    .on("postgres_changes", { event: "*", schema: "public", table: "projetos" }, handleProjetoEvent)
-    .on("postgres_changes", { event: "*", schema: "public", table: "tarefas" }, handleTarefaEvent)
-    .on("postgres_changes", { event: "*", schema: "public", table: "marcos" }, handleMarcoEvent)
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "entregaveis" },
-      handleEntregavelEvent,
-    )
-    .subscribe();
+    // Tempo real — aplicação INCREMENTAL por evento (sem refetch completo).
+    // Cada evento atualiza só o registro afetado e recalcula o progresso do
+    // projeto correspondente. Dedup por id evita duplicar o que já foi inserido
+    // otimisticamente pelas actions.
+    channel = supabase
+      .channel("projetos_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "projetos" },
+        handleProjetoEvent,
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "tarefas" }, handleTarefaEvent)
+      .on("postgres_changes", { event: "*", schema: "public", table: "marcos" }, handleMarcoEvent)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "entregaveis" },
+        handleEntregavelEvent,
+      )
+      .subscribe();
+  } catch (error) {
+    initialized = false;
+    setStore({
+      loading: false,
+      error: errorMessage(error, "Não foi possível carregar os projetos."),
+    });
+  }
 }
 
 // Recalcula o progresso de um projeto a partir do estado atual do store.
@@ -169,7 +223,7 @@ function projetosComProgresso(
   );
 }
 
-function handleTarefaEvent(payload: any) {
+function handleTarefaEvent(payload: RealtimePostgresChangesPayload<TarefaRow>) {
   const { eventType, new: nw, old } = payload;
   let tarefas = store.tarefas;
   let projetoId: string | undefined;
@@ -196,7 +250,7 @@ function handleTarefaEvent(payload: any) {
   emit();
 }
 
-function handleProjetoEvent(payload: any) {
+function handleProjetoEvent(payload: RealtimePostgresChangesPayload<ProjetoRow>) {
   const { eventType, new: nw, old } = payload;
   let { projetos, tarefas, marcos, entregaveis } = store;
 
@@ -220,7 +274,7 @@ function handleProjetoEvent(payload: any) {
   emit();
 }
 
-function handleMarcoEvent(payload: any) {
+function handleMarcoEvent(payload: RealtimePostgresChangesPayload<MarcoRow>) {
   const { eventType, new: nw, old } = payload;
   let marcos = store.marcos;
   if (eventType === "INSERT") {
@@ -239,7 +293,7 @@ function handleMarcoEvent(payload: any) {
   emit();
 }
 
-function handleEntregavelEvent(payload: any) {
+function handleEntregavelEvent(payload: RealtimePostgresChangesPayload<EntregavelRow>) {
   const { eventType, new: nw, old } = payload;
   let entregaveis = store.entregaveis;
   if (eventType === "INSERT") {
@@ -266,10 +320,26 @@ export function resetProjetosStore() {
     channel = null;
   }
   initialized = false;
-  store = { projetos: [], tarefas: [], marcos: [], entregaveis: [], loading: true };
+  store = {
+    projetos: [],
+    tarefas: [],
+    marcos: [],
+    entregaveis: [],
+    loading: true,
+    error: null,
+  };
   emit();
 }
 registerSessionDisposer(resetProjetosStore);
+
+async function retryProjetos() {
+  if (channel) {
+    await supabase.removeChannel(channel);
+    channel = null;
+  }
+  initialized = false;
+  await init();
+}
 
 // ─── hook ───────────────────────────────────────────────────────────────────
 
@@ -277,16 +347,30 @@ export function useProjetos() {
   const [snap, setSnap] = useState(store);
   useEffect(() => {
     // Só inicializa se houver sessão ativa
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) init();
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (session) return init();
+        initialized = false;
+        setStore({
+          loading: false,
+          error: "Sua sessão expirou. Entre novamente para carregar os projetos.",
+        });
+      })
+      .catch((error) => {
+        initialized = false;
+        setStore({
+          loading: false,
+          error: errorMessage(error, "Não foi possível validar a sessão."),
+        });
+      });
     const update = () => setSnap({ ...store });
     listeners.add(update);
     return () => {
       listeners.delete(update);
     };
   }, []);
-  return snap;
+  return { ...snap, retry: retryProjetos };
 }
 
 // ─── actions ────────────────────────────────────────────────────────────────
@@ -304,7 +388,8 @@ async function atualizarProgresso(projetoId: string) {
   setStore({
     projetos: store.projetos.map((p) => (p.id === projetoId ? { ...p, progresso: prog } : p)),
   });
-  await supabase.from("projetos").update({ progresso: prog }).eq("id", projetoId);
+  const { error } = await supabase.from("projetos").update({ progresso: prog }).eq("id", projetoId);
+  dbErro(error, "atualizar progresso do projeto");
 }
 
 export const projetosActions = {
@@ -337,7 +422,7 @@ export const projetosActions = {
   },
 
   async atualizarProjeto(id: string, input: Partial<Omit<Projeto, "id" | "criadoEm">>) {
-    const payload: any = {};
+    const payload: ProjetoUpdate = {};
     if (input.nome !== undefined) payload.nome = input.nome;
     if (input.cliente !== undefined) payload.cliente = input.cliente;
     if (input.clienteId !== undefined) payload.cliente_id = input.clienteId;
@@ -370,41 +455,45 @@ export const projetosActions = {
       payload.portal_updated_at = new Date().toISOString();
     }
     const { error } = await supabase.from("projetos").update(payload).eq("id", id);
-    if (dbErro(error, "atualizar projeto")) return;
+    if (dbErro(error, "atualizar projeto")) return false;
     setStore({ projetos: store.projetos.map((p) => (p.id === id ? { ...p, ...input } : p)) });
+    return true;
   },
 
-  // Renomeia um cliente em todos os projetos que o referenciam (campo texto
-  // livre). Usado no cabeçalho do workspace do cliente ("Editar cliente").
-  async renomearCliente(nomeAntigo: string, nomeNovo: string) {
+  // Projetos vinculados usam cliente_id como identidade. O nome só é usado
+  // como fallback em registros legados ainda sem vínculo com o CRM.
+  async renomearCliente(nomeAntigo: string, nomeNovo: string, clienteId?: string) {
     const novo = nomeNovo.trim();
     if (!novo || novo === nomeAntigo) return;
     const alvos = store.projetos.filter(
-      (p) => p.cliente.toLowerCase() === nomeAntigo.toLowerCase(),
+      (p) =>
+        (clienteId && p.clienteId === clienteId) ||
+        (!p.clienteId && p.cliente.toLowerCase() === nomeAntigo.toLowerCase()),
     );
     const empresa_id = await getEmpresaId();
-    const { error } = await supabase
-      .from("projetos")
-      .update({ cliente: novo })
-      .eq("empresa_id", empresa_id)
-      .ilike("cliente", nomeAntigo);
-    if (dbErro(error, "renomear cliente")) return;
+    const query = supabase.from("projetos").update({ cliente: novo }).eq("empresa_id", empresa_id);
+    const { error } = clienteId
+      ? await query.eq("cliente_id", clienteId)
+      : await query.is("cliente_id", null).ilike("cliente", nomeAntigo);
+    if (dbErro(error, "renomear cliente")) return false;
     setStore({
       projetos: store.projetos.map((p) =>
         alvos.some((a) => a.id === p.id) ? { ...p, cliente: novo } : p,
       ),
     });
+    return true;
   },
 
   async removerProjeto(id: string) {
     const { error } = await supabase.from("projetos").delete().eq("id", id);
-    if (dbErro(error, "remover projeto")) return;
+    if (dbErro(error, "remover projeto")) return false;
     setStore({
       projetos: store.projetos.filter((p) => p.id !== id),
       tarefas: store.tarefas.filter((t) => t.projetoId !== id),
       marcos: store.marcos.filter((m) => m.projetoId !== id),
       entregaveis: store.entregaveis.filter((e) => e.projetoId !== id),
     });
+    return true;
   },
 
   async criarTarefa(input: Omit<Tarefa, "id" | "criadoEm">) {
@@ -427,7 +516,7 @@ export const projetosActions = {
       })
       .select()
       .single();
-    if (dbErro(error, "criar tarefa")) return;
+    if (dbErro(error, "criar tarefa")) return false;
     if (data) {
       const nova = rowToTarefa(data);
       setStore({ tarefas: [...store.tarefas, nova] });
@@ -443,6 +532,7 @@ export const projetosActions = {
         });
       }
     }
+    return true;
   },
 
   async atualizarTarefa(id: string, input: Partial<Omit<Tarefa, "id" | "criadoEm">>) {
@@ -466,7 +556,7 @@ export const projetosActions = {
       }
     }
 
-    const payload: any = {};
+    const payload: TarefaUpdate = {};
     if (norm.titulo !== undefined) payload.titulo = norm.titulo;
     if (norm.descricao !== undefined) payload.descricao = norm.descricao;
     if (norm.status !== undefined) payload.status = norm.status;
@@ -478,7 +568,7 @@ export const projetosActions = {
     if (norm.prioridade !== undefined) payload.prioridade = norm.prioridade;
     if (norm.link !== undefined) payload.link = norm.link?.trim() || null;
     const { error } = await supabase.from("tarefas").update(payload).eq("id", id);
-    if (dbErro(error, "atualizar tarefa")) return;
+    if (dbErro(error, "atualizar tarefa")) return false;
 
     const localPatch: Partial<Tarefa> = { ...norm };
     if (norm.link !== undefined) localPatch.link = norm.link?.trim() || undefined;
@@ -514,15 +604,17 @@ export const projetosActions = {
         await agendaActions.removerPorRef("tarefa", id);
       }
     }
+    return true;
   },
 
   async removerTarefa(id: string) {
     const tarefa = store.tarefas.find((t) => t.id === id);
     const { error } = await supabase.from("tarefas").delete().eq("id", id);
-    if (dbErro(error, "remover tarefa")) return;
+    if (dbErro(error, "remover tarefa")) return false;
     setStore({ tarefas: store.tarefas.filter((t) => t.id !== id) });
     if (tarefa) await atualizarProgresso(tarefa.projetoId);
     await agendaActions.removerPorRef("tarefa", id);
+    return true;
   },
 
   async criarMarco(input: Omit<Marco, "id">) {
@@ -538,24 +630,27 @@ export const projetosActions = {
       })
       .select()
       .single();
-    if (dbErro(error, "criar marco")) return;
+    if (dbErro(error, "criar marco")) return false;
     if (data) setStore({ marcos: [...store.marcos, rowToMarco(data)] });
+    return true;
   },
 
   async atualizarMarco(id: string, input: Partial<Omit<Marco, "id">>) {
-    const payload: any = {};
+    const payload: MarcoUpdate = {};
     if (input.titulo !== undefined) payload.titulo = input.titulo;
     if (input.data !== undefined) payload.data = input.data;
     if (input.status !== undefined) payload.status = input.status;
     const { error } = await supabase.from("marcos").update(payload).eq("id", id);
-    if (dbErro(error, "atualizar marco")) return;
+    if (dbErro(error, "atualizar marco")) return false;
     setStore({ marcos: store.marcos.map((m) => (m.id === id ? { ...m, ...input } : m)) });
+    return true;
   },
 
   async removerMarco(id: string) {
     const { error } = await supabase.from("marcos").delete().eq("id", id);
-    if (dbErro(error, "remover marco")) return;
+    if (dbErro(error, "remover marco")) return false;
     setStore({ marcos: store.marcos.filter((m) => m.id !== id) });
+    return true;
   },
 
   async criarEntregavel(input: Omit<Entregavel, "id" | "criadoEm">) {
@@ -573,38 +668,47 @@ export const projetosActions = {
       })
       .select()
       .single();
-    if (dbErro(error, "criar entregável")) return;
+    if (dbErro(error, "criar entregável")) return false;
     if (data) setStore({ entregaveis: [...store.entregaveis, rowToEntregavel(data)] });
+    return true;
   },
 
   async atualizarEntregavel(id: string, input: Partial<Omit<Entregavel, "id" | "criadoEm">>) {
-    const payload: any = {};
+    const payload: EntregavelUpdate = {};
     if (input.titulo !== undefined) payload.titulo = input.titulo;
     if (input.tipo !== undefined) payload.tipo = input.tipo;
     if (input.status !== undefined) payload.status = input.status;
     if (input.link !== undefined) payload.link = input.link;
     if (input.notas !== undefined) payload.notas = input.notas;
     const { error } = await supabase.from("entregaveis").update(payload).eq("id", id);
-    if (dbErro(error, "atualizar entregável")) return;
+    if (dbErro(error, "atualizar entregável")) return false;
     setStore({ entregaveis: store.entregaveis.map((e) => (e.id === id ? { ...e, ...input } : e)) });
+    return true;
   },
 
   async removerEntregavel(id: string) {
     const { error } = await supabase.from("entregaveis").delete().eq("id", id);
-    if (dbErro(error, "remover entregável")) return;
+    if (dbErro(error, "remover entregável")) return false;
     setStore({ entregaveis: store.entregaveis.filter((e) => e.id !== id) });
+    return true;
   },
 
   async adicionarFase(projetoId: string, fase: string) {
     const projeto = store.projetos.find((p) => p.id === projetoId);
     if (!projeto) return;
     const fases = projeto.fases ?? [...FASES_PADRAO];
-    const key = fase.toLowerCase().replace(/\s+/g, "_");
-    if (fases.includes(key)) return;
+    const key = fase
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    if (!key || key === "concluida" || fases.includes(key)) return false;
     const idx = fases.indexOf("concluida");
     const novas = [...fases];
-    idx >= 0 ? novas.splice(idx, 0, key) : novas.push(key);
-    await this.atualizarProjeto(projetoId, { fases: novas });
+    if (idx >= 0) novas.splice(idx, 0, key);
+    else novas.push(key);
+    return this.atualizarProjeto(projetoId, { fases: novas });
   },
 
   async moverFase(projetoId: string, fase: string, direcao: -1 | 1) {
@@ -614,8 +718,9 @@ export const projetosActions = {
     const idx = fases.indexOf(fase);
     const novoIdx = idx + direcao;
     if (idx < 0 || novoIdx < 0 || novoIdx >= fases.length) return;
+    if (fase === "concluida" || fases[novoIdx] === "concluida") return;
     [fases[idx], fases[novoIdx]] = [fases[novoIdx], fases[idx]];
-    await this.atualizarProjeto(projetoId, { fases });
+    return this.atualizarProjeto(projetoId, { fases });
   },
 
   async removerFase(projetoId: string, fase: string) {
@@ -626,8 +731,11 @@ export const projetosActions = {
     const fallback = fases[idx - 1] ?? "concluida";
     // move tarefas da fase removida
     const afetadas = store.tarefas.filter((t) => t.projetoId === projetoId && t.status === fase);
-    await Promise.all(afetadas.map((t) => this.atualizarTarefa(t.id, { status: fallback })));
-    await this.atualizarProjeto(projetoId, { fases: fases.filter((f) => f !== fase) });
+    const movidas = await Promise.all(
+      afetadas.map((t) => this.atualizarTarefa(t.id, { status: fallback })),
+    );
+    if (movidas.some((resultado) => resultado === false)) return false;
+    return this.atualizarProjeto(projetoId, { fases: fases.filter((f) => f !== fase) });
   },
 
   async adicionarLink(projetoId: string, label: string, url: string) {

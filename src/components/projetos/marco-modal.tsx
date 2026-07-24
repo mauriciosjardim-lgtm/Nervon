@@ -34,6 +34,8 @@ export function MarcoModal({
   const editando = !!marco;
   const [titulo, setTitulo] = useState("");
   const [data, setData] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const [removendo, setRemovendo] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -49,7 +51,7 @@ export function MarcoModal({
     }
   }, [open, marco]);
 
-  const salvar = () => {
+  const salvar = async () => {
     if (!titulo.trim() || !data) return;
     const payload = {
       projetoId,
@@ -57,20 +59,30 @@ export function MarcoModal({
       data: new Date(data).toISOString(),
       status: marco?.status ?? ("pendente" as const),
     };
-    if (editando && marco) projetosActions.atualizarMarco(marco.id, payload);
-    else projetosActions.criarMarco(payload);
-    onClose();
+    setSalvando(true);
+    try {
+      const sucesso =
+        editando && marco
+          ? await projetosActions.atualizarMarco(marco.id, payload)
+          : await projetosActions.criarMarco(payload);
+      if (sucesso) onClose();
+    } finally {
+      setSalvando(false);
+    }
   };
 
-  const remover = () => {
-    if (marco && confirm("Remover marco?")) {
-      projetosActions.removerMarco(marco.id);
-      onClose();
+  const remover = async () => {
+    if (!marco || !confirm("Remover marco?")) return;
+    setRemovendo(true);
+    try {
+      if (await projetosActions.removerMarco(marco.id)) onClose();
+    } finally {
+      setRemovendo(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && !salvando && !removendo && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">
@@ -100,18 +112,22 @@ export function MarcoModal({
               variant="ghost"
               size="sm"
               onClick={remover}
+              disabled={salvando || removendo}
               className="text-destructive hover:text-destructive"
             >
-              <Trash size={16} color="currentColor" variant="Linear" /> Remover
+              <Trash size={16} color="currentColor" variant="Linear" />{" "}
+              {removendo ? "Removendo…" : "Remover"}
             </Button>
           ) : (
             <span />
           )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={salvando || removendo}>
               Cancelar
             </Button>
-            <Button onClick={salvar}>{editando ? "Salvar" : "Criar"}</Button>
+            <Button onClick={salvar} disabled={salvando || removendo || !titulo.trim() || !data}>
+              {salvando ? "Salvando…" : editando ? "Salvar" : "Criar"}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
