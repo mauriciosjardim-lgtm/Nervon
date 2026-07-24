@@ -7,7 +7,9 @@ test("all Asaas webhook routes delegate to one canonical server handler", () => 
 
   expect(server).toContain('from "./lib/asaas-webhook-handler.server"');
   expect(fileRoute).toContain('from "@/lib/asaas-webhook-handler.server"');
-  expect(server).toContain("handleCanonicalAsaasWebhook(request)");
+  expect(server).toMatch(
+    /handleCanonicalAsaasWebhook\(request,\s*\(task\) => ctx\.waitUntil\(task\)\)/,
+  );
   expect(fileRoute).toContain("handleCanonicalAsaasWebhook(request)");
   expect(fileRoute).not.toContain("ASAAS_WEBHOOK_TOKEN");
   expect(fileRoute).not.toContain("processarPagamento");

@@ -2,7 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { processarPagamento, supabaseKey, supabaseUrl } from "./api/asaas.functions";
 import { handleAsaasWebhook, type AsaasOrderClaim, type AsaasPendingOrder } from "./asaas-webhook";
 
-export async function handleCanonicalAsaasWebhook(request: Request): Promise<Response> {
+export async function handleCanonicalAsaasWebhook(
+  request: Request,
+  schedule?: (task: Promise<void>) => void,
+): Promise<Response> {
   const sb = createClient(supabaseUrl(), supabaseKey());
   const claimClient = sb as unknown as {
     rpc: (
@@ -37,5 +40,6 @@ export async function handleCanonicalAsaasWebhook(request: Request): Promise<Res
         empresa: order.empresa_nome,
       });
     },
+    schedule,
   });
 }

@@ -8,6 +8,10 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+type ExecutionContext = {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -77,7 +81,7 @@ function withSecurityHeaders(response: Response, isHttps: boolean): Response {
 }
 
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(request: Request, env: unknown, ctx: ExecutionContext) {
     const url = new URL(request.url);
     const isHttps = url.protocol === "https:";
 
@@ -107,7 +111,10 @@ export default {
     }
 
     if (url.pathname === "/api/asaas/webhook" && request.method === "POST") {
-      return withSecurityHeaders(await handleCanonicalAsaasWebhook(request), isHttps);
+      return withSecurityHeaders(
+        await handleCanonicalAsaasWebhook(request, (task) => ctx.waitUntil(task)),
+        isHttps,
+      );
     }
 
     try {

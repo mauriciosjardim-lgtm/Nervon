@@ -15,6 +15,7 @@ export type AsaasWebhookDependencies = {
   expectedToken: string | undefined;
   claimOrder: (paymentId: string) => Promise<AsaasOrderClaim>;
   processOrder: (order: AsaasPendingOrder) => Promise<void>;
+  schedule?: (task: Promise<void>) => void;
 };
 
 export type AsaasOrderClaim =
@@ -75,23 +76,43 @@ export async function handleAsaasWebhook(
   if (!paid || !payment?.id) {
     return json({ ok: true, ignored: true });
   }
+  const paymentId = payment.id;
 
-  const claim = await dependencies.claimOrder(payment.id);
-  if (claim.state === "missing") {
-    return json({ ok: true, skipped: "no order" });
-  }
-  if (claim.state === "completed") {
-    return json({ ok: true, skipped: "already completed" });
-  }
-  if (claim.state === "in_progress") {
-    return json({ ok: true, skipped: "in progress" });
+  const processPayment = async (): Promise<Response> => {
+    const claim = await dependencies.claimOrder(paymentId);
+    if (claim.state === "missing") {
+      return json({ ok: true, skipped: "no order" });
+    }
+    if (claim.state === "completed") {
+      return json({ ok: true, skipped: "already completed" });
+    }
+    if (claim.state === "in_progress") {
+      return json({ ok: true, skipped: "in progress" });
+    }
+
+    try {
+      await dependencies.processOrder(claim.order);
+    } catch {
+      return json({ error: "Provisioning failed" }, 500);
+    }
+
+    return json({ ok: true });
+  };
+
+  if (dependencies.schedule) {
+    dependencies.schedule(
+      processPayment()
+        .then((response) => {
+          if (response.status >= 500) {
+            console.error("Asaas webhook provisioning failed.");
+          }
+        })
+        .catch(() => {
+          console.error("Asaas webhook provisioning failed.");
+        }),
+    );
+    return json({ ok: true, accepted: true }, 202);
   }
 
-  try {
-    await dependencies.processOrder(claim.order);
-  } catch {
-    return json({ error: "Provisioning failed" }, 500);
-  }
-
-  return json({ ok: true });
+  return processPayment();
 }

@@ -116,6 +116,37 @@ describe("canonical Asaas webhook", () => {
     expect(processed).toBe(1);
   });
 
+  test("schedules provisioning and acknowledges the webhook immediately", async () => {
+    let releaseProcessing: (() => void) | undefined;
+    let processed = false;
+    let scheduled: Promise<void> | undefined;
+    const processing = new Promise<void>((resolve) => {
+      releaseProcessing = resolve;
+    });
+
+    const response = await handleAsaasWebhook(
+      request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }),
+      dependencies({
+        processOrder: async () => {
+          await processing;
+          processed = true;
+        },
+        schedule: (task) => {
+          scheduled = task;
+        },
+      }),
+    );
+
+    expect(response.status).toBe(202);
+    expect(await response.json()).toEqual({ ok: true, accepted: true });
+    expect(processed).toBeFalse();
+    expect(scheduled).toBeDefined();
+
+    releaseProcessing?.();
+    await scheduled;
+    expect(processed).toBeTrue();
+  });
+
   test("returns a generic 500 so Asaas retries provisioning failures", async () => {
     const response = await handleAsaasWebhook(
       request({ event: "PAYMENT_RECEIVED", payment: { id: "pay_123" } }),

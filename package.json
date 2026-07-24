@@ -11,7 +11,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "lint:changed": "node scripts/lint-changed.mjs",
+    "lint:changed": "bun scripts/lint-changed.mjs",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "test:integration": "bun test tests/integration",
