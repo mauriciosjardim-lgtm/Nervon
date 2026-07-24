@@ -89,11 +89,11 @@ function PortalLogin() {
   };
 
   return (
-    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-background px-5 py-10 text-foreground">
+    <main className="relative grid min-h-[100dvh] place-items-center overflow-x-hidden bg-background px-4 py-6 text-foreground sm:px-5 sm:py-10">
       <div className="pointer-events-none absolute left-1/2 top-[-20rem] size-[46rem] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[120px]" />
       <div className="relative w-full max-w-[420px]">
-        <div className="mb-8 flex items-center justify-center gap-3">
-          <LogoMakersHub className="size-10" />
+        <div className="mb-6 flex items-center justify-center gap-3 sm:mb-8">
+          <LogoMakersHub className="size-9 sm:size-10" />
           <div>
             <p className="font-display text-lg font-semibold">
               Makers <span className="text-primary">Members</span>
@@ -104,7 +104,7 @@ function PortalLogin() {
           </div>
         </div>
 
-        <section className="rounded-3xl border border-border bg-surface-1/80 p-7 shadow-[var(--shadow-elevated)] backdrop-blur-xl">
+        <section className="rounded-3xl border border-border bg-surface-1/80 p-5 shadow-[var(--shadow-elevated)] backdrop-blur-xl sm:p-7">
           <span className="mx-auto grid size-11 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
             {recovering ? <MailCheck className="size-5" /> : <LockKeyhole className="size-5" />}
           </span>
@@ -131,7 +131,7 @@ function PortalLogin() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="voce@empresa.com"
-                  className="h-11 border-input bg-background/35 pl-10 text-foreground placeholder:text-muted-foreground/45"
+                  className="h-12 border-input bg-background/35 pl-10 text-base text-foreground placeholder:text-muted-foreground/45 sm:text-sm"
                 />
               </span>
             </label>
@@ -160,7 +160,7 @@ function PortalLogin() {
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="h-11 border-input bg-background/35 px-10 text-foreground"
+                    className="h-12 border-input bg-background/35 px-10 text-base text-foreground sm:text-sm"
                   />
                   <button
                     type="button"
@@ -195,7 +195,7 @@ function PortalLogin() {
             <Button
               type="submit"
               disabled={loading || recoverySent || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
-              className="h-11 w-full"
+              className="h-12 w-full text-sm"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}
               {recovering ? "Enviar link de recuperação" : "Entrar no portal"}

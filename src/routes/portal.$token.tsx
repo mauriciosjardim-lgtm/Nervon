@@ -156,6 +156,12 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value.slice(0, 10)}T12:00:00Z`));
 }
 
+function driveThumbnailUrl(fileId?: string | null) {
+  const id = fileId?.trim();
+  if (!id || !/^[\w-]{10,}$/.test(id)) return null;
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`;
+}
+
 function portalInitials(name: string) {
   return name
     .trim()
@@ -394,10 +400,9 @@ function ClientPortalPage() {
           signingOut={signingOut}
         />
 
-        <main className="mx-auto max-w-[1380px] px-5 py-8 md:px-8 md:py-10 xl:px-12">
+        <main className="mx-auto max-w-[1380px] px-4 pb-28 pt-6 sm:px-5 md:px-8 md:pt-10 lg:pb-10 xl:px-12">
           <PageHeading
             title={title}
-            clientName={portal.client.responsible_name || portal.client.name}
             accent={accent}
           />
 
@@ -566,7 +571,7 @@ function PortalTopbar({
 }) {
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur-xl md:px-8">
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl sm:h-16 sm:px-5 md:px-8">
         <div className="flex items-center gap-3">
           <div className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-black text-primary-foreground shadow-[0_0_18px_-5px_var(--primary)] lg:hidden">
             {portal.company.name.slice(0, 1).toUpperCase()}
@@ -598,7 +603,7 @@ function PortalTopbar({
           </span>
         </div>
       </header>
-      <nav className="flex gap-1.5 overflow-x-auto border-b border-border bg-sidebar px-4 py-2.5 lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-sidebar-border bg-sidebar/95 px-1 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[0_-18px_45px_-28px_rgba(0,0,0,.95)] backdrop-blur-xl lg:hidden">
         {PORTAL_MENU.map(({ id, shortLabel, icon: Icon }) => {
           const active = id === view;
           return (
@@ -608,14 +613,17 @@ function PortalTopbar({
               onClick={() => onNavigate(id)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-[10px] font-medium transition",
+                "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-[8px] font-medium transition",
                 active
-                  ? "bg-sidebar-accent text-sidebar-primary"
+                  ? "text-sidebar-primary"
                   : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               )}
             >
-              <Icon size={17} color="currentColor" variant={active ? "Bulk" : "TwoTone"} />
-              {shortLabel}
+              {active && (
+                <span className="absolute inset-x-2 top-0 h-0.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+              )}
+              <Icon size={20} color="currentColor" variant={active ? "Bulk" : "TwoTone"} />
+              <span className="max-w-full truncate">{shortLabel}</span>
             </button>
           );
         })}
@@ -626,28 +634,25 @@ function PortalTopbar({
 
 function PageHeading({
   title,
-  clientName,
   accent,
 }: {
   title: { eyebrow: string; title: string; description: string };
-  clientName: string;
   accent: string;
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-white/[0.06] pb-7">
+    <header className="mb-6 border-b border-white/[0.07] pb-5 md:mb-8 md:pb-7">
       <div>
         <div className="flex items-center gap-2">
           <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} />
-          <p className="text-[10px] font-medium uppercase tracking-[.18em] text-white/32">
+          <p className="text-[10px] font-medium uppercase tracking-[.18em] text-white/45">
             {title.eyebrow}
           </p>
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-.045em] md:text-5xl">
+        <h1 className="mt-2.5 text-[2rem] font-semibold leading-[1.05] tracking-[-.045em] md:mt-3 md:text-5xl">
           {title.title}
         </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-white/38">{title.description}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-white/50">{title.description}</p>
       </div>
-      <p className="text-xs text-white/28">Olá, {clientName}.</p>
     </header>
   );
 }
@@ -942,13 +947,13 @@ function OverviewFolderStrip({
           <button
             key={`${folder.title}-${folder.view}`}
             onClick={() => onNavigate(folder.view)}
-            className="portal-overview-folder group relative min-h-[188px] overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-[var(--portal-accent)]/25 hover:bg-white/[0.03]"
+            className="portal-overview-folder group relative min-h-40 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] p-3.5 text-left transition duration-300 hover:-translate-y-1 hover:border-[var(--portal-accent)]/25 hover:bg-white/[0.03] sm:min-h-[188px] sm:p-4"
           >
-            <div className="portal-folder portal-folder-lime mt-3 origin-top-left scale-[.9]">
+            <div className="portal-folder portal-folder-lime mt-2 origin-top-left scale-[.75] sm:mt-3 sm:scale-[.9]">
               <span />
             </div>
             <ChevronRight className="absolute right-4 top-4 size-3.5 text-white/15 transition group-hover:translate-x-0.5 group-hover:text-[var(--portal-accent)]" />
-            <div className="mt-5">
+            <div className="mt-2 sm:mt-5">
               <h3 className="text-sm font-semibold capitalize">{folder.title}</h3>
               <p className="mt-1 text-[10px] text-white/30">{folder.detail}</p>
               <p className="mt-2 text-[8px] uppercase tracking-[.14em] text-white/18">
@@ -1175,19 +1180,40 @@ function ApprovalsView({
       item.kind !== "delivery" &&
       (item.status === "aprovado" || item.status === "entregue" || item.status === "ajustes"),
   );
+  const totalReviews = pending.length + history.length;
+  const completedPercentage =
+    totalReviews > 0 ? Math.round((history.length / totalReviews) * 100) : 100;
   return (
     <div className="space-y-8">
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
+        <div className="mb-5 rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 flex-1">
             <h2 className="text-sm font-semibold">Aguardando sua decisão</h2>
-            <p className="mt-1 text-xs text-white/28">
-              Você pode aprovar vários conteúdos do mesmo ciclo separadamente.
+            <p className="mt-1 text-xs text-white/45">
+              Revise cada material separadamente. Seu progresso fica salvo.
             </p>
+            <div
+              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]"
+              role="progressbar"
+              aria-label="Progresso das aprovações"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={completedPercentage}
+            >
+              <div
+                className="h-full rounded-full bg-[var(--portal-accent)] transition-[width] duration-500"
+                style={{ width: `${completedPercentage}%` }}
+              />
+            </div>
           </div>
-          <span className="rounded-full bg-[var(--portal-accent)] px-2.5 py-1 text-xs font-bold text-black">
-            {pending.length}
-          </span>
+          <div className="mt-3 flex items-baseline gap-2 sm:mt-0 sm:shrink-0">
+            <strong className="text-2xl font-semibold tracking-[-.04em] text-white">
+              {pending.length}
+            </strong>
+            <span className="text-[10px] uppercase tracking-[.14em] text-white/40">
+              pendentes
+            </span>
+          </div>
         </div>
         {pending.length === 0 ? (
           <EmptyPanel
@@ -1196,11 +1222,12 @@ function ApprovalsView({
             description="Você está em dia com a equipe."
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {pending.map((item) => (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {pending.map((item, index) => (
               <ApprovalCard
                 key={item.id}
                 item={item}
+                priority={index === 0}
                 approving={approvingId === item.id}
                 onRespond={onRespond}
                 accent={accent}
@@ -1221,14 +1248,14 @@ function ApprovalsView({
         ) : (
           <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
             {history.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 px-5 py-4">
+              <div key={item.id} className="flex items-center gap-3 px-4 py-4 sm:px-5">
                 {item.status === "ajustes" ? (
                   <MessageSquareText className="size-4 text-red-300" />
                 ) : (
                   <CheckCircle2 className="size-4" style={{ color: accent }} />
                 )}
                 <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
-                <span className="text-[10px] uppercase tracking-[.12em] text-white/25">
+                <span className="hidden text-[10px] uppercase tracking-[.12em] text-white/25 sm:inline">
                   {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
                 </span>
                 {item.url && (
@@ -1253,12 +1280,14 @@ function ApprovalsView({
 
 function ApprovalCard({
   item,
+  priority,
   approving,
   onRespond,
   accent,
   cover,
 }: {
   item: PortalDeliverable;
+  priority: boolean;
   approving: boolean;
   onRespond: (
     item: PortalDeliverable,
@@ -1271,6 +1300,25 @@ function ApprovalCard({
   const [requestingChanges, setRequestingChanges] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [confirmingApproval, setConfirmingApproval] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewSlow, setPreviewSlow] = useState(false);
+  const [previewRequested, setPreviewRequested] = useState(priority);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const thumbnail = driveThumbnailUrl(item.drive_file_id);
+  const poster = thumbnailFailed ? cover : thumbnail || cover;
+
+  useEffect(() => {
+    setPreviewReady(false);
+    setPreviewSlow(false);
+    setPreviewRequested(priority);
+    setThumbnailFailed(false);
+  }, [item.drive_file_id, item.embed_url, priority]);
+
+  useEffect(() => {
+    if (!item.embed_url || !previewRequested || previewReady) return;
+    const timeout = window.setTimeout(() => setPreviewSlow(true), 8_000);
+    return () => window.clearTimeout(timeout);
+  }, [item.embed_url, previewReady, previewRequested]);
 
   const requestChanges = async () => {
     if (!feedback.trim() || approving) return;
@@ -1292,37 +1340,94 @@ function ApprovalCard({
       className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] transition hover:border-[var(--portal-accent)]/25"
       aria-busy={approving}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-black sm:aspect-video">
-        {item.embed_url ? (
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
+        {poster ? (
+          <img
+            src={poster}
+            alt=""
+            loading={priority ? "eager" : "lazy"}
+            onError={() => {
+              if (thumbnail) setThumbnailFailed(true);
+            }}
+            className="absolute inset-0 size-full object-cover transition duration-500 ease-out group-hover:scale-[1.025]"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(144,248,38,.06),transparent_55%),#0c0e0c]" />
+        )}
+        {item.embed_url && previewRequested ? (
           <iframe
             src={item.embed_url}
             title={`${item.title} ${item.version_label || ""}`}
-            className="absolute inset-0 size-full"
+            className={cn(
+              "absolute inset-0 size-full transition-opacity duration-300",
+              previewReady ? "opacity-100" : "opacity-0",
+            )}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            onLoad={() => setPreviewReady(true)}
           />
-        ) : cover ? (
-          <img
-            src={cover}
-            alt=""
-            className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(163,255,43,.08),transparent_55%),#0c0e0c]" />
+        ) : null}
+        {item.embed_url && previewRequested && !previewReady && (
+          <div
+            className="absolute inset-0 grid place-items-center bg-black/60 backdrop-blur-[2px]"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex max-w-[80%] flex-col items-center text-center">
+              <span className="grid size-12 place-items-center rounded-full border border-white/[0.08] bg-white/[0.04]">
+                <Loader2 className="size-5 animate-spin text-[var(--portal-accent)]" />
+              </span>
+              <p className="mt-3 text-xs font-medium text-white/70">
+                {previewSlow ? "O Google Drive está demorando um pouco" : "Preparando o preview"}
+              </p>
+              <p className="mt-1 text-[10px] leading-4 text-white/35">
+                {previewSlow
+                  ? "Você pode continuar navegando enquanto o vídeo carrega."
+                  : "Conectando ao Google Drive…"}
+              </p>
+              {previewSlow && item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pointer-events-auto mt-3 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[10px] font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white"
+                >
+                  Abrir direto no Drive
+                </a>
+              )}
+            </div>
+          </div>
         )}
-        {!item.embed_url && (
+        {(!item.embed_url || !previewRequested) && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/35" />
         )}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3 sm:p-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[.14em] text-amber-300 backdrop-blur-sm">
+        {item.embed_url && !previewRequested && (
+          <button
+            type="button"
+            onClick={() => setPreviewRequested(true)}
+            className="absolute inset-0 grid place-items-center"
+            aria-label={`Carregar preview de ${item.title}`}
+          >
+            <span className="flex flex-col items-center">
+              <span className="grid size-16 place-items-center rounded-full bg-black/45 ring-1 ring-white/25 backdrop-blur-md transition duration-300 group-hover:scale-110 group-hover:ring-[var(--portal-accent)]/60">
+                <PlayCircle className="size-8 text-white" />
+              </span>
+              <span className="mt-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-semibold text-white/80 backdrop-blur-sm">
+                Carregar vídeo
+              </span>
+            </span>
+          </button>
+        )}
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[.14em] text-amber-200 backdrop-blur-sm">
             <span className="relative flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-300 opacity-60" />
               <span className="relative inline-flex size-1.5 rounded-full bg-amber-300" />
             </span>
             Aguardando aprovação
           </span>
-          <span className="max-w-[40%] truncate rounded-full bg-black/45 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.12em] text-white/60 backdrop-blur-sm">
+          <span className="max-w-[40%] truncate rounded-full bg-black/60 px-2.5 py-1 text-[8px] font-medium uppercase tracking-[.12em] text-white/70 backdrop-blur-sm">
             {item.version_label || item.type}
           </span>
         </div>
@@ -1339,8 +1444,8 @@ function ApprovalCard({
           </a>
         )}
       </div>
-      <div className="p-5">
-        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[.12em] text-white/28">
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[.12em] text-white/42">
           {item.content_cycle && <span>{item.content_cycle}</span>}
           {item.due_at && (
             <span className="inline-flex items-center gap-1">
@@ -1348,8 +1453,8 @@ function ApprovalCard({
             </span>
           )}
         </div>
-        <h3 className="text-lg font-semibold tracking-[-.02em]">{item.title}</h3>
-        {item.notes && <p className="mt-2 text-xs leading-5 text-white/45">{item.notes}</p>}
+        <h3 className="mt-1 text-base font-semibold leading-5 tracking-[-.02em]">{item.title}</h3>
+        {item.notes && <p className="mt-2 text-xs leading-5 text-white/55">{item.notes}</p>}
         {requestingChanges ? (
           <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/20 p-3">
             <label className="text-[10px] uppercase tracking-[.13em] text-white/35">
@@ -1403,7 +1508,7 @@ function ApprovalCard({
               type="button"
               disabled={approving}
               onClick={() => setConfirmingApproval(true)}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold text-black shadow-[0_8px_24px_-8px_var(--portal-accent)] transition hover:brightness-105 disabled:opacity-50"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold text-black shadow-[0_8px_20px_-14px_var(--portal-accent)] transition hover:brightness-105 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
               {approving ? (
