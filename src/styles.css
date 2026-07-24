@@ -9,18 +9,29 @@
  */
 
 @keyframes assistant-tile-in {
-  0% { opacity: 0; transform: scale(0.15) translateY(10px); filter: blur(5px); }
-  65% { transform: scale(1.08) translateY(0); filter: blur(0); }
-  100% { transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.15) translateY(10px);
+    filter: blur(5px);
+  }
+  65% {
+    transform: scale(1.08) translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }
 
 .assistant-tile {
-  animation: assistant-tile-in 560ms cubic-bezier(.2,.8,.2,1) both;
+  animation: assistant-tile-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .assistant-tile { animation: none; }
+  .assistant-tile {
+    animation: none;
+  }
 }
 
 @theme inline {
@@ -90,7 +101,7 @@
   --surface-2: oklch(0.22 0.007 260);
   --surface-3: oklch(0.26 0.008 260);
 
-  --card: oklch(0.20 0.006 260);
+  --card: oklch(0.2 0.006 260);
   --card-foreground: oklch(0.97 0.005 260);
 
   --popover: oklch(0.21 0.007 260);
@@ -99,7 +110,7 @@
   /* Verde limão — assinatura do Nervon */
   --primary: oklch(0.88 0.22 130);
   --primary-foreground: oklch(0.18 0.02 130);
-  --primary-glow: oklch(0.92 0.20 135);
+  --primary-glow: oklch(0.92 0.2 135);
 
   --secondary: oklch(0.26 0.008 260);
   --secondary-foreground: oklch(0.97 0.005 260);
@@ -117,7 +128,7 @@
   --warning: oklch(0.82 0.17 75);
   --info: oklch(0.72 0.13 230);
 
-  --border: oklch(0.30 0.008 260 / 0.5);
+  --border: oklch(0.3 0.008 260 / 0.5);
   --input: oklch(0.28 0.008 260);
   --ring: oklch(0.88 0.22 130 / 0.5);
 
@@ -125,7 +136,7 @@
   --chart-2: oklch(0.72 0.13 230);
   --chart-3: oklch(0.78 0.18 155);
   --chart-4: oklch(0.82 0.17 75);
-  --chart-5: oklch(0.70 0.20 320);
+  --chart-5: oklch(0.7 0.2 320);
 
   --sidebar: oklch(0.14 0.005 260);
   --sidebar-foreground: oklch(0.85 0.008 260);
@@ -137,8 +148,12 @@
   --sidebar-ring: oklch(0.88 0.22 130 / 0.5);
 
   /* Gradients & shadows */
-  --gradient-primary: linear-gradient(135deg, oklch(0.88 0.22 130), oklch(0.92 0.20 135));
-  --gradient-surface: linear-gradient(180deg, oklch(0.22 0.007 260 / 0.8), oklch(0.18 0.006 260 / 0.4));
+  --gradient-primary: linear-gradient(135deg, oklch(0.88 0.22 130), oklch(0.92 0.2 135));
+  --gradient-surface: linear-gradient(
+    180deg,
+    oklch(0.22 0.007 260 / 0.8),
+    oklch(0.18 0.006 260 / 0.4)
+  );
   --gradient-glow: radial-gradient(60% 80% at 50% 0%, oklch(0.88 0.22 130 / 0.18), transparent 70%);
 
   --shadow-glow: 0 0 40px -8px oklch(0.88 0.22 130 / 0.35);
@@ -219,7 +234,9 @@ body {
 }
 
 @layer base {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     border-color: var(--color-border);
     font-family: inherit;
   }
@@ -235,11 +252,13 @@ body {
     background-image: none;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
-
 
   ::selection {
     background: oklch(0.88 0.22 130 / 0.3);
@@ -247,20 +266,28 @@ body {
   }
 
   /* Scrollbar discreta */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.30 0.008 260 / 0.6);
+    background: oklch(0.3 0.008 260 / 0.6);
     border-radius: 8px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  ::-webkit-scrollbar-thumb:hover { background: oklch(0.40 0.008 260 / 0.8); background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.4 0.008 260 / 0.8);
+    background-clip: padding-box;
+  }
 }
 
 /* Liquid glass — frosted pane over corner light sources */
 [class*="bg-surface-1"] {
-  background-color: oklch(0.20 0.004 260 / 0.55) !important;
+  background-color: oklch(0.2 0.004 260 / 0.55) !important;
   backdrop-filter: blur(20px);
   box-shadow:
     inset 0 1px 0 oklch(1 0 0 / 0.07),
@@ -284,9 +311,15 @@ body {
   color: transparent;
 }
 
-@utility surface-1 { background-color: var(--color-surface-1); }
-@utility surface-2 { background-color: var(--color-surface-2); }
-@utility surface-3 { background-color: var(--color-surface-3); }
+@utility surface-1 {
+  background-color: var(--color-surface-1);
+}
+@utility surface-2 {
+  background-color: var(--color-surface-2);
+}
+@utility surface-3 {
+  background-color: var(--color-surface-3);
+}
 
 /*
  * Landing de aquisição: evita rasterizar a página inteira no primeiro paint.
@@ -323,7 +356,7 @@ body {
   }
 
   [class*="bg-surface-1"] {
-    background-color: oklch(0.20 0.004 260 / 0.96) !important;
+    background-color: oklch(0.2 0.004 260 / 0.96) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -357,7 +390,7 @@ body {
 
   --surface-1: oklch(0.14 0.008 260);
   --surface-2: oklch(0.17 0.009 260);
-  --surface-3: oklch(0.20 0.010 260);
+  --surface-3: oklch(0.2 0.01 260);
 
   --card: oklch(0.15 0.008 260);
   --card-foreground: oklch(0.97 0.005 260);
@@ -365,13 +398,13 @@ body {
   --popover: oklch(0.15 0.008 260);
   --popover-foreground: oklch(0.97 0.005 260);
 
-  --secondary: oklch(0.20 0.008 260);
+  --secondary: oklch(0.2 0.008 260);
   --secondary-foreground: oklch(0.97 0.005 260);
 
   --muted: oklch(0.18 0.007 260);
   --muted-foreground: oklch(0.68 0.012 260);
 
-  --accent: oklch(0.22 0.010 260);
+  --accent: oklch(0.22 0.01 260);
   --accent-foreground: oklch(0.97 0.005 260);
 
   --border: oklch(0.24 0.008 260 / 0.4);
@@ -383,7 +416,11 @@ body {
   --sidebar-accent: oklch(0.14 0.008 260);
   --sidebar-border: oklch(0.18 0.008 260 / 0.5);
 
-  --gradient-surface: linear-gradient(180deg, oklch(0.15 0.008 260 / 0.85), oklch(0.12 0.006 260 / 0.45));
+  --gradient-surface: linear-gradient(
+    180deg,
+    oklch(0.15 0.008 260 / 0.85),
+    oklch(0.12 0.006 260 / 0.45)
+  );
   --gradient-glow: radial-gradient(60% 80% at 50% 0%, oklch(0.88 0.22 130 / 0.14), transparent 70%);
 
   --shadow-glow: 0 0 45px -10px oklch(0.88 0.22 130 / 0.28);
@@ -406,7 +443,7 @@ body {
   &:hover {
     transform: translateY(-2px);
     border-color: oklch(0.88 0.22 130 / 0.18) !important;
-    box-shadow: 
+    box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 0.04),
       0 0 35px -10px oklch(0.88 0.22 130 / 0.14),
       0 16px 40px -20px oklch(0 0 0 / 0.8) !important;
@@ -423,15 +460,25 @@ body {
   border: 1px solid oklch(1 0 0 / 0.065) !important;
   background-color: oklch(0.15 0.008 260 / 0.75) !important;
   backdrop-filter: blur(20px);
-  box-shadow: 
+  box-shadow:
     inset 0 1px 0 oklch(1 0 0 / 0.025),
     0 24px 55px -38px oklch(0 0 0 / 0.9) !important;
 }
 @keyframes portal-scan {
-  0% { transform: translateX(-180px); opacity: 0; }
-  18% { opacity: .65; }
-  82% { opacity: .65; }
-  100% { transform: translateX(calc(100vw + 180px)); opacity: 0; }
+  0% {
+    transform: translateX(-180px);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.65;
+  }
+  82% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateX(calc(100vw + 180px));
+    opacity: 0;
+  }
 }
 
 .portal-scanline {
@@ -440,12 +487,26 @@ body {
 
 .portal-hero-scrim {
   background:
-    linear-gradient(to top, #080a09 4%, color-mix(in srgb, #080a09 78%, transparent) 34%, transparent 72%),
-    linear-gradient(to right, color-mix(in srgb, #080a09 70%, transparent), transparent 55%);
+    linear-gradient(
+      to top,
+      var(--background) 4%,
+      color-mix(in srgb, var(--background) 78%, transparent) 34%,
+      transparent 72%
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--background) 70%, transparent),
+      transparent 55%
+    );
 }
 
 .portal-gradient-text {
-  background: linear-gradient(90deg, #ffffff 0%, color-mix(in srgb, var(--portal-accent) 80%, white) 45%, #9a7cff 100%);
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    color-mix(in srgb, var(--portal-accent) 80%, white) 45%,
+    #9a7cff 100%
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -458,17 +519,21 @@ body {
 
 .portal-summary-card {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, .032), rgba(255, 255, 255, .012)),
-    #0b0e0c;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
+    var(--surface-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .portal-approval-alert {
   background:
-    linear-gradient(105deg, color-mix(in srgb, var(--portal-accent) 9%, #0b0e0c), #0b0e0c 58%),
-    #0b0e0c;
+    linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--portal-accent) 9%, var(--surface-1)),
+      var(--surface-1) 58%
+    ),
+    var(--surface-1);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
     0 20px 52px -38px color-mix(in srgb, var(--portal-accent) 45%, transparent);
 }
 
@@ -476,7 +541,12 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 43%, rgba(255, 255, 255, .025) 43.5%, transparent 44%);
+  background: linear-gradient(
+    110deg,
+    transparent 43%,
+    rgba(255, 255, 255, 0.025) 43.5%,
+    transparent 44%
+  );
   pointer-events: none;
 }
 
@@ -488,16 +558,20 @@ body {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--portal-accent) 22%, transparent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 22px 44px -30px color-mix(in srgb, var(--portal-accent) 32%, transparent);
 }
 
 .portal-summary-glow {
   background:
-    radial-gradient(circle at 13% 5%, color-mix(in srgb, var(--portal-accent) 11%, transparent), transparent 34%),
-    linear-gradient(110deg, transparent 46%, rgba(255, 255, 255, .018) 46.5%, transparent 47%);
-  opacity: .7;
-  transition: opacity .3s ease;
+    radial-gradient(
+      circle at 13% 5%,
+      color-mix(in srgb, var(--portal-accent) 11%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(110deg, transparent 46%, rgba(255, 255, 255, 0.018) 46.5%, transparent 47%);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
 }
 
 .portal-summary-card:hover .portal-summary-glow {
@@ -510,13 +584,15 @@ body {
 
 .portal-summary-watermark {
   color: var(--portal-accent);
-  opacity: .028;
+  opacity: 0.028;
   transform: rotate(-8deg);
-  transition: opacity .35s ease, transform .5s cubic-bezier(.2, .8, .2, 1);
+  transition:
+    opacity 0.35s ease,
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .portal-summary-card:hover .portal-summary-watermark {
-  opacity: .07;
+  opacity: 0.07;
   transform: translate(-4px, -3px) rotate(-4deg);
 }
 
@@ -524,9 +600,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 25% 10%, color-mix(in srgb, var(--portal-accent) 13%, transparent), transparent 44%);
+  background: radial-gradient(
+    circle at 25% 10%,
+    color-mix(in srgb, var(--portal-accent) 13%, transparent),
+    transparent 44%
+  );
   opacity: 0;
-  transition: opacity .35s ease;
+  transition: opacity 0.35s ease;
 }
 
 .portal-folder-card:hover::before {
@@ -539,17 +619,16 @@ body {
   height: 57px;
   margin-top: 9px;
   border-radius: 8px 14px 14px 14px;
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--portal-accent) 58%, white),
-      color-mix(in srgb, var(--portal-accent) 76%, #050705)
-    );
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--portal-accent) 58%, white),
+    color-mix(in srgb, var(--portal-accent) 76%, #050705)
+  );
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--portal-accent) 32%, white),
     0 20px 38px -18px color-mix(in srgb, var(--portal-accent) 68%, transparent);
   transform: perspective(500px) rotateX(8deg) rotateY(-5deg);
-  transition: transform .4s cubic-bezier(.2, .8, .2, 1);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .portal-folder::before {
@@ -568,9 +647,9 @@ body {
   position: absolute;
   inset: 6px 7px -5px;
   border-radius: 7px 11px 11px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, .46), rgba(255, 255, 255, .05));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.05));
   transform: skewX(-3deg);
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .portal-folder-card:hover .portal-folder,
@@ -580,26 +659,36 @@ body {
 
 .portal-folder-violet {
   background: linear-gradient(145deg, #b9a2ff, #6849b7);
-  box-shadow: 0 20px 38px -18px rgba(154, 124, 255, .65);
+  box-shadow: 0 20px 38px -18px rgba(154, 124, 255, 0.65);
 }
 
-.portal-folder-violet::before { background: #9375e7; }
+.portal-folder-violet::before {
+  background: #9375e7;
+}
 
 .portal-folder-blue {
   background: linear-gradient(145deg, #81d8ff, #377cb3);
-  box-shadow: 0 20px 38px -18px rgba(80, 176, 255, .6);
+  box-shadow: 0 20px 38px -18px rgba(80, 176, 255, 0.6);
 }
 
-.portal-folder-blue::before { background: #5aa8df; }
+.portal-folder-blue::before {
+  background: #5aa8df;
+}
 
 .portal-folder-green {
   background: linear-gradient(145deg, #7dffc3, #2c9b68);
-  box-shadow: 0 20px 38px -18px rgba(69, 224, 151, .6);
+  box-shadow: 0 20px 38px -18px rgba(69, 224, 151, 0.6);
 }
 
-.portal-folder-green::before { background: #4bca88; }
+.portal-folder-green::before {
+  background: #4bca88;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .portal-scanline { animation: none; }
-  .portal-project-stage img { transition: none; }
+  .portal-scanline {
+    animation: none;
+  }
+  .portal-project-stage img {
+    transition: none;
+  }
 }

@@ -1,0 +1,6 @@
+{
+  "prettierExemptFiles": [
+    "src/components/financeiro/novo-lancamento-modal.tsx",
+    "src/routes/financeiro.lancamentos.tsx"
+  ]
+}

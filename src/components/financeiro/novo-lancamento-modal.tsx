@@ -11,6 +11,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import { openComprovante } from "@/lib/comprovantes";
 import {
   CATEGORIAS_RECEITA, CATEGORIAS_DESPESA,
   type LancTipo, type Lancamento,
@@ -119,7 +120,7 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
     const path = `${empresaId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("comprovantes").upload(path, file, { upsert: true });
     if (error) { toast.error("Erro ao enviar comprovante."); return undefined; }
-    return supabase.storage.from("comprovantes").getPublicUrl(path).data.publicUrl;
+    return path;
   }
 
   const salvar = async () => {
@@ -301,9 +302,17 @@ export function NovoLancamentoModal({ open, onOpenChange, tipoInicial = "receita
               <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-1 px-3 py-2 text-sm">
                 <Paperclip size={14} color="currentColor" variant="Linear" className="shrink-0 text-primary" />
                 {comprovanteUrl && !comprovanteFile ? (
-                  <a href={comprovanteUrl} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-primary underline-offset-2 hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void openComprovante(comprovanteUrl).catch(() =>
+                        toast.error("Não foi possível abrir o comprovante."),
+                      );
+                    }}
+                    className="flex-1 truncate text-left text-primary underline-offset-2 hover:underline"
+                  >
                     {comprovanteNome}
-                  </a>
+                  </button>
                 ) : (
                   <span className="flex-1 truncate text-muted-foreground">{comprovanteNome}</span>
                 )}

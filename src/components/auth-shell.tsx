@@ -3,7 +3,6 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Topbar } from "@/components/topbar";
 import { TrialExpirado } from "@/components/trial-expirado";
-import { AjudaWidget } from "@/components/ajuda/ajuda-widget";
 
 interface AuthShellProps {
   trialExpirado: boolean;
@@ -22,7 +21,6 @@ export function AuthShell({ trialExpirado, sidebarStyle }: AuthShellProps) {
           <Outlet />
         </main>
       </SidebarInset>
-      <AjudaWidget />
     </SidebarProvider>
   );
 }

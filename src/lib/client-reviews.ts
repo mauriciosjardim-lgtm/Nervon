@@ -1,5 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import { getEmpresaId } from "@/lib/empresaId";
+import type { Database } from "@/lib/database.types";
+
+type ProjectUpdate = Database["public"]["Tables"]["projetos"]["Update"];
+type PortalReviewRow = Database["public"]["Tables"]["portal_review_versions"]["Row"];
 
 export type ClientReviewStatus =
   | "draft"
@@ -41,6 +45,15 @@ export interface ClientPortalAccess {
   welcomeMessage: string | null;
 }
 
+export function normalizeClientAssetUrl(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function saveProjectClientPortalState(input: {
   projectId: string;
   clientId: string;
@@ -51,7 +64,7 @@ export async function saveProjectClientPortalState(input: {
   nextMilestone?: string;
   coverUrl?: string;
 }): Promise<void> {
-  const payload: Record<string, unknown> = {
+  const payload: ProjectUpdate = {
     cliente_id: input.clientId,
     portal_visible: input.visible ?? true,
     portal_phase: input.phase,
@@ -63,7 +76,7 @@ export async function saveProjectClientPortalState(input: {
     payload.portal_next_milestone = input.nextMilestone.trim() || null;
   if (input.coverUrl !== undefined) payload.portal_cover_url = input.coverUrl.trim() || null;
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("projetos")
     .update(payload)
     .eq("id", input.projectId)
@@ -81,7 +94,8 @@ export async function saveProjectClientPortalState(input: {
 }
 
 export function extractGoogleDriveFileId(url: string): string | null {
-  const value = url.trim();
+  const value = normalizeClientAssetUrl(url);
+  if (!value) return null;
   const patterns = [
     /drive\.google\.com\/file\/d\/([^/?#]+)/i,
     /drive\.google\.com\/open\?id=([^&#]+)/i,
@@ -95,19 +109,23 @@ export function extractGoogleDriveFileId(url: string): string | null {
 }
 
 export function getReviewEmbedUrl(url: string): string | null {
-  const fileId = extractGoogleDriveFileId(url);
+  const safeUrl = normalizeClientAssetUrl(url);
+  if (!safeUrl) return null;
+  const fileId = extractGoogleDriveFileId(safeUrl);
   if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
-  if (/player\.vimeo\.com\/video\//i.test(url)) return url;
-  const vimeo = url.match(/vimeo\.com\/(\d+)/i);
+  if (/^https?:\/\/player\.vimeo\.com\/video\//i.test(safeUrl)) return safeUrl;
+  const vimeo = safeUrl.match(/vimeo\.com\/(\d+)/i);
   if (vimeo?.[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
-  const youtube = url.match(
+  const youtube = safeUrl.match(
     /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&#/]+)/i,
   );
   if (youtube?.[1]) return `https://www.youtube.com/embed/${youtube[1]}`;
   return null;
 }
 
-function rowToReview(row: any): ClientReview {
+function rowToReview(row: PortalReviewRow): ClientReview {
+  const driveUrl = normalizeClientAssetUrl(row.drive_url) ?? "";
+  const embedUrl = row.embed_url ? normalizeClientAssetUrl(row.embed_url) : null;
   return {
     id: row.id,
     empresaId: row.empresa_id,
@@ -118,9 +136,9 @@ function rowToReview(row: any): ClientReview {
     versionLabel: row.version_label,
     title: row.title,
     contentCycle: row.content_cycle ?? undefined,
-    driveUrl: row.drive_url,
+    driveUrl,
     driveFileId: row.drive_file_id ?? undefined,
-    embedUrl: row.embed_url ?? undefined,
+    embedUrl: embedUrl ?? undefined,
     message: row.message ?? undefined,
     status: row.status,
     kind: row.kind === "delivery" ? "delivery" : "review",
@@ -135,7 +153,7 @@ function rowToReview(row: any): ClientReview {
 }
 
 export async function listClientReviews(projectId?: string): Promise<ClientReview[]> {
-  let query = (supabase as any)
+  let query = supabase
     .from("portal_review_versions")
     .select("*")
     .order("created_at", { ascending: false });
@@ -162,6 +180,10 @@ export async function publishClientReview(input: {
   if (!contentCycle) {
     throw new Error("Informe o ciclo ou a competência do material");
   }
+  const driveUrl = normalizeClientAssetUrl(input.driveUrl);
+  if (!driveUrl) {
+    throw new Error("Informe um link válido começando com http:// ou https://");
+  }
   const empresaId = await getEmpresaId();
   const existing = input.threadId
     ? await listClientReviews(input.projectId).then((items) =>
@@ -170,11 +192,11 @@ export async function publishClientReview(input: {
     : [];
   const versionNumber =
     existing.length > 0 ? Math.max(...existing.map((item) => item.versionNumber)) + 1 : 1;
-  const driveFileId = extractGoogleDriveFileId(input.driveUrl);
-  const embedUrl = getReviewEmbedUrl(input.driveUrl);
+  const driveFileId = extractGoogleDriveFileId(driveUrl);
+  const embedUrl = getReviewEmbedUrl(driveUrl);
   const threadId = input.threadId ?? crypto.randomUUID();
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("portal_review_versions")
     .insert({
       empresa_id: empresaId,
@@ -184,7 +206,7 @@ export async function publishClientReview(input: {
       version_label: input.versionLabel.trim() || `V${versionNumber}`,
       title: input.title.trim(),
       content_cycle: contentCycle,
-      drive_url: input.driveUrl.trim(),
+      drive_url: driveUrl,
       drive_file_id: driveFileId,
       embed_url: embedUrl,
       message: input.message?.trim() || null,
@@ -210,11 +232,15 @@ export async function publishClientDelivery(input: {
   if (!contentCycle) {
     throw new Error("Informe o ciclo ou a competência da entrega");
   }
+  const driveUrl = normalizeClientAssetUrl(input.driveUrl);
+  if (!driveUrl) {
+    throw new Error("Informe um link válido começando com http:// ou https://");
+  }
   const empresaId = await getEmpresaId();
-  const driveFileId = extractGoogleDriveFileId(input.driveUrl);
-  const embedUrl = getReviewEmbedUrl(input.driveUrl);
+  const driveFileId = extractGoogleDriveFileId(driveUrl);
+  const embedUrl = getReviewEmbedUrl(driveUrl);
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("portal_review_versions")
     .insert({
       empresa_id: empresaId,
@@ -224,7 +250,7 @@ export async function publishClientDelivery(input: {
       version_label: "Final",
       title: input.title.trim(),
       content_cycle: contentCycle,
-      drive_url: input.driveUrl.trim(),
+      drive_url: driveUrl,
       drive_file_id: driveFileId,
       embed_url: embedUrl,
       message: input.message?.trim() || null,
@@ -240,16 +266,51 @@ export async function publishClientDelivery(input: {
 }
 
 export async function archiveClientReview(id: string): Promise<void> {
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("portal_review_versions")
     .update({ status: "archived" })
     .eq("id", id);
   if (error) throw error;
 }
 
+export async function removeClientReview(id: string): Promise<void> {
+  const { error } = await supabase.from("portal_review_versions").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateClientReviewMetadata(input: {
+  id: string;
+  title: string;
+  contentCycle: string;
+  versionLabel: string;
+  message?: string;
+  dueAt?: string;
+}): Promise<ClientReview> {
+  const title = input.title.trim();
+  const contentCycle = input.contentCycle.trim();
+  if (!title) throw new Error("Informe o título do material");
+  if (!contentCycle) throw new Error("Informe o ciclo ou a competência do material");
+
+  const { data, error } = await supabase
+    .from("portal_review_versions")
+    .update({
+      title,
+      content_cycle: contentCycle,
+      version_label: input.versionLabel.trim() || "V1",
+      message: input.message?.trim() || null,
+      due_at: input.dueAt || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToReview(data);
+}
+
 export async function getClientPortalAccess(clientId?: string): Promise<ClientPortalAccess | null> {
   if (!clientId) return null;
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("clientes_comercial")
     .select("id,portal_enabled,portal_token,portal_last_access_at,portal_welcome_message")
     .eq("id", clientId)
@@ -271,7 +332,7 @@ export async function configureMakersMembers(input: {
   welcomeMessage?: string;
   rotateToken?: boolean;
 }): Promise<string> {
-  const { data, error } = await (supabase as any).rpc("configurar_makers_members", {
+  const { data, error } = await supabase.rpc("configurar_makers_members", {
     p_cliente_id: input.clientId,
     p_enabled: input.enabled,
     p_welcome_message: input.welcomeMessage?.trim() || null,

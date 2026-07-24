@@ -9,193 +9,73 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermosRouteImport } from './routes/termos'
-import { Route as RedesignLoginRouteImport } from './routes/redesign-login'
-import { Route as RedesignRouteImport } from './routes/redesign'
-import { Route as PropostasRouteImport } from './routes/propostas'
-import { Route as ProjetosRouteImport } from './routes/projetos'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as PerformanceRouteImport } from './routes/performance'
-import { Route as OrcamentosRouteImport } from './routes/orcamentos'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as NovoEventoRouteImport } from './routes/novo-evento'
-import { Route as LpRouteImport } from './routes/lp'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as HomeRouteImport } from './routes/home'
-import { Route as FinanceiroRouteImport } from './routes/financeiro'
-import { Route as EventosRouteImport } from './routes/eventos'
-import { Route as CrmRouteImport } from './routes/crm'
-import { Route as ConviteRouteImport } from './routes/convite'
-import { Route as ContratosRouteImport } from './routes/contratos'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as ComercialRouteImport } from './routes/comercial'
-import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as BibliotecaRouteImport } from './routes/biblioteca'
-import { Route as AssistantRouteImport } from './routes/assistant'
-import { Route as AreaClienteRouteImport } from './routes/area-cliente'
-import { Route as AgendaRouteImport } from './routes/agenda'
-import { Route as AceitarConviteRouteImport } from './routes/aceitar-convite'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PropostasIndexRouteImport } from './routes/propostas.index'
-import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
-import { Route as OrcamentosIndexRouteImport } from './routes/orcamentos.index'
-import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
-import { Route as ContratosIndexRouteImport } from './routes/contratos.index'
-import { Route as ComercialIndexRouteImport } from './routes/comercial.index'
-import { Route as BibliotecaIndexRouteImport } from './routes/biblioteca.index'
-import { Route as PropostasNovaRouteImport } from './routes/propostas.nova'
-import { Route as PropostasIdRouteImport } from './routes/propostas.$id'
-import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
-import { Route as PortalRedefinirSenhaRouteImport } from './routes/portal.redefinir-senha'
-import { Route as PortalLoginRouteImport } from './routes/portal.login'
-import { Route as PortalTokenRouteImport } from './routes/portal.$token'
-import { Route as PSlugRouteImport } from './routes/p.$slug'
-import { Route as OrcamentosNovoRouteImport } from './routes/orcamentos.novo'
-import { Route as OrcamentosIdRouteImport } from './routes/orcamentos.$id'
-import { Route as OperacaoEventoIdRouteImport } from './routes/operacao-evento.$id'
-import { Route as FinanceiroProjetosRouteImport } from './routes/financeiro.projetos'
-import { Route as FinanceiroLancamentosRouteImport } from './routes/financeiro.lancamentos'
-import { Route as FinanceiroContasRouteImport } from './routes/financeiro.contas'
-import { Route as EventoLiveIdRouteImport } from './routes/evento-live.$id'
-import { Route as ContratosVaultIdRouteImport } from './routes/contratos.$vaultId'
-import { Route as ComercialLeadsRouteImport } from './routes/comercial.leads'
-import { Route as ComercialFollowupsRouteImport } from './routes/comercial.followups'
-import { Route as ComercialEmpresasRouteImport } from './routes/comercial.empresas'
-import { Route as ComercialContatosRouteImport } from './routes/comercial.contatos'
-import { Route as ComercialAgendaRouteImport } from './routes/comercial.agenda'
-import { Route as BibliotecaCategoriaRouteImport } from './routes/biblioteca.$categoria'
-import { Route as AuthResetRouteImport } from './routes/auth.reset'
+import { Route as AceitarConviteRouteImport } from './routes/aceitar-convite'
+import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as AreaClienteRouteImport } from './routes/area-cliente'
+import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as BibliotecaRouteImport } from './routes/biblioteca'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ComercialRouteImport } from './routes/comercial'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ContratosRouteImport } from './routes/contratos'
+import { Route as ConviteRouteImport } from './routes/convite'
+import { Route as CrmRouteImport } from './routes/crm'
+import { Route as EventosRouteImport } from './routes/eventos'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LpRouteImport } from './routes/lp'
+import { Route as NovoEventoRouteImport } from './routes/novo-evento'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as OrcamentosRouteImport } from './routes/orcamentos'
+import { Route as PerformanceRouteImport } from './routes/performance'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as ProjetosRouteImport } from './routes/projetos'
+import { Route as PropostasRouteImport } from './routes/propostas'
+import { Route as RedesignRouteImport } from './routes/redesign'
+import { Route as RedesignLoginRouteImport } from './routes/redesign-login'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthResetRouteImport } from './routes/auth.reset'
+import { Route as BibliotecaIndexRouteImport } from './routes/biblioteca.index'
+import { Route as BibliotecaCategoriaRouteImport } from './routes/biblioteca.$categoria'
+import { Route as ComercialIndexRouteImport } from './routes/comercial.index'
+import { Route as ComercialAgendaRouteImport } from './routes/comercial.agenda'
+import { Route as ComercialContatosRouteImport } from './routes/comercial.contatos'
+import { Route as ComercialEmpresasRouteImport } from './routes/comercial.empresas'
+import { Route as ComercialFollowupsRouteImport } from './routes/comercial.followups'
+import { Route as ComercialLeadsRouteImport } from './routes/comercial.leads'
+import { Route as ContratosIndexRouteImport } from './routes/contratos.index'
+import { Route as ContratosVaultIdRouteImport } from './routes/contratos.$vaultId'
+import { Route as EventoLiveIdRouteImport } from './routes/evento-live.$id'
+import { Route as FinanceiroIndexRouteImport } from './routes/financeiro.index'
+import { Route as FinanceiroContasRouteImport } from './routes/financeiro.contas'
+import { Route as FinanceiroLancamentosRouteImport } from './routes/financeiro.lancamentos'
+import { Route as FinanceiroProjetosRouteImport } from './routes/financeiro.projetos'
+import { Route as OperacaoEventoIdRouteImport } from './routes/operacao-evento.$id'
+import { Route as OrcamentosIndexRouteImport } from './routes/orcamentos.index'
+import { Route as OrcamentosIdRouteImport } from './routes/orcamentos.$id'
+import { Route as OrcamentosNovoRouteImport } from './routes/orcamentos.novo'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as PortalTokenRouteImport } from './routes/portal.$token'
+import { Route as PortalLoginRouteImport } from './routes/portal.login'
+import { Route as PortalRedefinirSenhaRouteImport } from './routes/portal.redefinir-senha'
+import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
+import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
+import { Route as PropostasIndexRouteImport } from './routes/propostas.index'
+import { Route as PropostasIdRouteImport } from './routes/propostas.$id'
+import { Route as PropostasNovaRouteImport } from './routes/propostas.nova'
+import { Route as ApiAsaasWebhookRouteImport } from './routes/api/asaas/webhook'
+import { Route as ApiEquipeConvidarRouteImport } from './routes/api/equipe/convidar'
+import { Route as ApiPortalUsuariosRouteImport } from './routes/api/portal/usuarios'
 import { Route as ContratosVaultIdIndexRouteImport } from './routes/contratos.$vaultId.index'
 import { Route as ContratosVaultIdNovoRouteImport } from './routes/contratos.$vaultId.novo'
-import { Route as ApiPortalUsuariosRouteImport } from './routes/api/portal/usuarios'
-import { Route as ApiEquipeConvidarRouteImport } from './routes/api/equipe/convidar'
-import { Route as ApiAsaasWebhookRouteImport } from './routes/api/asaas/webhook'
 import { Route as ContratosVaultIdContratoContractIdRouteImport } from './routes/contratos.$vaultId.contrato.$contractId'
 
-const TermosRoute = TermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RedesignLoginRoute = RedesignLoginRouteImport.update({
-  id: '/redesign-login',
-  path: '/redesign-login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RedesignRoute = RedesignRouteImport.update({
-  id: '/redesign',
-  path: '/redesign',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PropostasRoute = PropostasRouteImport.update({
-  id: '/propostas',
-  path: '/propostas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjetosRoute = ProjetosRouteImport.update({
-  id: '/projetos',
-  path: '/projetos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerformanceRoute = PerformanceRouteImport.update({
-  id: '/performance',
-  path: '/performance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrcamentosRoute = OrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NovoEventoRoute = NovoEventoRouteImport.update({
-  id: '/novo-evento',
-  path: '/novo-evento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LpRoute = LpRouteImport.update({
-  id: '/lp',
-  path: '/lp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceiroRoute = FinanceiroRouteImport.update({
-  id: '/financeiro',
-  path: '/financeiro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EventosRoute = EventosRouteImport.update({
-  id: '/eventos',
-  path: '/eventos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrmRoute = CrmRouteImport.update({
-  id: '/crm',
-  path: '/crm',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConviteRoute = ConviteRouteImport.update({
-  id: '/convite',
-  path: '/convite',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContratosRoute = ContratosRouteImport.update({
-  id: '/contratos',
-  path: '/contratos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComercialRoute = ComercialRouteImport.update({
-  id: '/comercial',
-  path: '/comercial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutRoute = CheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BibliotecaRoute = BibliotecaRouteImport.update({
-  id: '/biblioteca',
-  path: '/biblioteca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistantRoute = AssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AreaClienteRoute = AreaClienteRouteImport.update({
-  id: '/area-cliente',
-  path: '/area-cliente',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgendaRoute = AgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AceitarConviteRoute = AceitarConviteRouteImport.update({
@@ -203,139 +83,154 @@ const AceitarConviteRoute = AceitarConviteRouteImport.update({
   path: '/aceitar-convite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PropostasIndexRoute = PropostasIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PropostasRoute,
+const AreaClienteRoute = AreaClienteRouteImport.update({
+  id: '/area-cliente',
+  path: '/area-cliente',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProjetosRoute,
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const OrcamentosIndexRoute = OrcamentosIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => OrcamentosRoute,
+const BibliotecaRoute = BibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const FinanceiroIndexRoute = FinanceiroIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => FinanceiroRoute,
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ContratosIndexRoute = ContratosIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ContratosRoute,
+const ComercialRoute = ComercialRouteImport.update({
+  id: '/comercial',
+  path: '/comercial',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ComercialIndexRoute = ComercialIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ComercialRoute,
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteRoute = ConviteRouteImport.update({
+  id: '/convite',
+  path: '/convite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmRoute = CrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LpRoute = LpRouteImport.update({
+  id: '/lp',
+  path: '/lp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovoEventoRoute = NovoEventoRouteImport.update({
+  id: '/novo-evento',
+  path: '/novo-evento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosRoute = OrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerformanceRoute = PerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosRoute = ProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropostasRoute = PropostasRouteImport.update({
+  id: '/propostas',
+  path: '/propostas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedesignRoute = RedesignRouteImport.update({
+  id: '/redesign',
+  path: '/redesign',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedesignLoginRoute = RedesignLoginRouteImport.update({
+  id: '/redesign-login',
+  path: '/redesign-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetRoute = AuthResetRouteImport.update({
+  id: '/auth/reset',
+  path: '/auth/reset',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BibliotecaIndexRoute = BibliotecaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BibliotecaRoute,
 } as any)
-const PropostasNovaRoute = PropostasNovaRouteImport.update({
-  id: '/nova',
-  path: '/nova',
-  getParentRoute: () => PropostasRoute,
+const BibliotecaCategoriaRoute = BibliotecaCategoriaRouteImport.update({
+  id: '/$categoria',
+  path: '/$categoria',
+  getParentRoute: () => BibliotecaRoute,
 } as any)
-const PropostasIdRoute = PropostasIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PropostasRoute,
-} as any)
-const ProjetosIdRoute = ProjetosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ProjetosRoute,
-} as any)
-const PortalRedefinirSenhaRoute = PortalRedefinirSenhaRouteImport.update({
-  id: '/portal/redefinir-senha',
-  path: '/portal/redefinir-senha',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortalLoginRoute = PortalLoginRouteImport.update({
-  id: '/portal/login',
-  path: '/portal/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortalTokenRoute = PortalTokenRouteImport.update({
-  id: '/portal/$token',
-  path: '/portal/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PSlugRoute = PSlugRouteImport.update({
-  id: '/p/$slug',
-  path: '/p/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrcamentosNovoRoute = OrcamentosNovoRouteImport.update({
-  id: '/novo',
-  path: '/novo',
-  getParentRoute: () => OrcamentosRoute,
-} as any)
-const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => OrcamentosRoute,
-} as any)
-const OperacaoEventoIdRoute = OperacaoEventoIdRouteImport.update({
-  id: '/operacao-evento/$id',
-  path: '/operacao-evento/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceiroProjetosRoute = FinanceiroProjetosRouteImport.update({
-  id: '/projetos',
-  path: '/projetos',
-  getParentRoute: () => FinanceiroRoute,
-} as any)
-const FinanceiroLancamentosRoute = FinanceiroLancamentosRouteImport.update({
-  id: '/lancamentos',
-  path: '/lancamentos',
-  getParentRoute: () => FinanceiroRoute,
-} as any)
-const FinanceiroContasRoute = FinanceiroContasRouteImport.update({
-  id: '/contas',
-  path: '/contas',
-  getParentRoute: () => FinanceiroRoute,
-} as any)
-const EventoLiveIdRoute = EventoLiveIdRouteImport.update({
-  id: '/evento-live/$id',
-  path: '/evento-live/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContratosVaultIdRoute = ContratosVaultIdRouteImport.update({
-  id: '/$vaultId',
-  path: '/$vaultId',
-  getParentRoute: () => ContratosRoute,
-} as any)
-const ComercialLeadsRoute = ComercialLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => ComercialRoute,
-} as any)
-const ComercialFollowupsRoute = ComercialFollowupsRouteImport.update({
-  id: '/followups',
-  path: '/followups',
-  getParentRoute: () => ComercialRoute,
-} as any)
-const ComercialEmpresasRoute = ComercialEmpresasRouteImport.update({
-  id: '/empresas',
-  path: '/empresas',
-  getParentRoute: () => ComercialRoute,
-} as any)
-const ComercialContatosRoute = ComercialContatosRouteImport.update({
-  id: '/contatos',
-  path: '/contatos',
+const ComercialIndexRoute = ComercialIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => ComercialRoute,
 } as any)
 const ComercialAgendaRoute = ComercialAgendaRouteImport.update({
@@ -343,19 +238,139 @@ const ComercialAgendaRoute = ComercialAgendaRouteImport.update({
   path: '/agenda',
   getParentRoute: () => ComercialRoute,
 } as any)
-const BibliotecaCategoriaRoute = BibliotecaCategoriaRouteImport.update({
-  id: '/$categoria',
-  path: '/$categoria',
-  getParentRoute: () => BibliotecaRoute,
+const ComercialContatosRoute = ComercialContatosRouteImport.update({
+  id: '/contatos',
+  path: '/contatos',
+  getParentRoute: () => ComercialRoute,
 } as any)
-const AuthResetRoute = AuthResetRouteImport.update({
-  id: '/auth/reset',
-  path: '/auth/reset',
+const ComercialEmpresasRoute = ComercialEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => ComercialRoute,
+} as any)
+const ComercialFollowupsRoute = ComercialFollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
+  getParentRoute: () => ComercialRoute,
+} as any)
+const ComercialLeadsRoute = ComercialLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => ComercialRoute,
+} as any)
+const ContratosIndexRoute = ContratosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContratosRoute,
+} as any)
+const ContratosVaultIdRoute = ContratosVaultIdRouteImport.update({
+  id: '/$vaultId',
+  path: '/$vaultId',
+  getParentRoute: () => ContratosRoute,
+} as any)
+const EventoLiveIdRoute = EventoLiveIdRouteImport.update({
+  id: '/evento-live/$id',
+  path: '/evento-live/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
+const FinanceiroIndexRoute = FinanceiroIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const FinanceiroContasRoute = FinanceiroContasRouteImport.update({
+  id: '/contas',
+  path: '/contas',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const FinanceiroLancamentosRoute = FinanceiroLancamentosRouteImport.update({
+  id: '/lancamentos',
+  path: '/lancamentos',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const FinanceiroProjetosRoute = FinanceiroProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => FinanceiroRoute,
+} as any)
+const OperacaoEventoIdRoute = OperacaoEventoIdRouteImport.update({
+  id: '/operacao-evento/$id',
+  path: '/operacao-evento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosIndexRoute = OrcamentosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrcamentosRoute,
+} as any)
+const OrcamentosIdRoute = OrcamentosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => OrcamentosRoute,
+} as any)
+const OrcamentosNovoRoute = OrcamentosNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => OrcamentosRoute,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalTokenRoute = PortalTokenRouteImport.update({
+  id: '/portal/$token',
+  path: '/portal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalLoginRoute = PortalLoginRouteImport.update({
+  id: '/portal/login',
+  path: '/portal/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRedefinirSenhaRoute = PortalRedefinirSenhaRouteImport.update({
+  id: '/portal/redefinir-senha',
+  path: '/portal/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProjetosRoute,
+} as any)
+const ProjetosIdRoute = ProjetosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ProjetosRoute,
+} as any)
+const PropostasIndexRoute = PropostasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PropostasRoute,
+} as any)
+const PropostasIdRoute = PropostasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PropostasRoute,
+} as any)
+const PropostasNovaRoute = PropostasNovaRouteImport.update({
+  id: '/nova',
+  path: '/nova',
+  getParentRoute: () => PropostasRoute,
+} as any)
+const ApiAsaasWebhookRoute = ApiAsaasWebhookRouteImport.update({
+  id: '/api/asaas/webhook',
+  path: '/api/asaas/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEquipeConvidarRoute = ApiEquipeConvidarRouteImport.update({
+  id: '/api/equipe/convidar',
+  path: '/api/equipe/convidar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPortalUsuariosRoute = ApiPortalUsuariosRouteImport.update({
+  id: '/api/portal/usuarios',
+  path: '/api/portal/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosVaultIdIndexRoute = ContratosVaultIdIndexRouteImport.update({
@@ -367,21 +382,6 @@ const ContratosVaultIdNovoRoute = ContratosVaultIdNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
   getParentRoute: () => ContratosVaultIdRoute,
-} as any)
-const ApiPortalUsuariosRoute = ApiPortalUsuariosRouteImport.update({
-  id: '/api/portal/usuarios',
-  path: '/api/portal/usuarios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiEquipeConvidarRoute = ApiEquipeConvidarRouteImport.update({
-  id: '/api/equipe/convidar',
-  path: '/api/equipe/convidar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAsaasWebhookRoute = ApiAsaasWebhookRouteImport.update({
-  id: '/api/asaas/webhook',
-  path: '/api/asaas/webhook',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosVaultIdContratoContractIdRoute =
   ContratosVaultIdContratoContractIdRouteImport.update({
@@ -811,179 +811,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/termos': {
-      id: '/termos'
-      path: '/termos'
-      fullPath: '/termos'
-      preLoaderRoute: typeof TermosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/redesign-login': {
-      id: '/redesign-login'
-      path: '/redesign-login'
-      fullPath: '/redesign-login'
-      preLoaderRoute: typeof RedesignLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/redesign': {
-      id: '/redesign'
-      path: '/redesign'
-      fullPath: '/redesign'
-      preLoaderRoute: typeof RedesignRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/propostas': {
-      id: '/propostas'
-      path: '/propostas'
-      fullPath: '/propostas'
-      preLoaderRoute: typeof PropostasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projetos': {
-      id: '/projetos'
-      path: '/projetos'
-      fullPath: '/projetos'
-      preLoaderRoute: typeof ProjetosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/performance': {
-      id: '/performance'
-      path: '/performance'
-      fullPath: '/performance'
-      preLoaderRoute: typeof PerformanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orcamentos': {
-      id: '/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/orcamentos'
-      preLoaderRoute: typeof OrcamentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/novo-evento': {
-      id: '/novo-evento'
-      path: '/novo-evento'
-      fullPath: '/novo-evento'
-      preLoaderRoute: typeof NovoEventoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lp': {
-      id: '/lp'
-      path: '/lp'
-      fullPath: '/lp'
-      preLoaderRoute: typeof LpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financeiro': {
-      id: '/financeiro'
-      path: '/financeiro'
-      fullPath: '/financeiro'
-      preLoaderRoute: typeof FinanceiroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/eventos': {
-      id: '/eventos'
-      path: '/eventos'
-      fullPath: '/eventos'
-      preLoaderRoute: typeof EventosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crm': {
-      id: '/crm'
-      path: '/crm'
-      fullPath: '/crm'
-      preLoaderRoute: typeof CrmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/convite': {
-      id: '/convite'
-      path: '/convite'
-      fullPath: '/convite'
-      preLoaderRoute: typeof ConviteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contratos': {
-      id: '/contratos'
-      path: '/contratos'
-      fullPath: '/contratos'
-      preLoaderRoute: typeof ContratosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comercial': {
-      id: '/comercial'
-      path: '/comercial'
-      fullPath: '/comercial'
-      preLoaderRoute: typeof ComercialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/biblioteca': {
-      id: '/biblioteca'
-      path: '/biblioteca'
-      fullPath: '/biblioteca'
-      preLoaderRoute: typeof BibliotecaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistant': {
-      id: '/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof AssistantRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/area-cliente': {
-      id: '/area-cliente'
-      path: '/area-cliente'
-      fullPath: '/area-cliente'
-      preLoaderRoute: typeof AreaClienteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agenda': {
-      id: '/agenda'
-      path: '/agenda'
-      fullPath: '/agenda'
-      preLoaderRoute: typeof AgendaRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aceitar-convite': {
@@ -993,54 +825,194 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AceitarConviteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/propostas/': {
-      id: '/propostas/'
-      path: '/'
-      fullPath: '/propostas/'
-      preLoaderRoute: typeof PropostasIndexRouteImport
-      parentRoute: typeof PropostasRoute
+    '/area-cliente': {
+      id: '/area-cliente'
+      path: '/area-cliente'
+      fullPath: '/area-cliente'
+      preLoaderRoute: typeof AreaClienteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/projetos/': {
-      id: '/projetos/'
-      path: '/'
-      fullPath: '/projetos/'
-      preLoaderRoute: typeof ProjetosIndexRouteImport
-      parentRoute: typeof ProjetosRoute
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/orcamentos/': {
-      id: '/orcamentos/'
-      path: '/'
-      fullPath: '/orcamentos/'
-      preLoaderRoute: typeof OrcamentosIndexRouteImport
-      parentRoute: typeof OrcamentosRoute
+    '/biblioteca': {
+      id: '/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof BibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/financeiro/': {
-      id: '/financeiro/'
-      path: '/'
-      fullPath: '/financeiro/'
-      preLoaderRoute: typeof FinanceiroIndexRouteImport
-      parentRoute: typeof FinanceiroRoute
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/contratos/': {
-      id: '/contratos/'
-      path: '/'
-      fullPath: '/contratos/'
-      preLoaderRoute: typeof ContratosIndexRouteImport
-      parentRoute: typeof ContratosRoute
+    '/comercial': {
+      id: '/comercial'
+      path: '/comercial'
+      fullPath: '/comercial'
+      preLoaderRoute: typeof ComercialRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/comercial/': {
-      id: '/comercial/'
-      path: '/'
-      fullPath: '/comercial/'
-      preLoaderRoute: typeof ComercialIndexRouteImport
-      parentRoute: typeof ComercialRoute
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lp': {
+      id: '/lp'
+      path: '/lp'
+      fullPath: '/lp'
+      preLoaderRoute: typeof LpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/novo-evento': {
+      id: '/novo-evento'
+      path: '/novo-evento'
+      fullPath: '/novo-evento'
+      preLoaderRoute: typeof NovoEventoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamentos': {
+      id: '/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/orcamentos'
+      preLoaderRoute: typeof OrcamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/performance': {
+      id: '/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof PerformanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos': {
+      id: '/projetos'
+      path: '/projetos'
+      fullPath: '/projetos'
+      preLoaderRoute: typeof ProjetosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/propostas': {
+      id: '/propostas'
+      path: '/propostas'
+      fullPath: '/propostas'
+      preLoaderRoute: typeof PropostasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redesign': {
+      id: '/redesign'
+      path: '/redesign'
+      fullPath: '/redesign'
+      preLoaderRoute: typeof RedesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redesign-login': {
+      id: '/redesign-login'
+      path: '/redesign-login'
+      fullPath: '/redesign-login'
+      preLoaderRoute: typeof RedesignLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset': {
+      id: '/auth/reset'
+      path: '/auth/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof AuthResetRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/biblioteca/': {
       id: '/biblioteca/'
@@ -1049,137 +1021,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibliotecaIndexRouteImport
       parentRoute: typeof BibliotecaRoute
     }
-    '/propostas/nova': {
-      id: '/propostas/nova'
-      path: '/nova'
-      fullPath: '/propostas/nova'
-      preLoaderRoute: typeof PropostasNovaRouteImport
-      parentRoute: typeof PropostasRoute
+    '/biblioteca/$categoria': {
+      id: '/biblioteca/$categoria'
+      path: '/$categoria'
+      fullPath: '/biblioteca/$categoria'
+      preLoaderRoute: typeof BibliotecaCategoriaRouteImport
+      parentRoute: typeof BibliotecaRoute
     }
-    '/propostas/$id': {
-      id: '/propostas/$id'
-      path: '/$id'
-      fullPath: '/propostas/$id'
-      preLoaderRoute: typeof PropostasIdRouteImport
-      parentRoute: typeof PropostasRoute
-    }
-    '/projetos/$id': {
-      id: '/projetos/$id'
-      path: '/$id'
-      fullPath: '/projetos/$id'
-      preLoaderRoute: typeof ProjetosIdRouteImport
-      parentRoute: typeof ProjetosRoute
-    }
-    '/portal/redefinir-senha': {
-      id: '/portal/redefinir-senha'
-      path: '/portal/redefinir-senha'
-      fullPath: '/portal/redefinir-senha'
-      preLoaderRoute: typeof PortalRedefinirSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portal/login': {
-      id: '/portal/login'
-      path: '/portal/login'
-      fullPath: '/portal/login'
-      preLoaderRoute: typeof PortalLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portal/$token': {
-      id: '/portal/$token'
-      path: '/portal/$token'
-      fullPath: '/portal/$token'
-      preLoaderRoute: typeof PortalTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$slug': {
-      id: '/p/$slug'
-      path: '/p/$slug'
-      fullPath: '/p/$slug'
-      preLoaderRoute: typeof PSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orcamentos/novo': {
-      id: '/orcamentos/novo'
-      path: '/novo'
-      fullPath: '/orcamentos/novo'
-      preLoaderRoute: typeof OrcamentosNovoRouteImport
-      parentRoute: typeof OrcamentosRoute
-    }
-    '/orcamentos/$id': {
-      id: '/orcamentos/$id'
-      path: '/$id'
-      fullPath: '/orcamentos/$id'
-      preLoaderRoute: typeof OrcamentosIdRouteImport
-      parentRoute: typeof OrcamentosRoute
-    }
-    '/operacao-evento/$id': {
-      id: '/operacao-evento/$id'
-      path: '/operacao-evento/$id'
-      fullPath: '/operacao-evento/$id'
-      preLoaderRoute: typeof OperacaoEventoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financeiro/projetos': {
-      id: '/financeiro/projetos'
-      path: '/projetos'
-      fullPath: '/financeiro/projetos'
-      preLoaderRoute: typeof FinanceiroProjetosRouteImport
-      parentRoute: typeof FinanceiroRoute
-    }
-    '/financeiro/lancamentos': {
-      id: '/financeiro/lancamentos'
-      path: '/lancamentos'
-      fullPath: '/financeiro/lancamentos'
-      preLoaderRoute: typeof FinanceiroLancamentosRouteImport
-      parentRoute: typeof FinanceiroRoute
-    }
-    '/financeiro/contas': {
-      id: '/financeiro/contas'
-      path: '/contas'
-      fullPath: '/financeiro/contas'
-      preLoaderRoute: typeof FinanceiroContasRouteImport
-      parentRoute: typeof FinanceiroRoute
-    }
-    '/evento-live/$id': {
-      id: '/evento-live/$id'
-      path: '/evento-live/$id'
-      fullPath: '/evento-live/$id'
-      preLoaderRoute: typeof EventoLiveIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contratos/$vaultId': {
-      id: '/contratos/$vaultId'
-      path: '/$vaultId'
-      fullPath: '/contratos/$vaultId'
-      preLoaderRoute: typeof ContratosVaultIdRouteImport
-      parentRoute: typeof ContratosRoute
-    }
-    '/comercial/leads': {
-      id: '/comercial/leads'
-      path: '/leads'
-      fullPath: '/comercial/leads'
-      preLoaderRoute: typeof ComercialLeadsRouteImport
-      parentRoute: typeof ComercialRoute
-    }
-    '/comercial/followups': {
-      id: '/comercial/followups'
-      path: '/followups'
-      fullPath: '/comercial/followups'
-      preLoaderRoute: typeof ComercialFollowupsRouteImport
-      parentRoute: typeof ComercialRoute
-    }
-    '/comercial/empresas': {
-      id: '/comercial/empresas'
-      path: '/empresas'
-      fullPath: '/comercial/empresas'
-      preLoaderRoute: typeof ComercialEmpresasRouteImport
-      parentRoute: typeof ComercialRoute
-    }
-    '/comercial/contatos': {
-      id: '/comercial/contatos'
-      path: '/contatos'
-      fullPath: '/comercial/contatos'
-      preLoaderRoute: typeof ComercialContatosRouteImport
+    '/comercial/': {
+      id: '/comercial/'
+      path: '/'
+      fullPath: '/comercial/'
+      preLoaderRoute: typeof ComercialIndexRouteImport
       parentRoute: typeof ComercialRoute
     }
     '/comercial/agenda': {
@@ -1189,25 +1042,193 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComercialAgendaRouteImport
       parentRoute: typeof ComercialRoute
     }
-    '/biblioteca/$categoria': {
-      id: '/biblioteca/$categoria'
-      path: '/$categoria'
-      fullPath: '/biblioteca/$categoria'
-      preLoaderRoute: typeof BibliotecaCategoriaRouteImport
-      parentRoute: typeof BibliotecaRoute
+    '/comercial/contatos': {
+      id: '/comercial/contatos'
+      path: '/contatos'
+      fullPath: '/comercial/contatos'
+      preLoaderRoute: typeof ComercialContatosRouteImport
+      parentRoute: typeof ComercialRoute
     }
-    '/auth/reset': {
-      id: '/auth/reset'
-      path: '/auth/reset'
-      fullPath: '/auth/reset'
-      preLoaderRoute: typeof AuthResetRouteImport
+    '/comercial/empresas': {
+      id: '/comercial/empresas'
+      path: '/empresas'
+      fullPath: '/comercial/empresas'
+      preLoaderRoute: typeof ComercialEmpresasRouteImport
+      parentRoute: typeof ComercialRoute
+    }
+    '/comercial/followups': {
+      id: '/comercial/followups'
+      path: '/followups'
+      fullPath: '/comercial/followups'
+      preLoaderRoute: typeof ComercialFollowupsRouteImport
+      parentRoute: typeof ComercialRoute
+    }
+    '/comercial/leads': {
+      id: '/comercial/leads'
+      path: '/leads'
+      fullPath: '/comercial/leads'
+      preLoaderRoute: typeof ComercialLeadsRouteImport
+      parentRoute: typeof ComercialRoute
+    }
+    '/contratos/': {
+      id: '/contratos/'
+      path: '/'
+      fullPath: '/contratos/'
+      preLoaderRoute: typeof ContratosIndexRouteImport
+      parentRoute: typeof ContratosRoute
+    }
+    '/contratos/$vaultId': {
+      id: '/contratos/$vaultId'
+      path: '/$vaultId'
+      fullPath: '/contratos/$vaultId'
+      preLoaderRoute: typeof ContratosVaultIdRouteImport
+      parentRoute: typeof ContratosRoute
+    }
+    '/evento-live/$id': {
+      id: '/evento-live/$id'
+      path: '/evento-live/$id'
+      fullPath: '/evento-live/$id'
+      preLoaderRoute: typeof EventoLiveIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
+    '/financeiro/': {
+      id: '/financeiro/'
+      path: '/'
+      fullPath: '/financeiro/'
+      preLoaderRoute: typeof FinanceiroIndexRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/financeiro/contas': {
+      id: '/financeiro/contas'
+      path: '/contas'
+      fullPath: '/financeiro/contas'
+      preLoaderRoute: typeof FinanceiroContasRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/financeiro/lancamentos': {
+      id: '/financeiro/lancamentos'
+      path: '/lancamentos'
+      fullPath: '/financeiro/lancamentos'
+      preLoaderRoute: typeof FinanceiroLancamentosRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/financeiro/projetos': {
+      id: '/financeiro/projetos'
+      path: '/projetos'
+      fullPath: '/financeiro/projetos'
+      preLoaderRoute: typeof FinanceiroProjetosRouteImport
+      parentRoute: typeof FinanceiroRoute
+    }
+    '/operacao-evento/$id': {
+      id: '/operacao-evento/$id'
+      path: '/operacao-evento/$id'
+      fullPath: '/operacao-evento/$id'
+      preLoaderRoute: typeof OperacaoEventoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamentos/': {
+      id: '/orcamentos/'
+      path: '/'
+      fullPath: '/orcamentos/'
+      preLoaderRoute: typeof OrcamentosIndexRouteImport
+      parentRoute: typeof OrcamentosRoute
+    }
+    '/orcamentos/$id': {
+      id: '/orcamentos/$id'
+      path: '/$id'
+      fullPath: '/orcamentos/$id'
+      preLoaderRoute: typeof OrcamentosIdRouteImport
+      parentRoute: typeof OrcamentosRoute
+    }
+    '/orcamentos/novo': {
+      id: '/orcamentos/novo'
+      path: '/novo'
+      fullPath: '/orcamentos/novo'
+      preLoaderRoute: typeof OrcamentosNovoRouteImport
+      parentRoute: typeof OrcamentosRoute
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/$token': {
+      id: '/portal/$token'
+      path: '/portal/$token'
+      fullPath: '/portal/$token'
+      preLoaderRoute: typeof PortalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/login': {
+      id: '/portal/login'
+      path: '/portal/login'
+      fullPath: '/portal/login'
+      preLoaderRoute: typeof PortalLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/redefinir-senha': {
+      id: '/portal/redefinir-senha'
+      path: '/portal/redefinir-senha'
+      fullPath: '/portal/redefinir-senha'
+      preLoaderRoute: typeof PortalRedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos/': {
+      id: '/projetos/'
+      path: '/'
+      fullPath: '/projetos/'
+      preLoaderRoute: typeof ProjetosIndexRouteImport
+      parentRoute: typeof ProjetosRoute
+    }
+    '/projetos/$id': {
+      id: '/projetos/$id'
+      path: '/$id'
+      fullPath: '/projetos/$id'
+      preLoaderRoute: typeof ProjetosIdRouteImport
+      parentRoute: typeof ProjetosRoute
+    }
+    '/propostas/': {
+      id: '/propostas/'
+      path: '/'
+      fullPath: '/propostas/'
+      preLoaderRoute: typeof PropostasIndexRouteImport
+      parentRoute: typeof PropostasRoute
+    }
+    '/propostas/$id': {
+      id: '/propostas/$id'
+      path: '/$id'
+      fullPath: '/propostas/$id'
+      preLoaderRoute: typeof PropostasIdRouteImport
+      parentRoute: typeof PropostasRoute
+    }
+    '/propostas/nova': {
+      id: '/propostas/nova'
+      path: '/nova'
+      fullPath: '/propostas/nova'
+      preLoaderRoute: typeof PropostasNovaRouteImport
+      parentRoute: typeof PropostasRoute
+    }
+    '/api/asaas/webhook': {
+      id: '/api/asaas/webhook'
+      path: '/api/asaas/webhook'
+      fullPath: '/api/asaas/webhook'
+      preLoaderRoute: typeof ApiAsaasWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/equipe/convidar': {
+      id: '/api/equipe/convidar'
+      path: '/api/equipe/convidar'
+      fullPath: '/api/equipe/convidar'
+      preLoaderRoute: typeof ApiEquipeConvidarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/portal/usuarios': {
+      id: '/api/portal/usuarios'
+      path: '/api/portal/usuarios'
+      fullPath: '/api/portal/usuarios'
+      preLoaderRoute: typeof ApiPortalUsuariosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contratos/$vaultId/': {
@@ -1223,27 +1244,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/contratos/$vaultId/novo'
       preLoaderRoute: typeof ContratosVaultIdNovoRouteImport
       parentRoute: typeof ContratosVaultIdRoute
-    }
-    '/api/portal/usuarios': {
-      id: '/api/portal/usuarios'
-      path: '/api/portal/usuarios'
-      fullPath: '/api/portal/usuarios'
-      preLoaderRoute: typeof ApiPortalUsuariosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/equipe/convidar': {
-      id: '/api/equipe/convidar'
-      path: '/api/equipe/convidar'
-      fullPath: '/api/equipe/convidar'
-      preLoaderRoute: typeof ApiEquipeConvidarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/asaas/webhook': {
-      id: '/api/asaas/webhook'
-      path: '/api/asaas/webhook'
-      fullPath: '/api/asaas/webhook'
-      preLoaderRoute: typeof ApiAsaasWebhookRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/contratos/$vaultId/contrato/$contractId': {
       id: '/contratos/$vaultId/contrato/$contractId'

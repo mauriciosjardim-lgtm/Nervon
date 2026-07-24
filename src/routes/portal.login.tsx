@@ -46,9 +46,7 @@ function PortalLogin() {
       return;
     }
 
-    const { data: token, error: tokenError } = await (portalSupabase as any).rpc(
-      "meu_portal_token",
-    );
+    const { data: token, error: tokenError } = await portalSupabase.rpc("meu_portal_token");
     if (tokenError || !token) {
       await portalSupabase.auth.signOut({ scope: "local" });
       setError("Este usuário não possui acesso ativo ao portal.");
@@ -91,27 +89,29 @@ function PortalLogin() {
   };
 
   return (
-    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#080a08] px-5 py-10 text-white">
-      <div className="pointer-events-none absolute left-1/2 top-[-20rem] size-[46rem] -translate-x-1/2 rounded-full bg-lime-300/[0.08] blur-[120px]" />
+    <main className="relative grid min-h-[100dvh] place-items-center overflow-x-hidden bg-background px-4 py-6 text-foreground sm:px-5 sm:py-10">
+      <div className="pointer-events-none absolute left-1/2 top-[-20rem] size-[46rem] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[120px]" />
       <div className="relative w-full max-w-[420px]">
-        <div className="mb-8 flex items-center justify-center gap-3">
-          <LogoMakersHub className="size-10" />
+        <div className="mb-6 flex items-center justify-center gap-3 sm:mb-8">
+          <LogoMakersHub className="size-9 sm:size-10" />
           <div>
             <p className="font-display text-lg font-semibold">
-              Makers <span className="text-lime-300">Members</span>
+              Makers <span className="text-primary">Members</span>
             </p>
-            <p className="text-[10px] uppercase tracking-[.2em] text-white/35">Portal do cliente</p>
+            <p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground/70">
+              Portal do cliente
+            </p>
           </div>
         </div>
 
-        <section className="rounded-[24px] border border-white/10 bg-white/[0.045] p-7 shadow-2xl backdrop-blur-xl">
-          <span className="mx-auto grid size-11 place-items-center rounded-2xl border border-lime-300/20 bg-lime-300/10 text-lime-300">
+        <section className="rounded-3xl border border-border bg-surface-1/80 p-5 shadow-[var(--shadow-elevated)] backdrop-blur-xl sm:p-7">
+          <span className="mx-auto grid size-11 place-items-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
             {recovering ? <MailCheck className="size-5" /> : <LockKeyhole className="size-5" />}
           </span>
           <h1 className="mt-5 text-center font-display text-2xl font-semibold">
             {recovering ? "Recupere seu acesso" : "Acesse seu espaço"}
           </h1>
-          <p className="mt-2 text-center text-xs leading-5 text-white/45">
+          <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
             {recovering
               ? "Enviaremos um link seguro para você criar uma nova senha."
               : "Acompanhe projetos, revise materiais e encontre todas as suas entregas."}
@@ -119,11 +119,11 @@ function PortalLogin() {
 
           <form onSubmit={recovering ? sendRecovery : submit} className="mt-7 space-y-4">
             <label className="block space-y-2">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-white/45">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 E-mail
               </span>
               <span className="relative block">
-                <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
                 <Input
                   type="email"
                   autoComplete="email"
@@ -131,14 +131,14 @@ function PortalLogin() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="voce@empresa.com"
-                  className="h-11 border-white/10 bg-white/[0.04] pl-10 text-white placeholder:text-white/20"
+                  className="h-12 border-input bg-background/35 pl-10 text-base text-foreground placeholder:text-muted-foreground/45 sm:text-sm"
                 />
               </span>
             </label>
             {!recovering && (
               <label className="block space-y-2">
                 <span className="flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-white/45">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                     Senha
                   </span>
                   <button
@@ -147,25 +147,25 @@ function PortalLogin() {
                       setRecovering(true);
                       setError("");
                     }}
-                    className="text-[10px] text-lime-300/70 transition hover:text-lime-300"
+                    className="text-[10px] text-primary/75 transition hover:text-primary"
                   >
                     Esqueci minha senha
                   </button>
                 </span>
                 <span className="relative block">
-                  <LockKeyhole className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                  <LockKeyhole className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
                   <Input
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="h-11 border-white/10 bg-white/[0.04] px-10 text-white"
+                    className="h-12 border-input bg-background/35 px-10 text-base text-foreground sm:text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((current) => !current)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground"
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -174,7 +174,7 @@ function PortalLogin() {
               </label>
             )}
             {recoverySent && (
-              <p className="rounded-lg border border-lime-300/20 bg-lime-300/10 px-3 py-3 text-xs leading-5 text-lime-200">
+              <p className="rounded-lg border border-success/20 bg-success/10 px-3 py-3 text-xs leading-5 text-success">
                 Se este e-mail possui acesso ao portal, você receberá o link de recuperação.
               </p>
             )}
@@ -194,12 +194,8 @@ function PortalLogin() {
             )}
             <Button
               type="submit"
-              disabled={
-                loading ||
-                recoverySent ||
-                (!!TURNSTILE_SITE_KEY && !turnstileToken)
-              }
-              className="h-11 w-full"
+              disabled={loading || recoverySent || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              className="h-12 w-full text-sm"
             >
               {loading && <Loader2 className="size-4 animate-spin" />}
               {recovering ? "Enviar link de recuperação" : "Entrar no portal"}
@@ -214,7 +210,7 @@ function PortalLogin() {
                   setTurnstileToken(null);
                   turnstileRef.current?.reset();
                 }}
-                className="mx-auto flex items-center gap-1.5 text-xs text-white/40 transition hover:text-white"
+                className="mx-auto flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground"
               >
                 <ArrowLeft className="size-3.5" />
                 Voltar ao login
@@ -222,7 +218,7 @@ function PortalLogin() {
             )}
           </form>
         </section>
-        <p className="mt-5 text-center text-[10px] text-white/25">
+        <p className="mt-5 text-center text-[10px] text-muted-foreground/60">
           Seu acesso é individual e protegido.
         </p>
       </div>

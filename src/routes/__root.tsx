@@ -163,6 +163,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "dns-prefetch", href: "https://smsqhbbbyjacatxvihks.supabase.co" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // O player do Drive é pesado. Antecipar DNS e TLS reduz a espera quando o
+      // cliente abre a central de aprovações, especialmente em redes móveis.
+      { rel: "preconnect", href: "https://drive.google.com" },
+      { rel: "dns-prefetch", href: "https://drive.google.com" },
+      { rel: "preconnect", href: "https://docs.google.com" },
+      { rel: "dns-prefetch", href: "https://docs.google.com" },
     ],
     scripts: [
       {

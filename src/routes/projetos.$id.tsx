@@ -35,7 +35,6 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FASES,
   PRIORIDADES,
   TIPOS_ENTREGAVEL,
   TIPO_ENTREGAVEL_ICONS,
@@ -51,11 +50,20 @@ import {
 } from "@/lib/mock/projetos";
 import { useProjetos, projetosActions } from "@/lib/hooks/useProjetos";
 import { calcularResumoProgresso, SAUDE_ESTILO, linkSeguro } from "@/lib/projetos/progresso";
+import {
+  findProjectClient,
+  normalizeClientName,
+  projectBelongsToClient,
+} from "@/lib/projetos/cliente";
 import { ProjetoModal } from "@/components/projetos/projeto-modal";
 import { TarefaModal } from "@/components/projetos/tarefa-modal";
 import { MarcoModal } from "@/components/projetos/marco-modal";
 import { EntregavelModal } from "@/components/projetos/entregavel-modal";
 import { ClientPortalWorkspace } from "@/components/projetos/client-portal-workspace";
+import {
+  ProjetosErrorState,
+  ProjetosLoadingState,
+} from "@/components/projetos/projetos-error-state";
 import {
   Select,
   SelectContent,
@@ -106,20 +114,27 @@ function iniciais(nome: string) {
 function ProjetoDetalhe() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { projetos, tarefas, marcos, entregaveis } = useProjetos();
-  const { empresas: crmClients } = useComercialSupa();
+  const { projetos, tarefas, marcos, entregaveis, loading, error, retry } = useProjetos();
+  const {
+    empresas: crmClients,
+    loading: crmLoading,
+    error: crmError,
+    retry: retryCrm,
+  } = useComercialSupa();
   const directProject = projetos.find((p) => p.id === id);
   const clientRecord =
     crmClients.find((client) => client.id === id) ??
-    crmClients.find((client) => client.id === directProject?.clienteId) ??
-    crmClients.find((client) => client.nome.toLowerCase() === directProject?.cliente.toLowerCase());
+    (directProject ? findProjectClient(directProject, crmClients) : undefined);
   const clientName = clientRecord?.nome ?? directProject?.cliente;
   const projetosDoCliente = clientName
     ? projetos
         .filter(
           (project) =>
-            project.clienteId === clientRecord?.id ||
-            project.cliente.toLowerCase() === clientName.toLowerCase(),
+            project.id === directProject?.id ||
+            (clientRecord
+              ? projectBelongsToClient(project, clientRecord)
+              : !project.clienteId &&
+                normalizeClientName(project.cliente) === normalizeClientName(clientName)),
         )
         .sort((a, b) => +new Date(b.criadoEm) - +new Date(a.criadoEm))
     : [];
@@ -134,6 +149,21 @@ function ProjetoDetalhe() {
       setNovoProjeto(true);
     }
   }, [id, clientRecord?.id]);
+
+  if (loading || crmLoading) {
+    return <ProjetosLoadingState />;
+  }
+
+  if (error || crmError) {
+    return (
+      <ProjetosErrorState
+        message={error || crmError}
+        onRetry={async () => {
+          await Promise.all([retry(), retryCrm()]);
+        }}
+      />
+    );
+  }
 
   if (!clientName) {
     return (
@@ -169,9 +199,7 @@ function ProjetoDetalhe() {
       </Link>
 
       {/* Cliente e troca de projetos em uma única faixa compacta */}
-      <section
-        className="flex flex-wrap items-stretch overflow-hidden rounded-2xl border border-border/70 bg-surface-1/30"
-      >
+      <section className="flex flex-wrap items-stretch overflow-hidden rounded-2xl border border-border/70 bg-surface-1/30">
         <div className="flex min-w-[190px] items-center gap-3 border-b border-border/60 px-3 py-2.5 sm:border-b-0 sm:border-r">
           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[color-mix(in_srgb,var(--cliente)_16%,transparent)] text-xs font-bold text-[var(--cliente)]">
             {iniciais(clientName)}
@@ -179,7 +207,8 @@ function ProjetoDetalhe() {
           <div className="min-w-0">
             <h2 className="truncate font-display text-sm font-semibold">{clientName}</h2>
             <p className="text-[10px] text-muted-foreground">
-              {projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"} cadastrado
+              {projetosDoCliente.length} projeto{projetosDoCliente.length === 1 ? "" : "s"}{" "}
+              cadastrado
               {projetosDoCliente.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -199,10 +228,12 @@ function ProjetoDetalhe() {
                   p.arquivado && "opacity-45 hover:opacity-75",
                 )}
               >
-                {p.id === projeto?.id && <span className="absolute inset-y-2 left-0 w-0.5 rounded-r bg-primary" />}
+                {p.id === projeto?.id && (
+                  <span className="absolute inset-y-2 left-0 w-0.5 rounded-r bg-primary" />
+                )}
                 <p className="truncate text-xs font-semibold">{p.nome}</p>
                 <div className="mt-1.5 flex items-center justify-between gap-3 text-[9px]">
-                  <span>{p.arquivado ? "Fechado" : FASES[p.fase].label}</span>
+                  <span>{p.arquivado ? "Fechado" : getFaseInfo(p.fase).label}</span>
                   <span className="font-medium tabular-nums">{resumo.percentual}%</span>
                 </div>
               </button>
@@ -266,43 +297,54 @@ function EditarClienteDialog({
   clientId?: string;
 }) {
   const [nome, setNome] = useState(nomeAtual);
+  const [salvando, setSalvando] = useState(false);
   useEffect(() => {
     if (open) setNome(nomeAtual);
   }, [open, nomeAtual]);
   const salvar = async () => {
-    await Promise.all([
-      projetosActions.renomearCliente(nomeAtual, nome),
-      clientId ? comercial.updateEmpresa(clientId, { nome: nome.trim() }) : Promise.resolve(),
-    ]);
-    onClose();
+    if (!nome.trim() || nome.trim() === nomeAtual || salvando) return;
+    setSalvando(true);
+    try {
+      const crmAtualizado = clientId
+        ? await comercial.updateEmpresa(clientId, { nome: nome.trim() })
+        : true;
+      if (!crmAtualizado) return;
+      const projetosAtualizados = await projetosActions.renomearCliente(nomeAtual, nome, clientId);
+      if (projetosAtualizados !== false) onClose();
+    } finally {
+      setSalvando(false);
+    }
   };
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && !salvando && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-display">Editar cliente</DialogTitle>
         </DialogHeader>
-          <>
-            <div className="space-y-1.5">
-                <p className="text-[11px] text-muted-foreground">
-                  Renomeia este cliente em todos os projetos vinculados a ele.
-                </p>
-                <Input
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Nome do cliente"
-                  autoFocus
-                />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button onClick={salvar} disabled={!nome.trim() || nome.trim() === nomeAtual}>
-                Salvar
-              </Button>
-            </DialogFooter>
-          </>
+        <>
+          <div className="space-y-1.5">
+            <p className="text-[11px] text-muted-foreground">
+              Renomeia este cliente em todos os projetos vinculados a ele.
+            </p>
+            <Input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Nome do cliente"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={salvando}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={salvar}
+              disabled={salvando || !nome.trim() || nome.trim() === nomeAtual}
+            >
+              {salvando ? "Salvando…" : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </>
       </DialogContent>
     </Dialog>
   );
@@ -346,10 +388,14 @@ function ProjetoConteudo({
   entregaveis: Entregavel[];
 }) {
   const { usuario } = useAuth();
-  const podeVerValor = (usuario as any)?.role === "admin";
+  const podeVerValor = usuario?.role === "admin";
   const id = projeto.id;
   const [editandoProjeto, setEditandoProjeto] = useState(false);
-  const [tarefaModal, setTarefaModal] = useState<{ open: boolean; tarefa?: Tarefa | null; faseInicial?: string }>({
+  const [tarefaModal, setTarefaModal] = useState<{
+    open: boolean;
+    tarefa?: Tarefa | null;
+    faseInicial?: string;
+  }>({
     open: false,
   });
   const [marcoModal, setMarcoModal] = useState<{ open: boolean; marco?: Marco | null }>({
@@ -379,12 +425,16 @@ function ProjetoConteudo({
               {projeto.arquivado ? "Projeto fechado" : "Em produção"}
             </span>
             <span className="text-[10px] text-muted-foreground">
-              Iniciado {formatDistanceToNow(new Date(projeto.dataInicio), { locale: ptBR, addSuffix: true })}
+              Iniciado{" "}
+              {formatDistanceToNow(new Date(projeto.dataInicio), { locale: ptBR, addSuffix: true })}
             </span>
           </div>
-          <h1 className="mt-2 truncate font-display text-2xl font-semibold tracking-tight">{projeto.nome}</h1>
+          <h1 className="mt-2 truncate font-display text-2xl font-semibold tracking-tight">
+            {projeto.nome}
+          </h1>
           <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-            {projeto.cliente}{projeto.descricao ? ` · ${projeto.descricao}` : " · Workspace de produção"}
+            {projeto.cliente}
+            {projeto.descricao ? ` · ${projeto.descricao}` : " · Workspace de produção"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -394,11 +444,21 @@ function ProjetoConteudo({
               size="sm"
               onClick={async () => {
                 const fechar = !projeto.arquivado;
-                if (fechar && !confirm(`Fechar o projeto "${projeto.nome}"? As informações continuarão disponíveis.`)) return;
+                if (
+                  fechar &&
+                  !confirm(
+                    `Fechar o projeto "${projeto.nome}"? As informações continuarão disponíveis.`,
+                  )
+                )
+                  return;
                 await projetosActions.atualizarProjeto(projeto.id, { arquivado: fechar });
               }}
             >
-              {projeto.arquivado ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />}
+              {projeto.arquivado ? (
+                <ArchiveRestore className="size-3.5" />
+              ) : (
+                <Archive className="size-3.5" />
+              )}
               {projeto.arquivado ? "Reabrir" : "Fechar"}
             </Button>
           )}
@@ -408,26 +468,75 @@ function ProjetoConteudo({
         </div>
       </header>
 
-      <section className={cn("grid overflow-hidden rounded-xl border border-border/70 bg-surface-1/30", podeVerValor ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3")}>
+      <section
+        className={cn(
+          "grid overflow-hidden rounded-xl border border-border/70 bg-surface-1/30",
+          podeVerValor ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3",
+        )}
+      >
         <div className="col-span-2 border-b border-border/60 p-3 md:col-span-1 md:border-b-0 md:border-r">
           <ResumoProgresso projeto={projeto} tarefas={minhasTarefas} />
         </div>
         {projeto.dataEntrega && (
-          <StatCard icon={Calendar} label="Prazo geral" valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })} />
+          <StatCard
+            icon={Calendar}
+            label="Prazo geral"
+            valor={format(new Date(projeto.dataEntrega), "dd MMM yyyy", { locale: ptBR })}
+          />
         )}
-        {podeVerValor && <StatCard icon={DollarCircle} label="Valor" valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`} />}
-        <StatCard icon={Profile2User} label="Equipe" valor={`${projeto.equipe.length} pessoa${projeto.equipe.length === 1 ? "" : "s"}`} />
+        {podeVerValor && (
+          <StatCard
+            icon={DollarCircle}
+            label="Valor"
+            valor={`R$ ${projeto.valor.toLocaleString("pt-BR")}`}
+          />
+        )}
+        <StatCard
+          icon={Profile2User}
+          label="Equipe"
+          valor={`${projeto.equipe.length} pessoa${projeto.equipe.length === 1 ? "" : "s"}`}
+        />
       </section>
 
       <Tabs defaultValue="tarefas">
         <div className="max-w-full overflow-x-auto pb-1">
           <TabsList className="h-auto w-max min-w-full justify-start rounded-none border-b border-border/60 bg-transparent p-0">
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="tarefas">Fluxo de produção ({minhasTarefas.length})</TabsTrigger>
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="entregaveis">Entregáveis ({meusEntregaveis.length})</TabsTrigger>
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="marcos">Marcos ({meusMarcos.length})</TabsTrigger>
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="cliente">Área do cliente</TabsTrigger>
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="info">Informações</TabsTrigger>
-            <TabsTrigger className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent" value="equipe">Equipe</TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="tarefas"
+            >
+              Fluxo de produção ({minhasTarefas.length})
+            </TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="entregaveis"
+            >
+              Entregáveis ({meusEntregaveis.length})
+            </TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="marcos"
+            >
+              Marcos ({meusMarcos.length})
+            </TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="cliente"
+            >
+              Área do cliente
+            </TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="info"
+            >
+              Informações
+            </TabsTrigger>
+            <TabsTrigger
+              className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              value="equipe"
+            >
+              Equipe
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -437,7 +546,9 @@ function ProjetoConteudo({
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
                 <div>
                   <h2 className="text-sm font-semibold">Fluxo de produção</h2>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">Arraste entre etapas ou clique no card para editar.</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Arraste entre etapas ou clique no card para editar.
+                  </p>
                 </div>
                 <Button size="sm" onClick={() => setTarefaModal({ open: true })}>
                   <Add size={15} color="currentColor" variant="Linear" /> Nova tarefa
@@ -541,13 +652,14 @@ function ProjetoConteudo({
         projetoId={projeto.id}
         tarefa={tarefaModal.tarefa}
         fases={projeto.fases ?? []}
-        faseInicial={tarefaModal.faseInicial ?? (
-          projeto.fase === "pre"
+        faseInicial={
+          tarefaModal.faseInicial ??
+          (projeto.fase === "pre"
             ? "pre_producao"
             : projeto.fase === "concluido"
               ? "concluida"
-              : projeto.fase
-        )}
+              : projeto.fase)
+        }
       />
       <MarcoModal
         open={marcoModal.open}
@@ -597,7 +709,9 @@ function ResumoProgresso({ projeto, tarefas }: { projeto: Projeto; tarefas: Tare
   return (
     <div>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Progresso geral</span>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Progresso geral
+        </span>
         <div className="flex items-center gap-2">
           <span
             className={cn("rounded-md border px-1.5 py-0.5 text-[10px] font-medium", saude.badge)}
@@ -633,20 +747,35 @@ function ResumoProgresso({ projeto, tarefas }: { projeto: Projeto; tarefas: Tare
   );
 }
 
-function PainelOperacional({ projeto, tarefas, marcos }: { projeto: Projeto; tarefas: Tarefa[]; marcos: Marco[] }) {
+function PainelOperacional({
+  projeto,
+  tarefas,
+  marcos,
+}: {
+  projeto: Projeto;
+  tarefas: Tarefa[];
+  marcos: Marco[];
+}) {
   const agenda = [
     ...tarefas
       .filter((t) => !t.concluida && t.prazo)
       .map((t) => ({ id: `t-${t.id}`, titulo: t.titulo, data: t.prazo!, detalhe: t.responsavel })),
     ...marcos
       .filter((m) => m.status === "pendente")
-      .map((m) => ({ id: `m-${m.id}`, titulo: m.titulo, data: m.data, detalhe: "Marco do projeto" })),
+      .map((m) => ({
+        id: `m-${m.id}`,
+        titulo: m.titulo,
+        data: m.data,
+        detalhe: "Marco do projeto",
+      })),
   ]
     .sort((a, b) => +new Date(a.data) - +new Date(b.data))
     .slice(0, 4);
   const links = (projeto.links ?? [])
     .map((link) => ({ ...link, seguro: linkSeguro(link.url) }))
-    .filter((link): link is typeof link & { seguro: NonNullable<ReturnType<typeof linkSeguro>> } => Boolean(link.seguro));
+    .filter((link): link is typeof link & { seguro: NonNullable<ReturnType<typeof linkSeguro>> } =>
+      Boolean(link.seguro),
+    );
 
   return (
     <aside className="space-y-3">
@@ -656,8 +785,17 @@ function PainelOperacional({ projeto, tarefas, marcos }: { projeto: Projeto; tar
         <div className="mt-4">
           {agenda.map((item, index) => (
             <div key={item.id} className="relative pb-4 pl-5 last:pb-0">
-              {index < agenda.length - 1 && <span className="absolute bottom-0 left-[5px] top-3 w-px bg-border/70" />}
-              <span className={cn("absolute left-0 top-1 size-[11px] rounded-full border-2 border-background", index === 0 ? "bg-primary shadow-[0_0_12px_hsl(var(--primary)/.45)]" : "bg-muted-foreground/40")} />
+              {index < agenda.length - 1 && (
+                <span className="absolute bottom-0 left-[5px] top-3 w-px bg-border/70" />
+              )}
+              <span
+                className={cn(
+                  "absolute left-0 top-1 size-[11px] rounded-full border-2 border-background",
+                  index === 0
+                    ? "bg-primary shadow-[0_0_12px_hsl(var(--primary)/.45)]"
+                    : "bg-muted-foreground/40",
+                )}
+              />
               <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                 {format(new Date(item.data), "dd MMM · HH:mm", { locale: ptBR })}
               </p>
@@ -665,7 +803,11 @@ function PainelOperacional({ projeto, tarefas, marcos }: { projeto: Projeto; tar
               <p className="mt-1 text-[9px] text-muted-foreground">{item.detalhe}</p>
             </div>
           ))}
-          {!agenda.length && <p className="rounded-xl border border-dashed border-border/50 px-3 py-6 text-center text-[10px] text-muted-foreground">Nenhum prazo ou marco pendente.</p>}
+          {!agenda.length && (
+            <p className="rounded-xl border border-dashed border-border/50 px-3 py-6 text-center text-[10px] text-muted-foreground">
+              Nenhum prazo ou marco pendente.
+            </p>
+          )}
         </div>
       </section>
 
@@ -683,11 +825,17 @@ function PainelOperacional({ projeto, tarefas, marcos }: { projeto: Projeto; tar
             >
               <Link2 size={13} color="currentColor" variant="Linear" className="text-primary" />
               <p className="mt-2 truncate text-[10px] font-semibold">{link.label}</p>
-              <p className="mt-0.5 truncate text-[8px] text-muted-foreground">{link.seguro.dominio}</p>
+              <p className="mt-0.5 truncate text-[8px] text-muted-foreground">
+                {link.seguro.dominio}
+              </p>
             </a>
           ))}
         </div>
-        {!links.length && <p className="mt-3 rounded-xl border border-dashed border-border/50 px-3 py-4 text-center text-[9px] leading-relaxed text-muted-foreground">Adicione Drive, Frame.io ou briefing em Informações.</p>}
+        {!links.length && (
+          <p className="mt-3 rounded-xl border border-dashed border-border/50 px-3 py-4 text-center text-[9px] leading-relaxed text-muted-foreground">
+            Adicione Drive, Frame.io ou briefing em Informações.
+          </p>
+        )}
       </section>
     </aside>
   );
@@ -719,16 +867,28 @@ function KanbanTarefas({
 }) {
   const [adicionando, setAdicionando] = useState(false);
   const [novaFase, setNovaFase] = useState("");
+  const [salvandoFase, setSalvandoFase] = useState(false);
+  const [erroFase, setErroFase] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  const confirmarNovaFase = (nome: string) => {
+  const confirmarNovaFase = async (nome: string) => {
     const n = nome.trim();
-    if (!n) return;
-    projetosActions.adicionarFase(projetoId, n);
-    setNovaFase("");
-    setAdicionando(false);
+    if (!n || salvandoFase) return;
+    setSalvandoFase(true);
+    setErroFase(null);
+    try {
+      const sucesso = await projetosActions.adicionarFase(projetoId, n);
+      if (!sucesso) {
+        setErroFase("Use um nome diferente das etapas que já existem.");
+        return;
+      }
+      setNovaFase("");
+      setAdicionando(false);
+    } finally {
+      setSalvandoFase(false);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -760,8 +920,8 @@ function KanbanTarefas({
               faseId={faseId}
               label={info.label}
               isConcluida={isConcluida}
-              podeEsquerda={idx > 0}
-              podeDireita={idx < fases.length - 1}
+              podeEsquerda={idx > 0 && !isConcluida}
+              podeDireita={idx < fases.length - 1 && !isConcluida && fases[idx + 1] !== "concluida"}
               onMover={(dir) => projetosActions.moverFase(projetoId, faseId, dir)}
               onRemover={
                 items.length === 0 && !isConcluida
@@ -803,7 +963,8 @@ function KanbanTarefas({
                   .map((s) => (
                     <button
                       key={s}
-                      onClick={() => confirmarNovaFase(s)}
+                      onClick={() => void confirmarNovaFase(s)}
+                      disabled={salvandoFase}
                       className="rounded-md border border-border/60 bg-surface-2/60 px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary"
                     >
                       {s}
@@ -815,25 +976,29 @@ function KanbanTarefas({
                 value={novaFase}
                 onChange={(e) => setNovaFase(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") confirmarNovaFase(novaFase);
-                  if (e.key === "Escape") setAdicionando(false);
+                  if (e.key === "Enter") void confirmarNovaFase(novaFase);
+                  if (e.key === "Escape" && !salvandoFase) setAdicionando(false);
                 }}
+                disabled={salvandoFase}
                 placeholder="Nome personalizado…"
                 className="h-8 w-full rounded-lg border border-border/60 bg-background/40 px-2.5 text-xs outline-none focus:border-primary/50"
               />
+              {erroFase && <p className="text-[10px] text-destructive">{erroFase}</p>}
               <div className="flex gap-1.5">
                 <button
-                  onClick={() => confirmarNovaFase(novaFase)}
-                  disabled={!novaFase.trim()}
+                  onClick={() => void confirmarNovaFase(novaFase)}
+                  disabled={salvandoFase || !novaFase.trim()}
                   className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-40"
                 >
-                  Adicionar
+                  {salvandoFase ? "Adicionando…" : "Adicionar"}
                 </button>
                 <button
                   onClick={() => {
                     setAdicionando(false);
                     setNovaFase("");
+                    setErroFase(null);
                   }}
+                  disabled={salvandoFase}
                   className="rounded-lg border border-border/60 px-3 py-1.5 text-xs text-muted-foreground"
                 >
                   Cancelar
@@ -891,7 +1056,13 @@ function KanbanColuna({
           className="absolute -right-[7px] inset-y-1 w-px bg-gradient-to-b from-transparent via-border/80 to-transparent"
         />
       )}
-      <div className={cn("mb-3 flex h-11 items-center gap-1 rounded-xl border bg-surface-1/70 px-2.5 shadow-sm", isConcluida ? "border-muted-foreground/20" : "border-border/70", isOver && "border-primary/60")}>
+      <div
+        className={cn(
+          "mb-3 flex h-11 items-center gap-1 rounded-xl border bg-surface-1/70 px-2.5 shadow-sm",
+          isConcluida ? "border-muted-foreground/20" : "border-border/70",
+          isOver && "border-primary/60",
+        )}
+      >
         <button
           onClick={() => onMover(-1)}
           disabled={!podeEsquerda}
@@ -960,7 +1131,7 @@ function TarefaCard({
   overlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: tarefa.id });
-  const prio = PRIORIDADES[tarefa.prioridade];
+  const prio = PRIORIDADES[tarefa.prioridade] ?? PRIORIDADES.media;
   const lk = linkSeguro(tarefa.link);
   const prazo = tarefa.prazo ? new Date(tarefa.prazo) : null;
   const atrasada = Boolean(prazo && !tarefa.concluida && prazo.getTime() < Date.now());
@@ -970,11 +1141,20 @@ function TarefaCard({
       : format(prazo, "dd MMM", { locale: ptBR })
     : null;
   const prioridadeVisual = {
-    baixa: { acento: "bg-muted-foreground/50", badge: "border-border/70 bg-surface-2 text-muted-foreground" },
+    baixa: {
+      acento: "bg-muted-foreground/50",
+      badge: "border-border/70 bg-surface-2 text-muted-foreground",
+    },
     media: { acento: "bg-info", badge: "border-info/25 bg-info/10 text-info" },
     alta: { acento: "bg-amber-400", badge: "border-amber-400/25 bg-amber-400/10 text-amber-300" },
-    urgente: { acento: "bg-destructive", badge: "border-destructive/25 bg-destructive/10 text-destructive" },
-  }[tarefa.prioridade];
+    urgente: {
+      acento: "bg-destructive",
+      badge: "border-destructive/25 bg-destructive/10 text-destructive",
+    },
+  }[tarefa.prioridade] ?? {
+    acento: "bg-info",
+    badge: "border-info/25 bg-info/10 text-info",
+  };
   const style =
     transform && !overlay
       ? { transform: `translate3d(${transform.x}px,${transform.y}px,0)` }
@@ -989,12 +1169,18 @@ function TarefaCard({
         isDragging && !overlay && "opacity-40",
         overlay && "shadow-xl rotate-1 scale-105",
         tarefa.concluida && "opacity-65",
-        !isDragging && "hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_18px_40px_-24px_hsl(var(--primary)/.3)]",
+        !isDragging &&
+          "hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_18px_40px_-24px_hsl(var(--primary)/.3)]",
       )}
     >
       <span className={cn("absolute inset-y-0 left-0 w-[3px]", prioridadeVisual.acento)} />
       <div className="flex items-center justify-between gap-2">
-        <span className={cn("rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-[.1em]", prioridadeVisual.badge)}>
+        <span
+          className={cn(
+            "rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-[.1em]",
+            prioridadeVisual.badge,
+          )}
+        >
           {prio.label}
         </span>
         <div className="flex items-center gap-1">
@@ -1006,7 +1192,11 @@ function TarefaCard({
             className="grid size-7 place-items-center rounded-lg text-muted-foreground transition hover:bg-surface-2 hover:text-primary"
             title={tarefa.concluida ? "Marcar como pendente" : "Marcar como concluída"}
           >
-            {tarefa.concluida ? <TickCircle size={17} color="currentColor" variant="Bulk" className="text-success" /> : <Circle className="size-[17px]" />}
+            {tarefa.concluida ? (
+              <TickCircle size={17} color="currentColor" variant="Bulk" className="text-success" />
+            ) : (
+              <Circle className="size-[17px]" />
+            )}
           </button>
           <button
             {...listeners}
@@ -1015,36 +1205,47 @@ function TarefaCard({
             title="Arrastar para outra fase"
           >
             <svg className="size-3.5" viewBox="0 0 16 16" fill="currentColor">
-              <circle cx="5" cy="4" r="1.2" /><circle cx="5" cy="8" r="1.2" /><circle cx="5" cy="12" r="1.2" />
-              <circle cx="11" cy="4" r="1.2" /><circle cx="11" cy="8" r="1.2" /><circle cx="11" cy="12" r="1.2" />
+              <circle cx="5" cy="4" r="1.2" />
+              <circle cx="5" cy="8" r="1.2" />
+              <circle cx="5" cy="12" r="1.2" />
+              <circle cx="11" cy="4" r="1.2" />
+              <circle cx="11" cy="8" r="1.2" />
+              <circle cx="11" cy="12" r="1.2" />
             </svg>
           </button>
         </div>
       </div>
 
       <button onClick={onEditar} className="mt-3 block w-full text-left">
-          <p
-            className={cn(
-              "text-[13px] font-semibold leading-snug tracking-[-.01em]",
-              tarefa.concluida && "text-muted-foreground line-through",
-            )}
-          >
-            {tarefa.titulo}
-          </p>
-          {tarefa.descricao && (
-            <p className="mt-2 line-clamp-2 text-[10px] leading-[1.55] text-muted-foreground">
-              {tarefa.descricao}
-            </p>
+        <p
+          className={cn(
+            "text-[13px] font-semibold leading-snug tracking-[-.01em]",
+            tarefa.concluida && "text-muted-foreground line-through",
           )}
+        >
+          {tarefa.titulo}
+        </p>
+        {tarefa.descricao && (
+          <p className="mt-2 line-clamp-2 text-[10px] leading-[1.55] text-muted-foreground">
+            {tarefa.descricao}
+          </p>
+        )}
       </button>
 
       <div className="mt-4 flex items-center gap-2 border-t border-border/50 pt-3">
         <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/12 text-[8px] font-bold text-primary ring-1 ring-primary/20">
           {iniciais(tarefa.responsavel)}
         </span>
-        <span className="min-w-0 flex-1 truncate text-[9px] font-medium text-muted-foreground">{tarefa.responsavel}</span>
+        <span className="min-w-0 flex-1 truncate text-[9px] font-medium text-muted-foreground">
+          {tarefa.responsavel}
+        </span>
         {prazoLabel && (
-          <span className={cn("inline-flex items-center gap-1 whitespace-nowrap text-[9px] font-medium tabular-nums", atrasada ? "text-destructive" : "text-muted-foreground")}>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 whitespace-nowrap text-[9px] font-medium tabular-nums",
+              atrasada ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
             <Calendar size={11} color="currentColor" variant="Linear" /> {prazoLabel}
           </span>
         )}
@@ -1185,9 +1386,10 @@ function EntregavelCard({
   entregavel: Entregavel;
   onEditar: () => void;
 }) {
-  const tipo = TIPOS_ENTREGAVEL[entregavel.tipo];
-  const TipoIcon = TIPO_ENTREGAVEL_ICONS[entregavel.tipo];
-  const status = STATUS_ENTREGAVEL[entregavel.status];
+  const tipo = TIPOS_ENTREGAVEL[entregavel.tipo] ?? TIPOS_ENTREGAVEL.outro;
+  const TipoIcon = TIPO_ENTREGAVEL_ICONS[entregavel.tipo] ?? TIPO_ENTREGAVEL_ICONS.outro;
+  const status = STATUS_ENTREGAVEL[entregavel.status] ?? STATUS_ENTREGAVEL.pendente;
+  const link = linkSeguro(entregavel.link);
   return (
     <div className="group rounded-lg border border-border/60 bg-card p-3 transition hover:border-primary/40">
       <div className="flex items-start gap-2.5">
@@ -1208,11 +1410,11 @@ function EntregavelCard({
             </p>
           )}
         </button>
-        {entregavel.link && (
+        {link && (
           <a
-            href={entregavel.link}
+            href={link.href}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             onClick={(ev) => ev.stopPropagation()}
             className="grid size-7 shrink-0 place-items-center rounded-md border border-border/40 bg-surface-2/30 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             title="Abrir link"
@@ -1230,6 +1432,11 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
   const [novoLabel, setNovoLabel] = useState("");
   const [novoUrl, setNovoUrl] = useState("");
   const dirty = notas !== (projeto.notas ?? "");
+  const linksSeguros = (projeto.links ?? [])
+    .map((link) => ({ ...link, seguro: linkSeguro(link.url) }))
+    .filter((link): link is typeof link & { seguro: NonNullable<ReturnType<typeof linkSeguro>> } =>
+      Boolean(link.seguro),
+    );
 
   const salvarNotas = () =>
     projetosActions.atualizarProjeto(projeto.id, { notas: notas.trim() || undefined });
@@ -1250,25 +1457,23 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
             <Link2 size={14} color="currentColor" variant="Linear" className="text-primary" /> Links
             do projeto
           </h3>
-          <span className="text-[10px] text-muted-foreground">
-            {projeto.links?.length ?? 0} link(s)
-          </span>
+          <span className="text-[10px] text-muted-foreground">{linksSeguros.length} link(s)</span>
         </div>
         <div className="space-y-1.5">
-          {(projeto.links ?? []).length === 0 && (
+          {linksSeguros.length === 0 && (
             <p className="rounded-md border border-dashed border-border/40 p-3 text-center text-[11px] text-muted-foreground">
               Nenhum link ainda. Adicione a pasta raiz no Drive, o brief, o moodboard…
             </p>
           )}
-          {(projeto.links ?? []).map((l) => (
+          {linksSeguros.map((l) => (
             <div
               key={l.id}
               className="group flex items-center gap-2 rounded-lg border border-border/40 bg-surface-2/30 p-2"
             >
               <a
-                href={l.url}
+                href={l.seguro.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex min-w-0 flex-1 items-center gap-2 text-xs hover:text-primary"
               >
                 <Export
@@ -1279,7 +1484,7 @@ function InfoProjeto({ projeto }: { projeto: Projeto }) {
                 />
                 <span className="truncate font-medium">{l.label}</span>
                 <span className="hidden truncate text-[10px] text-muted-foreground md:inline">
-                  {l.url}
+                  {l.seguro.dominio}
                 </span>
               </a>
               <button

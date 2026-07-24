@@ -67,7 +67,15 @@ const NAVIGATION: Array<{
   },
 ];
 
-export function ClientPortalWorkspace({ project }: { project: Projeto }) {
+export function ClientPortalWorkspace({
+  project,
+  clientId = project.clienteId,
+  clientName = project.cliente,
+}: {
+  project: Projeto;
+  clientId?: string;
+  clientName?: string;
+}) {
   const [view, setView] = useState<WorkspaceView>("status");
   const phaseLabel = PUBLIC_PHASE_LABELS[project.portalPhase ?? "preparacao"] ?? "Preparação";
   const progress = portalDisplayProgress(project.portalProgress, project.portalPhase);
@@ -221,7 +229,7 @@ export function ClientPortalWorkspace({ project }: { project: Projeto }) {
         </div>
 
         {view === "access" ? (
-          <ClientPortalUsersPanel clientId={project.clienteId} clientName={project.cliente} />
+          <ClientPortalUsersPanel clientId={clientId} clientName={clientName} />
         ) : (
           <ClientPortalProjectPanel project={project} showAccessBanner={false} view={view} />
         )}

@@ -2,8 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { processarPagamento, supabaseUrl, supabaseKey } from "./lib/api/asaas.functions";
-import { createClient } from "@supabase/supabase-js";
+import { handleCanonicalAsaasWebhook } from "./lib/asaas-webhook-handler.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -22,94 +21,6 @@ async function getServerEntry(): Promise<ServerEntry> {
     );
   }
   return serverEntryPromise;
-}
-
-const PAGO = new Set(["PAYMENT_RECEIVED", "PAYMENT_CONFIRMED", "PAYMENT_RECEIVED_IN_CASH"]);
-
-async function processAsaasPayment(paymentId: string): Promise<void> {
-  const sb = createClient(supabaseUrl(), supabaseKey());
-
-  const { data: order, error: orderErr } = await sb
-    .from("pending_orders")
-    .select("*")
-    .eq("asaas_payment_id", paymentId)
-    .single();
-
-  if (orderErr || !order) {
-    console.log("[webhook] pedido não encontrado para paymentId:", paymentId);
-    return;
-  }
-
-  if (order.status === "completed") return;
-
-  // Sem senha: o fluxo Pix nunca envia/persiste senha. processarPagamento
-  // cria o usuário com senha temporária aleatória e envia link seguro de
-  // definição de senha por e-mail. (Senhas antigas em pending_orders são
-  // ignoradas de propósito — nunca mais são usadas.)
-  await processarPagamento({
-    paymentId: order.asaas_payment_id,
-    nome: order.nome,
-    email: order.email,
-    empresa: order.empresa_nome,
-  });
-}
-
-async function handleAsaasWebhook(request: Request, ctx: ExecutionContext): Promise<Response> {
-  const json = <T>(body: T, status = 200) =>
-    new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
-
-  const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
-  if (expectedToken) {
-    const token = request.headers.get("asaas-access-token");
-    if (token !== expectedToken) return json({ error: "Unauthorized" }, 401);
-  }
-
-  let body: {
-    event?: string;
-    payment?: { id?: string; status?: string };
-  };
-  try {
-    const ct = request.headers.get("content-type") ?? "";
-    if (ct.includes("application/x-www-form-urlencoded")) {
-      // Asaas envia o payload como form-urlencoded com campo "data" contendo JSON
-      const text = await request.text();
-      const params = new URLSearchParams(text);
-      const data = params.get("data");
-      body = data ? JSON.parse(decodeURIComponent(data)) : JSON.parse(text);
-    } else {
-      body = await request.json();
-    }
-  } catch (e) {
-    return json({ ok: true, warning: "parse failed" });
-  }
-
-  const event = body?.event as string | undefined;
-  const payment = body?.payment;
-
-  // Aceita PAYMENT_RECEIVED ou payment.status RECEIVED/CONFIRMED
-  const pagamentoConfirmado =
-    (event && PAGO.has(event)) ||
-    (payment?.status && ["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"].includes(payment.status));
-
-  if (!pagamentoConfirmado || !payment?.id) {
-    console.log("[webhook] evento ignorado:", event, payment?.status);
-    return json({ ok: true, ignored: true });
-  }
-
-  const paymentId = payment.id as string;
-
-  // O Asaas precisa receber o 2xx rapidamente. Consultas ao banco, criação da
-  // conta e envio de e-mail continuam após a resposta no runtime do Cloudflare.
-  // processarPagamento é idempotente e o polling do checkout é a rede de
-  // segurança caso esse processamento assíncrono falhe.
-  ctx.waitUntil(
-    processAsaasPayment(paymentId).catch((err) => {
-      const msg = err instanceof Error ? err.message : "Erro desconhecido";
-      console.error(`[webhook] erro ao processar ${paymentId}:`, msg);
-    }),
-  );
-
-  return json({ ok: true, accepted: true });
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
@@ -200,7 +111,10 @@ export default {
     }
 
     if (url.pathname === "/api/asaas/webhook" && request.method === "POST") {
-      return withSecurityHeaders(await handleAsaasWebhook(request, ctx), isHttps);
+      return withSecurityHeaders(
+        await handleCanonicalAsaasWebhook(request, (task) => ctx.waitUntil(task)),
+        isHttps,
+      );
     }
 
     try {

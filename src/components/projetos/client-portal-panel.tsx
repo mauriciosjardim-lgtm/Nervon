@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,11 +12,13 @@ import {
   Loader2,
   MessageSquareText,
   PackageCheck,
+  Pencil,
   Plus,
   RefreshCcw,
   Send,
   Settings2,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -42,14 +44,15 @@ import { cn } from "@/lib/utils";
 import type { Projeto } from "@/lib/mock/projetos";
 import { DEFAULT_PORTAL_COVER_URL, portalDisplayProgress, portalSlug } from "@/lib/portal-cliente";
 import {
-  archiveClientReview,
   configureMakersMembers,
   getClientPortalAccess,
   getReviewEmbedUrl,
   listClientReviews,
   publishClientDelivery,
   publishClientReview,
+  removeClientReview,
   saveProjectClientPortalState,
+  updateClientReviewMetadata,
   type ClientPortalAccess,
   type ClientReview,
 } from "@/lib/client-reviews";
@@ -118,11 +121,14 @@ export function ClientPortalProjectPanel({
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [access, setAccess] = useState<ClientPortalAccess | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [savingPublic, setSavingPublic] = useState(false);
   const [reviewDialog, setReviewDialog] = useState<{
     open: boolean;
     thread?: ClientReview;
   }>({ open: false });
+  const [editingReview, setEditingReview] = useState<ClientReview | null>(null);
+  const [removingReview, setRemovingReview] = useState<ClientReview | null>(null);
   const [deliveryDialog, setDeliveryDialog] = useState(false);
   const [publicForm, setPublicForm] = useState({
     visible: project.portalVisible ?? false,
@@ -132,6 +138,7 @@ export function ClientPortalProjectPanel({
     nextMilestone: project.portalNextMilestone ?? "",
     coverUrl: project.portalCoverUrl ?? "",
   });
+  const loadRequest = useRef(0);
 
   useEffect(() => {
     setPublicForm({
@@ -144,25 +151,36 @@ export function ClientPortalProjectPanel({
     });
   }, [project]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    const requestId = ++loadRequest.current;
     setLoading(true);
+    setLoadError(null);
     try {
       const [nextReviews, nextAccess] = await Promise.all([
         listClientReviews(project.id),
         getClientPortalAccess(project.clienteId),
       ]);
-      setReviews(nextReviews);
-      setAccess(nextAccess);
-    } catch {
-      toast.error("Não foi possível carregar a área do cliente");
+      if (requestId === loadRequest.current) {
+        setReviews(nextReviews);
+        setAccess(nextAccess);
+      }
+    } catch (error) {
+      if (requestId === loadRequest.current) {
+        setReviews([]);
+        setAccess(null);
+        setLoadError(
+          error instanceof Error ? error.message : "Não foi possível carregar a área do cliente",
+        );
+        toast.error("Não foi possível carregar a área do cliente");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === loadRequest.current) setLoading(false);
     }
-  };
+  }, [project.clienteId, project.id]);
 
   useEffect(() => {
     void load();
-  }, [project.id, project.clienteId]);
+  }, [load]);
 
   const reviewItems = reviews.filter((item) => item.kind !== "delivery");
   const deliveries = reviews.filter(
@@ -498,6 +516,8 @@ export function ClientPortalProjectPanel({
               <div className="grid min-h-40 place-items-center">
                 <Loader2 className="size-5 animate-spin text-primary" />
               </div>
+            ) : loadError ? (
+              <PortalDataError onRetry={() => void load()} />
             ) : activeReviews.length === 0 ? (
               <div className="grid min-h-44 place-items-center rounded-xl border border-dashed border-border/70 text-center">
                 <div>
@@ -514,12 +534,9 @@ export function ClientPortalProjectPanel({
                   <ReviewRow
                     key={review.id}
                     review={review}
+                    onEdit={() => setEditingReview(review)}
                     onNewVersion={() => setReviewDialog({ open: true, thread: review })}
-                    onArchive={async () => {
-                      await archiveClientReview(review.id);
-                      toast.success("Revisão arquivada");
-                      await load();
-                    }}
+                    onRemove={() => setRemovingReview(review)}
                   />
                 ))}
               </div>
@@ -557,6 +574,8 @@ export function ClientPortalProjectPanel({
               <div className="grid min-h-28 place-items-center">
                 <Loader2 className="size-5 animate-spin text-primary" />
               </div>
+            ) : loadError ? (
+              <PortalDataError onRetry={() => void load()} />
             ) : deliveries.length === 0 ? (
               <button
                 type="button"
@@ -594,18 +613,16 @@ export function ClientPortalProjectPanel({
                       <span className="rounded-full bg-success/12 px-2 py-1 text-[9px] text-success">
                         Disponível
                       </span>
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={delivery.driveUrl} target="_blank" rel="noreferrer">
-                          <ExternalLink className="size-3.5" /> Abrir
-                        </a>
-                      </Button>
+                      {delivery.driveUrl && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={delivery.driveUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="size-3.5" /> Abrir
+                          </a>
+                        </Button>
+                      )}
                       <button
                         type="button"
-                        onClick={async () => {
-                          await archiveClientReview(delivery.id);
-                          toast.success("Entrega removida do portal");
-                          await load();
-                        }}
+                        onClick={() => setRemovingReview(delivery)}
                         className="px-2 text-[10px] text-muted-foreground hover:text-destructive"
                       >
                         Remover
@@ -639,6 +656,22 @@ export function ClientPortalProjectPanel({
             progress: portalDisplayProgress(current.progress, "aguardando_aprovacao"),
           }));
           setReviewDialog({ open: false });
+          await load();
+        }}
+      />
+      <EditReviewDialog
+        review={editingReview}
+        onClose={() => setEditingReview(null)}
+        onSaved={async () => {
+          setEditingReview(null);
+          await load();
+        }}
+      />
+      <RemoveReviewDialog
+        review={removingReview}
+        onClose={() => setRemovingReview(null)}
+        onRemoved={async () => {
+          setRemovingReview(null);
           await load();
         }}
       />
@@ -677,14 +710,38 @@ function ReviewMetric({ label, value, tone }: { label: string; value: number; to
   );
 }
 
+function PortalDataError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="grid min-h-36 place-items-center rounded-xl border border-destructive/25 bg-destructive/[0.035] px-5 text-center"
+    >
+      <div>
+        <AlertTriangle className="mx-auto size-5 text-destructive" />
+        <p className="mt-3 text-xs font-medium">Não foi possível carregar estes dados</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-medium text-primary hover:underline"
+        >
+          <RefreshCcw className="size-3" />
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ReviewRow({
   review,
+  onEdit,
   onNewVersion,
-  onArchive,
+  onRemove,
 }: {
   review: ClientReview;
+  onEdit: () => void;
   onNewVersion: () => void;
-  onArchive: () => void;
+  onRemove: () => void;
 }) {
   const status = REVIEW_STATUS[review.status];
   const StatusIcon = status.icon;
@@ -722,10 +779,15 @@ function ReviewRow({
           >
             <StatusIcon className="size-3" /> {status.label}
           </span>
-          <Button variant="outline" size="sm" asChild>
-            <a href={review.driveUrl} target="_blank" rel="noreferrer">
-              <ExternalLink className="size-3.5" /> Drive
-            </a>
+          {review.driveUrl && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={review.driveUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="size-3.5" /> Drive
+              </a>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={onEdit}>
+            <Pencil className="size-3.5" /> Editar
           </Button>
           {(review.status === "changes_requested" || review.status === "approved") && (
             <Button variant="outline" size="sm" onClick={onNewVersion}>
@@ -734,7 +796,7 @@ function ReviewRow({
           )}
           {review.status === "pending" && (
             <button
-              onClick={onArchive}
+              onClick={onRemove}
               className="px-2 text-[10px] text-muted-foreground hover:text-destructive"
             >
               Remover
@@ -743,6 +805,186 @@ function ReviewRow({
         </div>
       </div>
     </article>
+  );
+}
+
+function RemoveReviewDialog({
+  review,
+  onClose,
+  onRemoved,
+}: {
+  review: ClientReview | null;
+  onClose: () => void;
+  onRemoved: () => Promise<void>;
+}) {
+  const [removing, setRemoving] = useState(false);
+
+  const remove = async () => {
+    if (!review) return;
+    setRemoving(true);
+    try {
+      await removeClientReview(review.id);
+      await onRemoved();
+      toast.success(
+        review.kind === "delivery" ? "Entrega removida do portal" : "Material removido do portal",
+      );
+    } catch {
+      toast.error("Não foi possível remover este material");
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  return (
+    <Dialog open={Boolean(review)} onOpenChange={(open) => !open && !removing && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display">Remover publicação?</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            <strong className="text-foreground">{review?.title}</strong> deixará de aparecer
+            imediatamente para o cliente.
+          </p>
+          <p className="rounded-xl border border-destructive/20 bg-destructive/[0.06] p-3 text-xs">
+            Esta ação remove a publicação e não pode ser desfeita. Para corrigir apenas o título, a
+            competência ou a mensagem, use <strong className="text-foreground">Editar</strong>.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={removing}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" onClick={remove} disabled={removing}>
+            {removing ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+            Remover publicação
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditReviewDialog({
+  review,
+  onClose,
+  onSaved,
+}: {
+  review: ClientReview | null;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [title, setTitle] = useState("");
+  const [cycle, setCycle] = useState("");
+  const [version, setVersion] = useState("");
+  const [dueAt, setDueAt] = useState("");
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!review) return;
+    setTitle(review.title);
+    setCycle(review.contentCycle ?? "");
+    setVersion(review.versionLabel);
+    setDueAt(review.dueAt ?? "");
+    setMessage(review.message ?? "");
+  }, [review]);
+
+  const save = async () => {
+    if (!review) return;
+    setSaving(true);
+    try {
+      await updateClientReviewMetadata({
+        id: review.id,
+        title,
+        contentCycle: cycle,
+        versionLabel: version,
+        message,
+        dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
+      });
+      await onSaved();
+      toast.success("Material atualizado no portal");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o material");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={Boolean(review)} onOpenChange={(open) => !open && !saving && onClose()}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="font-display">Editar material publicado</DialogTitle>
+        </DialogHeader>
+
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.05] p-3 text-[10px] leading-4 text-muted-foreground">
+          Edite as informações exibidas ao cliente sem perder o link, a decisão ou o histórico da
+          aprovação.
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1.5 sm:col-span-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Título do material
+            </span>
+            <Input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Ex.: Reel 03 — Campanha de julho"
+              autoFocus
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Ciclo ou competência
+            </span>
+            <Input
+              value={cycle}
+              onChange={(event) => setCycle(event.target.value)}
+              placeholder="Ex.: Julho de 2026"
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Versão
+            </span>
+            <Input
+              value={version}
+              onChange={(event) => setVersion(event.target.value)}
+              placeholder="V1"
+            />
+          </label>
+          <label className="space-y-1.5 sm:col-span-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Aprovar até
+            </span>
+            <DateTimePicker value={dueAt} onChange={setDueAt} placeholder="Escolher prazo" />
+          </label>
+          <label className="space-y-1.5 sm:col-span-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Mensagem para o cliente
+            </span>
+            <Textarea
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              rows={3}
+              placeholder="Contexto ou orientação para a revisão."
+            />
+          </label>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={save} disabled={saving || !title.trim() || !cycle.trim()}>
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Pencil className="size-4" />}
+            Salvar alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -795,7 +1037,7 @@ function PublishReviewDialog({
     }
     setSaving(true);
     try {
-      await publishClientReview({
+      const published = await publishClientReview({
         projectId: project.id,
         title,
         contentCycle: cycle,
@@ -805,7 +1047,12 @@ function PublishReviewDialog({
         dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
         threadId: thread?.threadId,
       });
-      await onPublished();
+      try {
+        await onPublished();
+      } catch (publishStateError) {
+        await removeClientReview(published.id);
+        throw publishStateError;
+      }
       toast.success("Material publicado no portal do cliente");
     } catch (error) {
       toast.error(
@@ -817,7 +1064,7 @@ function PublishReviewDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+    <Dialog open={open} onOpenChange={(value) => !value && !saving && onClose()}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">
@@ -933,7 +1180,7 @@ function PublishReviewDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
           <Button onClick={publish} disabled={saving || !sharingConfirmed}>
@@ -988,14 +1235,19 @@ function PublishDeliveryDialog({
     }
     setSaving(true);
     try {
-      await publishClientDelivery({
+      const published = await publishClientDelivery({
         projectId: project.id,
         title,
         contentCycle: cycle,
         driveUrl,
         message,
       });
-      await onPublished();
+      try {
+        await onPublished();
+      } catch (publishStateError) {
+        await removeClientReview(published.id);
+        throw publishStateError;
+      }
       toast.success("Entrega disponibilizada no portal do cliente");
     } catch (error) {
       toast.error(
@@ -1009,7 +1261,7 @@ function PublishDeliveryDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+    <Dialog open={open} onOpenChange={(value) => !value && !saving && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="font-display">Entregar material final</DialogTitle>
@@ -1092,7 +1344,7 @@ function PublishDeliveryDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
           <Button onClick={publish} disabled={saving || !sharingConfirmed}>

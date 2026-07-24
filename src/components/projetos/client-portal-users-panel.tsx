@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Ban,
   CheckCircle2,
@@ -45,6 +45,8 @@ export function ClientPortalUsersPanel({
   const { empresa } = useAuth();
   const [users, setUsers] = useState<PortalClientUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [changingUserId, setChangingUserId] = useState<string | null>(null);
   const [dialog, setDialog] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,25 +54,48 @@ export function ClientPortalUsersPanel({
     name: string;
     email: string;
     password: string;
+    accessUrl: string;
   } | null>(null);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const loadRequest = useRef(0);
 
-  const load = async () => {
-    if (!clientId) return;
-    setLoading(true);
-    try {
-      setUsers(await listPortalClientUsers(clientId));
-    } catch {
+  const load = useCallback(async () => {
+    const requestId = ++loadRequest.current;
+    if (!clientId) {
       setUsers([]);
-      toast.error("Não foi possível carregar os acessos do cliente");
-    } finally {
+      setLoadError(null);
       setLoading(false);
+      return;
     }
-  };
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const nextUsers = await listPortalClientUsers(clientId);
+      if (requestId === loadRequest.current) setUsers(nextUsers);
+    } catch (error) {
+      if (requestId === loadRequest.current) {
+        setUsers([]);
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível carregar os acessos do cliente",
+        );
+        toast.error("Não foi possível carregar os acessos do cliente");
+      }
+    } finally {
+      if (requestId === loadRequest.current) setLoading(false);
+    }
+  }, [clientId]);
 
   useEffect(() => {
+    // Credenciais são dados sensíveis e específicos de um cliente. Nunca
+    // permita que o modal/mensagem sobreviva a uma troca de cliente.
+    setDialog(false);
+    setCredentials(null);
+    setForm({ name: "", email: "", password: "" });
+    setShowPassword(false);
     void load();
-  }, [clientId]);
+  }, [clientId, load]);
 
   const openCreate = () => {
     setForm({
@@ -91,6 +116,10 @@ export function ClientPortalUsersPanel({
     }
     setCreating(true);
     try {
+      const createdAccessUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/portal/${portalSlug(clientName)}`
+          : `/portal/${portalSlug(clientName)}`;
       await configureMakersMembers({ clientId, enabled: true });
       await createPortalClientUser({
         clientId,
@@ -102,6 +131,7 @@ export function ClientPortalUsersPanel({
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
+        accessUrl: createdAccessUrl,
       });
       await load();
       toast.success("Usuário do cliente criado");
@@ -113,19 +143,19 @@ export function ClientPortalUsersPanel({
   };
 
   const toggleUser = async (user: PortalClientUser) => {
+    if (changingUserId) return;
+    setChangingUserId(user.id);
     try {
       await setPortalClientUserStatus(user.id, user.status === "active" ? "inactive" : "active");
       await load();
       toast.success(user.status === "active" ? "Acesso revogado" : "Acesso reativado");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível alterar o acesso");
+    } finally {
+      setChangingUserId(null);
     }
   };
 
-  const accessUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/portal/${portalSlug(clientName)}`
-      : `/portal/${portalSlug(clientName)}`;
   const producerName = empresa?.nome?.trim();
   const invitationMessage = credentials
     ? [
@@ -137,7 +167,7 @@ export function ClientPortalUsersPanel({
         "",
         "Por lá você poderá acompanhar o andamento dos projetos, revisar materiais e acessar todas as entregas em um só lugar.",
         "",
-        `🔗 Acesse: ${accessUrl}`,
+        `🔗 Acesse: ${credentials.accessUrl}`,
         `📧 Login: ${credentials.email}`,
         `🔐 Senha temporária: ${credentials.password}`,
         "",
@@ -148,8 +178,12 @@ export function ClientPortalUsersPanel({
 
   const copyInvitation = async () => {
     if (!credentials) return;
-    await navigator.clipboard.writeText(invitationMessage);
-    toast.success("Mensagem para o cliente copiada");
+    try {
+      await navigator.clipboard.writeText(invitationMessage);
+      toast.success("Mensagem para o cliente copiada");
+    } catch {
+      toast.error("Não foi possível copiar a mensagem");
+    }
   };
 
   if (!clientId) {
@@ -204,6 +238,22 @@ export function ClientPortalUsersPanel({
             <div className="flex h-20 items-center justify-center">
               <Loader2 className="size-4 animate-spin text-primary" />
             </div>
+          ) : loadError ? (
+            <div
+              role="alert"
+              className="grid min-h-28 place-items-center rounded-xl border border-destructive/25 bg-destructive/[0.035] text-center"
+            >
+              <div>
+                <p className="text-xs font-medium">Não foi possível carregar os acessos</p>
+                <button
+                  type="button"
+                  onClick={() => void load()}
+                  className="mt-2 text-[10px] font-medium text-primary hover:underline"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
           ) : users.length ? (
             <div className="grid gap-2 lg:grid-cols-2">
               {users.map((user) => (
@@ -241,6 +291,7 @@ export function ClientPortalUsersPanel({
                     variant="ghost"
                     size="sm"
                     onClick={() => void toggleUser(user)}
+                    disabled={Boolean(changingUserId)}
                     className={cn(
                       "self-end sm:self-auto",
                       user.status === "active"
@@ -248,7 +299,11 @@ export function ClientPortalUsersPanel({
                         : "text-success",
                     )}
                   >
-                    {user.status === "active" ? (
+                    {changingUserId === user.id ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" /> Salvando
+                      </>
+                    ) : user.status === "active" ? (
                       <>
                         <Ban className="size-3.5" /> Revogar
                       </>
@@ -284,7 +339,12 @@ export function ClientPortalUsersPanel({
         </div>
       </section>
 
-      <Dialog open={dialog} onOpenChange={setDialog}>
+      <Dialog
+        open={dialog}
+        onOpenChange={(open) => {
+          if (!creating) setDialog(open);
+        }}
+      >
         <DialogContent className={credentials ? "sm:max-w-lg" : "sm:max-w-md"}>
           <DialogHeader>
             <DialogTitle>{credentials ? "Acesso criado" : "Novo usuário do cliente"}</DialogTitle>
@@ -304,7 +364,7 @@ export function ClientPortalUsersPanel({
                     <span className="text-muted-foreground">Senha:</span> {credentials.password}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">Acesso:</span> {accessUrl}
+                    <span className="text-muted-foreground">Acesso:</span> {credentials.accessUrl}
                   </p>
                 </div>
               </div>
@@ -398,7 +458,7 @@ export function ClientPortalUsersPanel({
               </Button>
             ) : (
               <>
-                <Button variant="outline" onClick={() => setDialog(false)}>
+                <Button variant="outline" onClick={() => setDialog(false)} disabled={creating}>
                   Cancelar
                 </Button>
                 <Button onClick={() => void createUser()} disabled={creating}>

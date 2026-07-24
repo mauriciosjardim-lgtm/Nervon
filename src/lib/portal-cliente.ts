@@ -2,8 +2,35 @@ import { portalSupabase } from "@/lib/portal-supabase";
 
 export const DEFAULT_PORTAL_COVER_URL = "/portal/aurora-project-cover-v4.jpg";
 
+export function safePortalUrl(value?: string | null): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (/^\/(?!\/)/.test(raw)) return raw;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function safePortalEmbedUrl(value?: string | null): string | null {
+  const safe = safePortalUrl(value);
+  if (!safe || safe.startsWith("/")) return null;
+  const hostname = new URL(safe).hostname.toLowerCase();
+  const allowedHosts = new Set([
+    "drive.google.com",
+    "player.vimeo.com",
+    "youtube.com",
+    "www.youtube.com",
+    "youtube-nocookie.com",
+    "www.youtube-nocookie.com",
+  ]);
+  return allowedHosts.has(hostname) ? safe : null;
+}
+
 export function portalCoverUrl(coverUrl?: string | null): string {
-  return coverUrl?.trim() || DEFAULT_PORTAL_COVER_URL;
+  return safePortalUrl(coverUrl) || DEFAULT_PORTAL_COVER_URL;
 }
 
 export interface PortalMilestone {
@@ -106,14 +133,34 @@ const PORTAL_DELIVERABLE_STATUS_ALIASES: Record<string, PortalDeliverable["statu
 function normalizePortalSnapshot(snapshot: ClientPortalSnapshot): ClientPortalSnapshot {
   return {
     ...snapshot,
+    company: {
+      ...snapshot.company,
+      logo_url: safePortalUrl(snapshot.company.logo_url),
+    },
     projects: snapshot.projects.map((project) => ({
       ...project,
-      deliverables: (project.deliverables ?? []).map((deliverable) => ({
-        ...deliverable,
-        kind: deliverable.kind === "delivery" ? "delivery" : "review",
-        status: PORTAL_DELIVERABLE_STATUS_ALIASES[String(deliverable.status)] ?? "pendente",
-      })),
+      cover_url: safePortalUrl(project.cover_url),
+      deliverables: (project.deliverables ?? [])
+        .filter(
+          (deliverable) =>
+            !(String(deliverable.status) === "archived" && deliverable.kind !== "delivery"),
+        )
+        .map((deliverable) => ({
+          ...deliverable,
+          kind: deliverable.kind === "delivery" ? "delivery" : "review",
+          status: PORTAL_DELIVERABLE_STATUS_ALIASES[String(deliverable.status)] ?? "pendente",
+          url: safePortalUrl(deliverable.url),
+          embed_url: safePortalEmbedUrl(deliverable.embed_url),
+        })),
     })),
+    contracts: snapshot.contracts.map((contract) => ({
+      ...contract,
+      pdf_url: safePortalUrl(contract.pdf_url),
+      signature_url: safePortalUrl(contract.signature_url),
+    })),
+    files: snapshot.files
+      .map((file) => ({ ...file, url: safePortalUrl(file.url) }))
+      .filter((file): file is PortalFile => Boolean(file.url)),
   };
 }
 
@@ -154,7 +201,7 @@ async function resolvePortalToken(identifier: string): Promise<string | null> {
   if (import.meta.env.DEV && identifier === "preview") return identifier;
   if (/^[a-f0-9]{24,64}$/i.test(identifier)) return identifier;
 
-  const { data, error } = await (portalSupabase as any).rpc("meu_portal_token");
+  const { data, error } = await portalSupabase.rpc("meu_portal_token");
   if (error) throw error;
   return (data as string | null) ?? null;
 }
@@ -166,11 +213,11 @@ export async function getPublicClientPortal(
     return normalizePortalSnapshot(PORTAL_PREVIEW);
   const token = await resolvePortalToken(identifier);
   if (!token) return null;
-  const { data, error } = await (portalSupabase as any).rpc("portal_cliente_publico", {
+  const { data, error } = await portalSupabase.rpc("portal_cliente_publico", {
     p_token: token,
   });
   if (error) throw error;
-  return data ? normalizePortalSnapshot(data as ClientPortalSnapshot) : null;
+  return data ? normalizePortalSnapshot(data as unknown as ClientPortalSnapshot) : null;
 }
 
 const PORTAL_PREVIEW: ClientPortalSnapshot = {
@@ -336,7 +383,7 @@ export async function respondPortalReview(
   if (import.meta.env.DEV && identifier === "preview") return true;
   const token = await resolvePortalToken(identifier);
   if (!token) return false;
-  const { data, error } = await (portalSupabase as any).rpc("responder_revisao_portal", {
+  const { data, error } = await portalSupabase.rpc("responder_revisao_portal", {
     p_token: token,
     p_review_id: reviewId,
     p_decision: decision,

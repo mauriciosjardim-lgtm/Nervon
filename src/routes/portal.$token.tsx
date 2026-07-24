@@ -8,26 +8,41 @@ import {
   Circle,
   ClipboardCheck,
   Clock3,
+  Copy,
   Download,
   ExternalLink,
   FileCheck2,
   FileText,
   FolderOpen,
-  Headphones,
-  Home,
-  Images,
-  ListChecks,
   Loader2,
-  LogOut,
-  LockKeyhole,
   MessageSquareText,
   Milestone,
   PlayCircle,
+  RotateCcw,
   AlertTriangle,
-  Video,
-  Wrench,
 } from "lucide-react";
+import {
+  DocumentText1,
+  Element3,
+  FolderOpen as FolderOpenIcon,
+  Gallery,
+  LogoutCurve,
+  ShieldTick,
+  TickCircle,
+  VideoPlay,
+  type Icon as IconsaxIcon,
+} from "iconsax-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   getPublicClientPortal,
   portalCoverUrl,
@@ -52,7 +67,6 @@ type PortalView =
   | "approvals"
   | "deliveries"
   | "resources"
-  | "tools"
   | "contracts";
 
 const VIEW_TITLES: Record<PortalView, { eyebrow: string; title: string; description: string }> = {
@@ -81,17 +95,26 @@ const VIEW_TITLES: Record<PortalView, { eyebrow: string; title: string; descript
     title: "Documentos úteis.",
     description: "Briefings, guias, cronogramas e arquivos compartilhados pela equipe.",
   },
-  tools: {
-    eyebrow: "Ferramentas",
-    title: "Pronto para gravar.",
-    description: "Checklists práticos para preparar a equipe e não esquecer nada importante.",
-  },
   contracts: {
     eyebrow: "Contratos",
     title: "Documentos e assinaturas.",
     description: "Consulte contratos, acompanhe assinaturas e baixe as versões finais.",
   },
 };
+
+const PORTAL_MENU: Array<{
+  id: PortalView;
+  label: string;
+  shortLabel: string;
+  icon: IconsaxIcon;
+}> = [
+  { id: "overview", label: "Visão geral", shortLabel: "Início", icon: Element3 },
+  { id: "production", label: "Produção atual", shortLabel: "Produção", icon: VideoPlay },
+  { id: "approvals", label: "Aprovações", shortLabel: "Aprovações", icon: TickCircle },
+  { id: "deliveries", label: "Entregas", shortLabel: "Entregas", icon: Gallery },
+  { id: "resources", label: "Arquivos úteis", shortLabel: "Arquivos", icon: FolderOpenIcon },
+  { id: "contracts", label: "Contratos", shortLabel: "Contratos", icon: DocumentText1 },
+];
 
 const PHASES: Record<string, string> = {
   briefing: "Briefing",
@@ -133,6 +156,23 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value.slice(0, 10)}T12:00:00Z`));
 }
 
+function driveThumbnailUrl(fileId?: string | null) {
+  const id = fileId?.trim();
+  if (!id || !/^[\w-]{10,}$/.test(id)) return null;
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`;
+}
+
+function portalInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 function viewFromHash(): PortalView {
   if (typeof window === "undefined") return "overview";
   const candidate = window.location.hash.replace("#", "") as PortalView;
@@ -144,9 +184,11 @@ function ClientPortalPage() {
   const [portal, setPortal] = useState<ClientPortalSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [view, setView] = useState<PortalView>("overview");
+  const [signingOut, setSigningOut] = useState(false);
 
   useLayoutEffect(() => {
     if (/^[a-f0-9]{24,64}$/i.test(token)) {
@@ -159,14 +201,18 @@ function ClientPortalPage() {
   }, [token]);
 
   const load = useCallback(async () => {
+    let redirectingToLogin = false;
+    setLoadError(null);
+    setNotFound(false);
     try {
       if (!(import.meta.env.DEV && token === "preview")) {
         const {
           data: { session },
         } = await portalSupabase.auth.getSession();
         if (!session) {
+          redirectingToLogin = true;
           const next = `${window.location.pathname}${window.location.hash}`;
-          window.location.assign(`/portal/login?next=${encodeURIComponent(next)}`);
+          window.location.replace(`/portal/login?next=${encodeURIComponent(next)}`);
           return;
         }
       }
@@ -188,9 +234,11 @@ function ClientPortalPage() {
         }
       }
     } catch {
-      setNotFound(true);
+      setLoadError(
+        "Não foi possível carregar o portal agora. Sua conta e seus arquivos continuam seguros.",
+      );
     } finally {
-      setLoading(false);
+      if (!redirectingToLogin) setLoading(false);
     }
   }, [token]);
 
@@ -217,22 +265,20 @@ function ClientPortalPage() {
   };
 
   const signOut = async () => {
-    await portalSupabase.auth.signOut();
-    window.location.replace("/portal/login");
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await portalSupabase.auth.signOut({ scope: "local" });
+    } finally {
+      window.location.replace("/portal/login");
+    }
   };
 
   const respond = async (
     deliverable: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => {
-    if (
-      decision === "approved" &&
-      !confirm(
-        `Aprovar definitivamente “${deliverable.title}” (${deliverable.version_label || "versão atual"})?`,
-      )
-    )
-      return;
+  ): Promise<boolean> => {
     setApprovingId(deliverable.id);
     try {
       const success = await respondPortalReview(
@@ -270,8 +316,10 @@ function ClientPortalPage() {
       } else {
         await load();
       }
+      return true;
     } catch {
       toast.error("Não foi possível registrar sua decisão");
+      return false;
     } finally {
       setApprovingId(null);
     }
@@ -279,15 +327,40 @@ function ClientPortalPage() {
 
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#080a09] text-white">
-        <Loader2 className="size-7 animate-spin text-[#a3ff2b]" />
+      <div className="grid min-h-[100dvh] place-items-center bg-background text-foreground">
+        <Loader2 className="size-7 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="grid min-h-[100dvh] place-items-center bg-background px-6 text-center text-foreground">
+        <div className="max-w-sm">
+          <div className="mx-auto grid size-14 place-items-center rounded-2xl border border-amber-300/15 bg-amber-300/[0.06]">
+            <AlertTriangle className="size-6 text-amber-300" />
+          </div>
+          <h1 className="mt-5 text-xl font-semibold">Não foi possível carregar o portal</h1>
+          <p className="mt-2 text-sm leading-6 text-white/40">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              void load();
+            }}
+            className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 text-xs font-medium text-white/70 transition hover:bg-white/[0.07] hover:text-white"
+          >
+            <RotateCcw className="size-3.5" />
+            Tentar novamente
+          </button>
+        </div>
       </div>
     );
   }
 
   if (notFound || !portal) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#080a09] px-6 text-center text-white">
+      <div className="grid min-h-[100dvh] place-items-center bg-background px-6 text-center text-foreground">
         <div>
           <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-white/5">
             <FolderOpen className="size-6 text-white/40" />
@@ -301,12 +374,12 @@ function ClientPortalPage() {
     );
   }
 
-  const accent = portal.company.accent_color || "#a3ff2b";
+  const accent = "#90f826";
   const title = VIEW_TITLES[view];
 
   return (
     <div
-      className="min-h-screen bg-[#080a09] text-white"
+      className="min-h-[100dvh] bg-background text-foreground"
       style={{ "--portal-accent": accent } as React.CSSProperties}
     >
       <PortalSidebar
@@ -315,7 +388,7 @@ function ClientPortalPage() {
         activeView={view}
         onNavigate={navigate}
         onSignOut={signOut}
-        accent={accent}
+        signingOut={signingOut}
       />
 
       <div className="min-w-0 lg:pl-[272px]">
@@ -324,15 +397,11 @@ function ClientPortalPage() {
           view={view}
           onNavigate={navigate}
           onSignOut={signOut}
-          accent={accent}
+          signingOut={signingOut}
         />
 
-        <main className="mx-auto max-w-[1380px] px-5 py-8 md:px-8 md:py-10 xl:px-12">
-          <PageHeading
-            title={title}
-            clientName={portal.client.responsible_name || portal.client.name}
-            accent={accent}
-          />
+        <main className="mx-auto max-w-[1380px] px-4 pb-28 pt-6 sm:px-5 md:px-8 md:pt-10 lg:pb-10 xl:px-12">
+          <PageHeading title={title} accent={accent} />
 
           {view === "overview" && (
             <OverviewView
@@ -351,9 +420,9 @@ function ClientPortalPage() {
               accent={accent}
             />
           )}
-          {view === "approvals" && (
+          {view === "approvals" && activeProject && (
             <ApprovalsView
-              projects={portal.projects}
+              project={activeProject}
               approvingId={approvingId}
               onRespond={respond}
               accent={accent}
@@ -363,7 +432,6 @@ function ClientPortalPage() {
             <DeliveriesArchive portal={portal} onNavigate={navigate} accent={accent} />
           )}
           {view === "resources" && <ResourcesView portal={portal} accent={accent} />}
-          {view === "tools" && <ToolsView token={token} accent={accent} />}
           {view === "contracts" && <ContractsView portal={portal} accent={accent} />}
         </main>
       </div>
@@ -377,136 +445,108 @@ function PortalSidebar({
   activeView,
   onNavigate,
   onSignOut,
-  accent,
+  signingOut,
 }: {
   portal: ClientPortalSnapshot;
   project?: PortalProject;
   activeView: PortalView;
   onNavigate: (view: PortalView) => void;
-  onSignOut: () => Promise<void>;
-  accent: string;
+  onSignOut: () => void;
+  signingOut: boolean;
 }) {
-  const approvals = portal.projects.reduce(
-    (total, item) =>
-      total +
-      item.deliverables.filter(
-        (deliverable) => deliverable.kind !== "delivery" && deliverable.status === "revisao",
-      ).length,
-    0,
-  );
-  const menu: Array<{ id: PortalView; label: string; icon: typeof Home; badge?: number }> = [
-    { id: "overview", label: "Visão geral", icon: Home },
-    { id: "production", label: "Produção atual", icon: Video },
-    { id: "approvals", label: "Aprovações", icon: ClipboardCheck, badge: approvals },
-    { id: "deliveries", label: "Entregas", icon: Images },
-    { id: "resources", label: "Arquivos úteis", icon: FolderOpen },
-    { id: "tools", label: "Ferramentas", icon: Wrench },
-    { id: "contracts", label: "Contratos", icon: FileCheck2 },
-  ];
+  const approvals =
+    project?.deliverables.filter((item) => item.kind !== "delivery" && item.status === "revisao")
+      .length ?? 0;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[272px] flex-col border-r border-white/[0.07] bg-[#0a0c0a] p-5 lg:flex">
-      <div className="flex items-center gap-3 px-2 py-1">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[272px] flex-col border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground lg:flex">
+      <div className="flex items-center gap-3 rounded-xl px-2 py-2">
         {portal.company.logo_url ? (
           <img src={portal.company.logo_url} alt="" className="size-10 rounded-xl object-contain" />
         ) : (
-          <div
-            className="grid size-10 place-items-center rounded-xl text-sm font-black text-black"
-            style={{ backgroundColor: accent }}
-          >
+          <div className="relative grid size-10 place-items-center overflow-hidden rounded-xl bg-primary text-sm font-black text-primary-foreground shadow-[0_0_24px_-5px_var(--primary)]">
             {portal.company.name.slice(0, 1).toUpperCase()}
+            <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
           </div>
         )}
-        <div>
-          <p className="text-sm font-semibold tracking-tight">{portal.company.name}</p>
-          <p className="mt-0.5 text-[9px] uppercase tracking-[.2em] text-white/28">
+        <div className="min-w-0">
+          <p className="truncate font-display text-[15px] font-semibold tracking-tight">
+            {portal.company.name}
+          </p>
+          <p className="mt-0.5 text-[9px] uppercase tracking-[.16em] text-muted-foreground/65">
             Área do cliente
           </p>
         </div>
       </div>
 
-      <div className="mt-7 flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3.5">
-        <span className="grid size-9 place-items-center rounded-full bg-white/[0.06] text-[11px] font-semibold">
-          {portal.client.name.slice(0, 2).toUpperCase()}
+      <div className="mt-5 flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/45 p-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/15 bg-primary/[0.07] text-[10px] font-semibold text-primary">
+          {portalInitials(portal.client.name)}
         </span>
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold">{portal.client.name}</p>
-          <p className="mt-1 truncate text-[10px] text-white/32">
+          <p className="mt-1 truncate text-[10px] text-muted-foreground">
             {project ? PHASES[project.phase] || project.phase : "Cliente"}
           </p>
         </div>
       </div>
 
-      <p className="mb-2 mt-7 px-3 text-[9px] uppercase tracking-[.18em] text-white/22">Menu</p>
+      <p className="mb-2 mt-6 px-3 text-[10px] uppercase tracking-[.12em] text-muted-foreground/70">
+        Navegação
+      </p>
       <nav className="space-y-1">
-        {menu.map(({ id, label, icon: Icon, badge }) => {
+        {PORTAL_MENU.map(({ id, label, icon: Icon }) => {
           const active = activeView === id;
+          const badge = id === "approvals" ? approvals : 0;
           return (
             <button
               key={id}
+              type="button"
               onClick={() => onNavigate(id)}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium transition",
-                active ? "text-black" : "text-white/42 hover:bg-white/[0.04] hover:text-white/78",
+                "group flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium transition-all duration-200 hover:translate-x-0.5",
+                active
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               )}
-              style={active ? { backgroundColor: accent } : undefined}
             >
-              <Icon className="size-4" />
+              <Icon
+                size={22}
+                color="currentColor"
+                variant={active ? "Bulk" : "TwoTone"}
+                className="shrink-0 transition-transform duration-200 group-hover:scale-105"
+              />
               <span>{label}</span>
               {badge ? (
-                <span
-                  className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[9px]",
-                    active ? "bg-black/10" : "bg-[var(--portal-accent)] text-black",
-                  )}
-                >
+                <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center text-[9px] font-bold text-primary-foreground">
                   {badge}
                 </span>
               ) : null}
+              {active && !badge && (
+                <span className="ml-auto size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+              )}
             </button>
           );
         })}
-        <div className="mt-3 border-t border-white/[0.07] pt-3">
-          <button
-            type="button"
-            onClick={() => void onSignOut()}
-            className="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium text-white/48 transition hover:bg-red-400/[0.08] hover:text-red-200"
-          >
-            <span className="grid size-7 place-items-center rounded-lg bg-white/[0.04]">
-              <LogOut className="size-3.5" />
-            </span>
-            <span>Sair do portal</span>
-          </button>
-        </div>
       </nav>
 
       <div className="mt-auto">
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-          <div className="flex items-center gap-2">
-            <span className="relative flex size-2">
-              <span
-                className="absolute inline-flex size-full animate-ping rounded-full opacity-40"
-                style={{ backgroundColor: accent }}
-              />
-              <span
-                className="relative inline-flex size-2 rounded-full"
-                style={{ backgroundColor: accent }}
-              />
-            </span>
-            <span className="text-[9px] uppercase tracking-[.15em] text-white/38">
-              Equipe online
-            </span>
-          </div>
-          <p className="mt-3 text-xs font-medium">Podemos ajudar?</p>
-          <a
-            href="mailto:equipe@makershub.app.br?subject=Ajuda%20no%20portal%20do%20cliente"
-            className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/10 text-[11px] text-white/55 transition hover:bg-white/[0.05] hover:text-white"
-          >
-            <Headphones className="size-3.5" /> Falar com a equipe
-          </a>
-        </div>
-        <p className="mt-3 flex items-center gap-2 px-2 text-[9px] uppercase tracking-[.13em] text-white/18">
-          <LockKeyhole className="size-3" /> Ambiente privado
+        <button
+          type="button"
+          onClick={onSignOut}
+          disabled={signingOut}
+          className="mb-3 flex h-10 w-full items-center gap-2 rounded-xl px-3 text-[11px] text-muted-foreground transition hover:bg-sidebar-accent hover:text-sidebar-foreground disabled:cursor-wait disabled:opacity-50"
+        >
+          {signingOut ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <LogoutCurve size={18} color="currentColor" variant="TwoTone" />
+          )}
+          {signingOut ? "Saindo…" : "Sair da conta"}
+        </button>
+        <p className="mt-3 flex items-center gap-2 border-t border-sidebar-border px-2 pt-4 text-[9px] uppercase tracking-[.13em] text-muted-foreground/50">
+          <ShieldTick size={14} color="currentColor" variant="TwoTone" /> Ambiente privado
         </p>
       </div>
     </aside>
@@ -518,73 +558,72 @@ function PortalTopbar({
   view,
   onNavigate,
   onSignOut,
-  accent,
+  signingOut,
 }: {
   portal: ClientPortalSnapshot;
   view: PortalView;
   onNavigate: (view: PortalView) => void;
-  onSignOut: () => Promise<void>;
-  accent: string;
+  onSignOut: () => void;
+  signingOut: boolean;
 }) {
-  const mobileViews: PortalView[] = [
-    "overview",
-    "production",
-    "approvals",
-    "deliveries",
-    "resources",
-    "tools",
-    "contracts",
-  ];
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-white/[0.06] bg-[#080a09]/90 px-5 backdrop-blur-xl md:px-8">
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl sm:h-16 sm:px-5 md:px-8">
         <div className="flex items-center gap-3">
-          <div
-            className="grid size-8 place-items-center rounded-lg text-xs font-black text-black lg:hidden"
-            style={{ backgroundColor: accent }}
-          >
+          <div className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-black text-primary-foreground shadow-[0_0_18px_-5px_var(--primary)] lg:hidden">
             {portal.company.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[.16em] text-white/25">Área do cliente</p>
+            <p className="text-[10px] uppercase tracking-[.16em] text-muted-foreground/60">
+              Área do cliente
+            </p>
             <p className="mt-0.5 text-xs font-medium">{VIEW_TITLES[view].eyebrow}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <a
-            href="mailto:equipe@makershub.app.br?subject=Ajuda%20no%20portal%20do%20cliente"
-            className="hidden h-9 items-center gap-2 rounded-xl border border-white/[0.08] px-3 text-[11px] text-white/45 transition hover:bg-white/[0.04] sm:flex"
-          >
-            <MessageSquareText className="size-3.5" /> Falar com a equipe
-          </a>
           <button
             type="button"
-            onClick={() => void onSignOut()}
-            className="grid size-9 place-items-center rounded-xl border border-white/[0.08] text-white/45 transition hover:bg-white/[0.04] hover:text-white"
-            aria-label="Sair do portal"
-            title="Sair do portal"
+            onClick={onSignOut}
+            disabled={signingOut}
+            aria-label="Sair da conta"
+            title="Sair da conta"
+            className="grid size-9 place-items-center rounded-xl border border-border bg-surface-1/50 text-muted-foreground transition hover:bg-surface-2 hover:text-foreground disabled:cursor-wait disabled:opacity-50"
           >
-            <LogOut className="size-3.5" />
+            {signingOut ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <LogoutCurve size={18} color="currentColor" variant="TwoTone" />
+            )}
           </button>
-          <span className="grid size-9 place-items-center rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold">
-            {portal.client.name.slice(0, 2).toUpperCase()}
+          <span className="grid size-9 place-items-center rounded-xl border border-primary/15 bg-primary/[0.07] text-[10px] font-semibold text-primary">
+            {portalInitials(portal.client.name)}
           </span>
         </div>
       </header>
-      <nav className="relative z-20 flex gap-2 overflow-x-auto border-b border-white/[0.05] bg-[#080a09] px-5 py-3 lg:hidden">
-        {mobileViews.map((item) => (
-          <button
-            key={item}
-            onClick={() => onNavigate(item)}
-            className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-[10px]",
-              item === view ? "border-transparent text-black" : "border-white/10 text-white/38",
-            )}
-            style={item === view ? { backgroundColor: accent } : undefined}
-          >
-            {VIEW_TITLES[item].eyebrow}
-          </button>
-        ))}
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-sidebar-border bg-sidebar/95 px-1 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[0_-18px_45px_-28px_rgba(0,0,0,.95)] backdrop-blur-xl lg:hidden">
+        {PORTAL_MENU.map(({ id, shortLabel, icon: Icon }) => {
+          const active = id === view;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onNavigate(id)}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-[8px] font-medium transition",
+                active
+                  ? "text-sidebar-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+              )}
+            >
+              {active && (
+                <span className="absolute inset-x-2 top-0 h-0.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+              )}
+              <Icon size={20} color="currentColor" variant={active ? "Bulk" : "TwoTone"} />
+              <span className="max-w-full truncate">{shortLabel}</span>
+            </button>
+          );
+        })}
       </nav>
     </>
   );
@@ -592,28 +631,25 @@ function PortalTopbar({
 
 function PageHeading({
   title,
-  clientName,
   accent,
 }: {
   title: { eyebrow: string; title: string; description: string };
-  clientName: string;
   accent: string;
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-white/[0.06] pb-7">
+    <header className="mb-6 border-b border-white/[0.07] pb-5 md:mb-8 md:pb-7">
       <div>
         <div className="flex items-center gap-2">
           <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} />
-          <p className="text-[10px] font-medium uppercase tracking-[.18em] text-white/32">
+          <p className="text-[10px] font-medium uppercase tracking-[.18em] text-white/45">
             {title.eyebrow}
           </p>
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-.045em] md:text-5xl">
+        <h1 className="mt-2.5 text-[2rem] font-semibold leading-[1.05] tracking-[-.045em] md:mt-3 md:text-5xl">
           {title.title}
         </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-white/38">{title.description}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-white/50">{title.description}</p>
       </div>
-      <p className="text-xs text-white/28">Olá, {clientName}.</p>
     </header>
   );
 }
@@ -630,10 +666,8 @@ function OverviewView({
   accent: string;
 }) {
   if (!project) return <EmptyState />;
-  const approvals = portal.projects.flatMap((item) =>
-    item.deliverables.filter(
-      (deliverable) => deliverable.kind !== "delivery" && deliverable.status === "revisao",
-    ),
+  const approvals = project.deliverables.filter(
+    (item) => item.kind !== "delivery" && item.status === "revisao",
   );
   const changesRequested = project.deliverables.filter(
     (item) => item.kind !== "delivery" && item.status === "ajustes",
@@ -645,8 +679,10 @@ function OverviewView({
     <div className="space-y-5">
       {approvals.length > 0 && (
         <button
+          type="button"
           onClick={() => onNavigate("approvals")}
-          className="portal-approval-alert group relative flex w-full overflow-hidden rounded-3xl border border-[var(--portal-accent)]/25 p-5 text-left md:items-center md:p-6"
+          aria-label={`Abrir ${approvals.length} ${approvals.length === 1 ? "material pendente" : "materiais pendentes"} de aprovação`}
+          className="portal-approval-alert group relative flex w-full overflow-hidden rounded-3xl border border-[var(--portal-accent)]/25 p-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--portal-accent)]/70 md:items-center md:p-6"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,color-mix(in_srgb,var(--portal-accent)_18%,transparent),transparent_32%)]" />
           <AlertTriangle className="relative mt-0.5 size-6 shrink-0 text-[var(--portal-accent)] md:size-7" />
@@ -694,7 +730,16 @@ function OverviewView({
       )}
 
       <section className="grid gap-4 lg:grid-cols-[1.45fr_.55fr]">
-        <div className="portal-hero group relative flex min-h-[360px] flex-col justify-end overflow-hidden rounded-3xl border border-white/[0.08] md:min-h-[420px]">
+        <button
+          type="button"
+          onClick={() => onNavigate(approvals.length > 0 ? "approvals" : "production")}
+          aria-label={
+            approvals.length > 0
+              ? `Revisar materiais de ${project.name}`
+              : `Ver andamento de ${project.name}`
+          }
+          className="portal-hero group relative flex min-h-[360px] w-full flex-col justify-end overflow-hidden rounded-3xl border border-white/[0.08] text-left outline-none transition hover:border-white/[0.16] focus-visible:ring-2 focus-visible:ring-[var(--portal-accent)]/70 md:min-h-[420px]"
+        >
           <img
             src={portalCoverUrl(project.cover_url)}
             alt=""
@@ -737,12 +782,20 @@ function OverviewView({
                 style={{ width: `${displayProgress}%`, backgroundColor: accent }}
               />
             </div>
-            <div className="mt-4 flex flex-wrap justify-between gap-3 text-[10px] font-medium uppercase tracking-[.14em] text-white/45">
-              <span>Início · {formatDate(project.start_date)}</span>
-              <span>Entrega · {formatDate(project.due_date)}</span>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[10px] font-medium uppercase tracking-[.14em] text-white/45">
+              <span className="flex flex-wrap gap-x-5 gap-y-2">
+                <span>Início · {formatDate(project.start_date)}</span>
+                <span>Entrega · {formatDate(project.due_date)}</span>
+              </span>
+              <span className="inline-flex items-center gap-2 text-[var(--portal-accent)] transition group-hover:gap-3">
+                {approvals.length > 0
+                  ? `Revisar ${approvals.length} ${approvals.length === 1 ? "material" : "materiais"}`
+                  : "Ver andamento"}
+                <ChevronRight className="size-3.5" />
+              </span>
             </div>
           </div>
-        </div>
+        </button>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
           <SummaryCard
             label="Aguardando você"
@@ -891,13 +944,13 @@ function OverviewFolderStrip({
           <button
             key={`${folder.title}-${folder.view}`}
             onClick={() => onNavigate(folder.view)}
-            className="portal-overview-folder group relative min-h-[188px] overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-[var(--portal-accent)]/25 hover:bg-white/[0.03]"
+            className="portal-overview-folder group relative min-h-40 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.018] p-3.5 text-left transition duration-300 hover:-translate-y-1 hover:border-[var(--portal-accent)]/25 hover:bg-white/[0.03] sm:min-h-[188px] sm:p-4"
           >
-            <div className="portal-folder portal-folder-lime mt-3 origin-top-left scale-[.9]">
+            <div className="portal-folder portal-folder-lime mt-2 origin-top-left scale-[.75] sm:mt-3 sm:scale-[.9]">
               <span />
             </div>
             <ChevronRight className="absolute right-4 top-4 size-3.5 text-white/15 transition group-hover:translate-x-0.5 group-hover:text-[var(--portal-accent)]" />
-            <div className="mt-5">
+            <div className="mt-2 sm:mt-5">
               <h3 className="text-sm font-semibold capitalize">{folder.title}</h3>
               <p className="mt-1 text-[10px] text-white/30">{folder.detail}</p>
               <p className="mt-2 text-[8px] uppercase tracking-[.14em] text-white/18">
@@ -1102,42 +1155,60 @@ function ProductionStatus({ project, accent }: { project: PortalProject; accent:
 }
 
 function ApprovalsView({
-  projects,
+  project,
   approvingId,
   onRespond,
   accent,
 }: {
-  projects: PortalProject[];
+  project: PortalProject;
   approvingId: string | null;
   onRespond: (
     item: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => void;
+  ) => Promise<boolean>;
   accent: string;
 }) {
-  const items = projects.flatMap((project) =>
-    project.deliverables.map((item) => ({ item, project })),
+  const pending = project.deliverables.filter(
+    (item) => item.kind !== "delivery" && item.status === "revisao",
   );
-  const pending = items.filter(({ item }) => item.kind !== "delivery" && item.status === "revisao");
-  const history = items.filter(
-    ({ item }) =>
+  const history = project.deliverables.filter(
+    (item) =>
       item.kind !== "delivery" &&
       (item.status === "aprovado" || item.status === "entregue" || item.status === "ajustes"),
   );
+  const totalReviews = pending.length + history.length;
+  const completedPercentage =
+    totalReviews > 0 ? Math.round((history.length / totalReviews) * 100) : 100;
   return (
     <div className="space-y-8">
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
+        <div className="mb-5 rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0 flex-1">
             <h2 className="text-sm font-semibold">Aguardando sua decisão</h2>
-            <p className="mt-1 text-xs text-white/28">
-              Você pode aprovar vários conteúdos do mesmo ciclo separadamente.
+            <p className="mt-1 text-xs text-white/45">
+              Revise cada material separadamente. Seu progresso fica salvo.
             </p>
+            <div
+              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]"
+              role="progressbar"
+              aria-label="Progresso das aprovações"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={completedPercentage}
+            >
+              <div
+                className="h-full rounded-full bg-[var(--portal-accent)] transition-[width] duration-500"
+                style={{ width: `${completedPercentage}%` }}
+              />
+            </div>
           </div>
-          <span className="rounded-full bg-[var(--portal-accent)] px-2.5 py-1 text-xs font-bold text-black">
-            {pending.length}
-          </span>
+          <div className="mt-3 flex items-baseline gap-2 sm:mt-0 sm:shrink-0">
+            <strong className="text-2xl font-semibold tracking-[-.04em] text-white">
+              {pending.length}
+            </strong>
+            <span className="text-[10px] uppercase tracking-[.14em] text-white/40">pendentes</span>
+          </div>
         </div>
         {pending.length === 0 ? (
           <EmptyPanel
@@ -1146,11 +1217,12 @@ function ApprovalsView({
             description="Você está em dia com a equipe."
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {pending.map(({ item, project }) => (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {pending.map((item, index) => (
               <ApprovalCard
                 key={item.id}
                 item={item}
+                priority={index === 0}
                 approving={approvingId === item.id}
                 onRespond={onRespond}
                 accent={accent}
@@ -1162,38 +1234,40 @@ function ApprovalsView({
       </section>
       <section>
         <h2 className="mb-4 text-sm font-semibold">Histórico de aprovações</h2>
-        <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
-          {history.map(({ item, project }) => (
-            <div key={item.id} className="flex items-center gap-3 px-5 py-4">
-              {item.status === "ajustes" ? (
-                <MessageSquareText className="size-4 text-red-300" />
-              ) : (
-                <CheckCircle2 className="size-4" style={{ color: accent }} />
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm">{item.title}</span>
-                {projects.length > 1 && (
-                  <span className="mt-0.5 block truncate text-[9px] text-white/25">
-                    {project.name}
-                  </span>
+        {history.length === 0 ? (
+          <EmptyPanel
+            icon={ClipboardCheck}
+            title="O histórico começa aqui"
+            description="As decisões deste projeto aparecerão nesta seção."
+          />
+        ) : (
+          <div className="divide-y divide-white/[0.06] overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02]">
+            {history.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 px-4 py-4 sm:px-5">
+                {item.status === "ajustes" ? (
+                  <MessageSquareText className="size-4 text-red-300" />
+                ) : (
+                  <CheckCircle2 className="size-4" style={{ color: accent }} />
                 )}
-              </span>
-              <span className="text-[10px] uppercase tracking-[.12em] text-white/25">
-                {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
-              </span>
-              {item.url && (
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg p-2 text-white/30 hover:bg-white/[0.05] hover:text-white"
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
+                <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+                <span className="hidden text-[10px] uppercase tracking-[.12em] text-white/25 sm:inline">
+                  {item.status === "ajustes" ? "Alterações solicitadas" : "Aprovado"}
+                </span>
+                {item.url && (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Abrir ${item.title}`}
+                    className="rounded-lg p-2 text-white/30 hover:bg-white/[0.05] hover:text-white"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
@@ -1201,54 +1275,154 @@ function ApprovalsView({
 
 function ApprovalCard({
   item,
+  priority,
   approving,
   onRespond,
   accent,
   cover,
 }: {
   item: PortalDeliverable;
+  priority: boolean;
   approving: boolean;
   onRespond: (
     item: PortalDeliverable,
     decision: "approved" | "changes_requested",
     feedback?: string,
-  ) => void;
+  ) => Promise<boolean>;
   accent: string;
   cover?: string | null;
 }) {
   const [requestingChanges, setRequestingChanges] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [confirmingApproval, setConfirmingApproval] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewSlow, setPreviewSlow] = useState(false);
+  const [previewRequested, setPreviewRequested] = useState(priority);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const thumbnail = driveThumbnailUrl(item.drive_file_id);
+  const poster = thumbnailFailed ? cover : thumbnail || cover;
+
+  useEffect(() => {
+    setPreviewReady(false);
+    setPreviewSlow(false);
+    setPreviewRequested(priority);
+    setThumbnailFailed(false);
+  }, [item.drive_file_id, item.embed_url, priority]);
+
+  useEffect(() => {
+    if (!item.embed_url || !previewRequested || previewReady) return;
+    const timeout = window.setTimeout(() => setPreviewSlow(true), 8_000);
+    return () => window.clearTimeout(timeout);
+  }, [item.embed_url, previewReady, previewRequested]);
+
+  const requestChanges = async () => {
+    if (!feedback.trim() || approving) return;
+    const success = await onRespond(item, "changes_requested", feedback.trim());
+    if (success) {
+      setFeedback("");
+      setRequestingChanges(false);
+    }
+  };
+
+  const approve = async () => {
+    if (approving) return;
+    const success = await onRespond(item, "approved");
+    if (success) setConfirmingApproval(false);
+  };
+
   return (
-    <article className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] transition hover:border-[var(--portal-accent)]/25">
-      <div className="relative aspect-video overflow-hidden bg-black">
-        {item.embed_url ? (
+    <article
+      className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-white/[0.025] transition hover:border-[var(--portal-accent)]/25"
+      aria-busy={approving}
+    >
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
+        {poster ? (
+          <img
+            src={poster}
+            alt=""
+            loading={priority ? "eager" : "lazy"}
+            onError={() => {
+              if (thumbnail) setThumbnailFailed(true);
+            }}
+            className="absolute inset-0 size-full object-cover transition duration-500 ease-out group-hover:scale-[1.025]"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(144,248,38,.06),transparent_55%),#0c0e0c]" />
+        )}
+        {item.embed_url && previewRequested ? (
           <iframe
             src={item.embed_url}
             title={`${item.title} ${item.version_label || ""}`}
-            className="absolute inset-0 size-full"
-            allow="autoplay; fullscreen"
+            className={cn(
+              "absolute inset-0 size-full transition-opacity duration-300",
+              previewReady ? "opacity-100" : "opacity-0",
+            )}
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            loading={priority ? "eager" : "lazy"}
+            onLoad={() => setPreviewReady(true)}
           />
-        ) : cover ? (
-          <img
-            src={cover}
-            alt=""
-            className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(163,255,43,.08),transparent_55%),#0c0e0c]" />
+        ) : null}
+        {item.embed_url && previewRequested && !previewReady && (
+          <div
+            className="absolute inset-0 grid place-items-center bg-black/60 backdrop-blur-[2px]"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex max-w-[80%] flex-col items-center text-center">
+              <span className="grid size-12 place-items-center rounded-full border border-white/[0.08] bg-white/[0.04]">
+                <Loader2 className="size-5 animate-spin text-[var(--portal-accent)]" />
+              </span>
+              <p className="mt-3 text-xs font-medium text-white/70">
+                {previewSlow ? "O Google Drive está demorando um pouco" : "Preparando o preview"}
+              </p>
+              <p className="mt-1 text-[10px] leading-4 text-white/35">
+                {previewSlow
+                  ? "Você pode continuar navegando enquanto o vídeo carrega."
+                  : "Conectando ao Google Drive…"}
+              </p>
+              {previewSlow && item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pointer-events-auto mt-3 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[10px] font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white"
+                >
+                  Abrir direto no Drive
+                </a>
+              )}
+            </div>
+          </div>
         )}
-        {!item.embed_url && (
+        {(!item.embed_url || !previewRequested) && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/35" />
         )}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[.14em] text-amber-300 backdrop-blur-sm">
+        {item.embed_url && !previewRequested && (
+          <button
+            type="button"
+            onClick={() => setPreviewRequested(true)}
+            className="absolute inset-0 grid place-items-center"
+            aria-label={`Carregar preview de ${item.title}`}
+          >
+            <span className="flex flex-col items-center">
+              <span className="grid size-16 place-items-center rounded-full bg-black/45 ring-1 ring-white/25 backdrop-blur-md transition duration-300 group-hover:scale-110 group-hover:ring-[var(--portal-accent)]/60">
+                <PlayCircle className="size-8 text-white" />
+              </span>
+              <span className="mt-3 rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-semibold text-white/80 backdrop-blur-sm">
+                Carregar vídeo
+              </span>
+            </span>
+          </button>
+        )}
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[.14em] text-amber-200 backdrop-blur-sm">
             <span className="relative flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-300 opacity-60" />
               <span className="relative inline-flex size-1.5 rounded-full bg-amber-300" />
             </span>
             Aguardando aprovação
           </span>
-          <span className="rounded-full bg-black/45 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.12em] text-white/60 backdrop-blur-sm">
+          <span className="max-w-[40%] truncate rounded-full bg-black/60 px-2.5 py-1 text-[8px] font-medium uppercase tracking-[.12em] text-white/70 backdrop-blur-sm">
             {item.version_label || item.type}
           </span>
         </div>
@@ -1265,8 +1439,8 @@ function ApprovalCard({
           </a>
         )}
       </div>
-      <div className="p-5">
-        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[.12em] text-white/28">
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[.12em] text-white/42">
           {item.content_cycle && <span>{item.content_cycle}</span>}
           {item.due_at && (
             <span className="inline-flex items-center gap-1">
@@ -1274,8 +1448,8 @@ function ApprovalCard({
             </span>
           )}
         </div>
-        <h3 className="text-lg font-semibold tracking-[-.02em]">{item.title}</h3>
-        {item.notes && <p className="mt-2 text-xs leading-5 text-white/45">{item.notes}</p>}
+        <h3 className="mt-1 text-base font-semibold leading-5 tracking-[-.02em]">{item.title}</h3>
+        {item.notes && <p className="mt-2 text-xs leading-5 text-white/55">{item.notes}</p>}
         {requestingChanges ? (
           <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/20 p-3">
             <label className="text-[10px] uppercase tracking-[.13em] text-white/35">
@@ -1291,32 +1465,45 @@ function ApprovalCard({
             />
             <div className="mt-2 flex gap-2">
               <button
+                type="button"
                 onClick={() => setRequestingChanges(false)}
+                disabled={approving}
                 className="h-9 flex-1 rounded-xl border border-white/10 text-xs text-white/45"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 disabled={!feedback.trim() || approving}
-                onClick={() => onRespond(item, "changes_requested", feedback)}
+                onClick={() => void requestChanges()}
                 className="h-9 flex-1 rounded-xl bg-white text-xs font-semibold text-black disabled:opacity-40"
               >
-                Enviar alterações
+                {approving ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Enviando…
+                  </span>
+                ) : (
+                  "Enviar alterações"
+                )}
               </button>
             </div>
           </div>
         ) : (
           <div className="mt-5 flex gap-2">
             <button
+              type="button"
               onClick={() => setRequestingChanges(true)}
+              disabled={approving}
               className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 px-3 text-xs font-medium text-white/55 transition hover:bg-white/[0.05] hover:text-white"
             >
               <MessageSquareText className="size-3.5" /> Solicitar ajustes
             </button>
             <button
+              type="button"
               disabled={approving}
-              onClick={() => onRespond(item, "approved")}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold text-black shadow-[0_8px_24px_-8px_var(--portal-accent)] transition hover:brightness-105 disabled:opacity-50"
+              onClick={() => setConfirmingApproval(true)}
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold text-black shadow-[0_8px_20px_-14px_var(--portal-accent)] transition hover:brightness-105 disabled:opacity-50"
               style={{ backgroundColor: accent }}
             >
               {approving ? (
@@ -1329,6 +1516,58 @@ function ApprovalCard({
           </div>
         )}
       </div>
+      <AlertDialog open={confirmingApproval} onOpenChange={setConfirmingApproval}>
+        <AlertDialogContent className="border-white/[0.09] bg-[#101210] text-white shadow-2xl sm:rounded-3xl">
+          <AlertDialogHeader>
+            <div
+              className="mb-2 grid size-11 place-items-center rounded-2xl text-black"
+              style={{ backgroundColor: accent }}
+            >
+              <CheckCircle2 className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-xl tracking-[-.025em]">
+              Confirmar aprovação
+            </AlertDialogTitle>
+            <AlertDialogDescription className="leading-6 text-white/45">
+              Você está aprovando <strong className="font-medium text-white">{item.title}</strong>,{" "}
+              {item.version_label || "na versão atual"}. A produtora receberá sua decisão e seguirá
+              para a próxima etapa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-xs text-white/42">
+            Verifique se imagem, texto, áudio e informações estão corretos antes de confirmar.
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={approving}
+              className="border-white/10 bg-transparent text-white/55 hover:bg-white/[0.05] hover:text-white"
+            >
+              Revisar novamente
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={approving}
+              onClick={(event) => {
+                event.preventDefault();
+                void approve();
+              }}
+              className="text-black hover:brightness-105"
+              style={{ backgroundColor: accent }}
+            >
+              {approving ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Confirmando…
+                </>
+              ) : (
+                <>
+                  <Check className="size-3.5" />
+                  Confirmar aprovação
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
   );
 }
@@ -1350,6 +1589,7 @@ function DeliveriesArchive({
       )
       .map((item) => ({
         ...item,
+        projectId: project.id,
         project: project.name,
         fallbackDate: project.due_date || project.start_date,
       })),
@@ -1360,40 +1600,37 @@ function DeliveriesArchive({
     const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     groups.set(key, [...(groups.get(key) || []), item]);
   });
-  const years = [...new Set([...groups.keys()].map((key) => key.slice(0, 4)))].sort().reverse();
-  const [selectedYear, setSelectedYear] = useState(years[0] || String(new Date().getFullYear()));
-  useEffect(() => {
-    if (years.length > 0 && !years.includes(selectedYear)) {
-      setSelectedYear(years[0]);
-    }
-  }, [selectedYear, years]);
+  const availableYears = [...new Set([...groups.keys()].map((key) => key.slice(0, 4)))]
+    .sort()
+    .reverse();
+  const [selectedYear, setSelectedYear] = useState("");
+  const activeYear = availableYears.includes(selectedYear)
+    ? selectedYear
+    : availableYears[0] || String(new Date().getFullYear());
   const months = [...groups.entries()]
-    .filter(([key]) => key.startsWith(selectedYear))
+    .filter(([key]) => key.startsWith(activeYear))
     .sort(([a], [b]) => b.localeCompare(a));
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex gap-2">
-          {years.map((year) => (
+          {availableYears.map((year) => (
             <button
               key={year}
               type="button"
               onClick={() => setSelectedYear(year)}
-              aria-pressed={year === selectedYear}
               className={cn(
-                "rounded-full border px-4 py-2 text-xs font-semibold transition",
-                year === selectedYear
-                  ? "border-transparent bg-[var(--portal-accent)] text-black"
-                  : "border-white/10 text-white/45 hover:border-white/20 hover:text-white",
+                "rounded-full px-4 py-2 text-xs font-semibold transition",
+                year === activeYear
+                  ? "bg-[var(--portal-accent)] text-black"
+                  : "border border-white/[0.08] text-white/35 hover:bg-white/[0.04] hover:text-white/65",
               )}
             >
               {year}
             </button>
           ))}
         </div>
-        <span className="text-xs text-white/25">
-          {delivered.length} {delivered.length === 1 ? "material entregue" : "materiais entregues"}
-        </span>
+        <span className="text-xs text-white/25">{delivered.length} materiais entregues</span>
       </div>
       {months.length === 0 ? (
         <EmptyPanel
@@ -1402,15 +1639,41 @@ function DeliveriesArchive({
           description="Os materiais aparecerão aqui quando a produtora liberar a entrega final."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="space-y-8">
           {months.map(([key, items]) => {
             const [year, month] = key.split("-");
             const label = new Intl.DateTimeFormat("pt-BR", {
               month: "long",
               timeZone: "UTC",
             }).format(new Date(`${year}-${month}-15T12:00:00Z`));
+            const projects = new Map<string, typeof items>();
+            items.forEach((item) => {
+              projects.set(item.projectId, [...(projects.get(item.projectId) || []), item]);
+            });
             return (
-              <ArchiveFolder key={key} title={`${label} ${year}`} items={items} accent={accent} />
+              <section key={key}>
+                <div className="mb-4 flex items-end justify-between gap-4 border-b border-white/[0.06] pb-3">
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-[.16em] text-[var(--portal-accent)]">
+                      {year}
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold capitalize">{label}</h2>
+                  </div>
+                  <span className="text-[10px] text-white/25">
+                    {items.length} {items.length === 1 ? "material" : "materiais"}
+                  </span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                  {[...projects.entries()].map(([projectId, projectItems]) => (
+                    <ArchiveFolder
+                      key={`${key}-${projectId}`}
+                      title={projectItems[0]?.project || "Projeto"}
+                      items={projectItems}
+                      accent={accent}
+                    />
+                  ))}
+                </div>
+              </section>
             );
           })}
         </div>
@@ -1435,8 +1698,8 @@ function ArchiveFolder({
   items: Array<PortalDeliverable & { project: string }>;
   accent: string;
 }) {
-  const content = (
-    <>
+  return (
+    <article className="portal-folder-card rounded-3xl border border-white/[0.08] bg-white/[0.025] p-5 transition hover:-translate-y-1 hover:border-[var(--portal-accent)]/30">
       <div className="portal-folder portal-folder-lime">
         <span />
       </div>
@@ -1444,33 +1707,33 @@ function ArchiveFolder({
       <p className="mt-1 text-xs text-white/32">
         {items.length} {items.length === 1 ? "arquivo" : "arquivos"}
       </p>
-      <div className="mt-6 flex items-center justify-between text-[9px] uppercase tracking-[.12em] text-white/22">
-        <span>{items[0]?.project}</span>
-        <Download className="size-3.5" style={{ color: accent }} />
-      </div>
-    </>
-  );
-  const downloadableItems = items.filter((item) => item.url);
-  return (
-    <div className="portal-folder-card rounded-3xl border border-white/[0.08] bg-white/[0.025] p-5 transition hover:border-[var(--portal-accent)]/30">
-      {content}
-      {downloadableItems.length > 0 ? (
-        <div className="mt-4 space-y-1 border-t border-white/[0.07] pt-3">
-          {downloadableItems.map((item, index) => (
+      <div className="mt-5 space-y-1 border-t border-white/[0.06] pt-3">
+        {items.map((item) =>
+          item.url ? (
             <a
               key={item.id}
-              href={item.url || undefined}
+              href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-[11px] text-white/45 transition hover:bg-white/[0.04] hover:text-white"
+              className="group/file flex min-h-9 items-center gap-2 rounded-lg px-2 text-[11px] text-white/40 transition hover:bg-white/[0.04] hover:text-white/75"
             >
-              <span className="truncate">{item.title || `Arquivo ${index + 1}`}</span>
-              <ExternalLink className="size-3 shrink-0" style={{ color: accent }} />
+              <span className="min-w-0 flex-1 truncate">{item.title}</span>
+              <Download
+                className="size-3.5 shrink-0 opacity-55 transition group-hover/file:opacity-100"
+                style={{ color: accent }}
+              />
             </a>
-          ))}
-        </div>
-      ) : null}
-    </div>
+          ) : (
+            <div
+              key={item.id}
+              className="flex min-h-9 items-center rounded-lg px-2 text-[11px] text-white/22"
+            >
+              <span className="truncate">{item.title}</span>
+            </div>
+          ),
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -1549,6 +1812,7 @@ const CHECKLISTS = [
 function ToolsView({ token, accent }: { token: string; accent: string }) {
   const storageKey = `mh_portal_checklists_${token}`;
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     try {
       setChecked(JSON.parse(localStorage.getItem(storageKey) || "{}"));
@@ -1556,67 +1820,286 @@ function ToolsView({ token, accent }: { token: string; accent: string }) {
       setChecked({});
     }
   }, [storageKey]);
-  const toggle = (key: string) => {
-    const next = { ...checked, [key]: !checked[key] };
+
+  const saveChecked = (next: Record<string, boolean>) => {
     setChecked(next);
     localStorage.setItem(storageKey, JSON.stringify(next));
   };
+
+  const toggle = (key: string) => {
+    const next = { ...checked, [key]: !checked[key] };
+    saveChecked(next);
+  };
+
+  const resetList = (listId: string) => {
+    const next = Object.fromEntries(
+      Object.entries(checked).filter(([key]) => !key.startsWith(`${listId}-`)),
+    );
+    saveChecked(next);
+    toast.success("Checklist reiniciado");
+  };
+
+  const totalItems = CHECKLISTS.reduce((total, list) => total + list.items.length, 0);
+  const totalDone = CHECKLISTS.reduce(
+    (total, list) => total + list.items.filter((_, index) => checked[`${list.id}-${index}`]).length,
+    0,
+  );
+  const overallProgress = Math.round((totalDone / totalItems) * 100);
+  const nextList =
+    CHECKLISTS.find((list) => list.items.some((_, index) => !checked[`${list.id}-${index}`])) ||
+    CHECKLISTS[CHECKLISTS.length - 1];
+
+  const continueChecklist = () => {
+    document
+      .getElementById(`checklist-${nextList.id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const copyPendingItems = async () => {
+    const sections = CHECKLISTS.map((list) => {
+      const pending = list.items.filter((_, index) => !checked[`${list.id}-${index}`]);
+      if (pending.length === 0) return null;
+      return `${list.title}\n${pending.map((item) => `☐ ${item}`).join("\n")}`;
+    }).filter(Boolean);
+    const text =
+      sections.length > 0
+        ? `Checklist de produção\n\n${sections.join("\n\n")}`
+        : "Checklist de produção concluído. Tudo pronto por aqui.";
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Pendências copiadas", {
+        description: "Agora é só colar no WhatsApp ou no grupo da equipe.",
+      });
+    } catch {
+      toast.error("Não foi possível copiar a lista");
+    }
+  };
+
+  const reviewPoints = [
+    {
+      title: "Texto e informações",
+      description: "Nomes, datas, preços, contatos e legendas estão corretos?",
+    },
+    {
+      title: "Marca e identidade",
+      description: "Logos, cores, produtos e grafismos estão na versão certa?",
+    },
+    {
+      title: "Imagem e áudio",
+      description: "Falas, trilha, volume e imagens representam bem a marca?",
+    },
+    {
+      title: "Formato e destino",
+      description: "Duração, proporção e canal de publicação estão alinhados?",
+    },
+  ];
+
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      {CHECKLISTS.map((list) => {
-        const done = list.items.filter((_, index) => checked[`${list.id}-${index}`]).length;
-        return (
-          <section
-            key={list.id}
-            className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5"
+    <div className="space-y-5">
+      <section className="relative overflow-hidden rounded-3xl border border-[var(--portal-accent)]/20 bg-white/[0.025] p-5 md:p-7">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_0%,color-mix(in_srgb,var(--portal-accent)_15%,transparent),transparent_34%)]" />
+        <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="flex min-w-0 items-center gap-4">
+            <div
+              className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--portal-accent)]/20 bg-[var(--portal-accent)]/[0.07]"
+              style={{ color: accent }}
+            >
+              {overallProgress === 100 ? (
+                <CheckCircle2 className="size-6" />
+              ) : (
+                <ClipboardCheck className="size-6" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-semibold uppercase tracking-[.18em] text-[var(--portal-accent)]">
+                Seu preparo
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-.035em] md:text-2xl">
+                {overallProgress === 100
+                  ? "Tudo conferido. Pode seguir."
+                  : `${totalItems - totalDone} itens ainda pedem atenção`}
+              </h2>
+              <p className="mt-1 text-xs leading-5 text-white/38">
+                O progresso fica salvo neste dispositivo para você continuar depois.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={continueChecklist}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--portal-accent)] px-5 text-xs font-semibold text-black transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--portal-accent)]/60"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <ListChecks className="size-5" style={{ color: accent }} />
-                <h2 className="mt-4 text-lg font-semibold">{list.title}</h2>
-                <p className="mt-1 text-xs text-white/30">{list.description}</p>
-              </div>
-              <span className="text-[10px] text-white/25">
-                {done}/{list.items.length}
-              </span>
-            </div>
-            <div className="mt-5 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${(done / list.items.length) * 100}%`, backgroundColor: accent }}
-              />
-            </div>
-            <div className="mt-5 space-y-2">
-              {list.items.map((item, index) => {
-                const key = `${list.id}-${index}`;
-                return (
-                  <label
-                    key={key}
-                    className="flex cursor-pointer items-start gap-3 rounded-xl p-2 text-xs text-white/50 transition hover:bg-white/[0.03]"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={Boolean(checked[key])}
-                      onChange={() => toggle(key)}
-                      className="sr-only"
-                    />
+            {overallProgress === 100 ? "Rever checklist" : "Continuar checklist"}
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div className="relative mt-6">
+          <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[.13em] text-white/30">
+            <span>
+              {totalDone} de {totalItems} concluídos
+            </span>
+            <span className="font-semibold text-[var(--portal-accent)]">{overallProgress}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+            <div
+              className="h-full rounded-full shadow-[0_0_14px_var(--portal-accent)] transition-all duration-500"
+              style={{ width: `${overallProgress}%`, backgroundColor: accent }}
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {CHECKLISTS.map((list, listIndex) => {
+          const done = list.items.filter((_, index) => checked[`${list.id}-${index}`]).length;
+          const status =
+            done === list.items.length ? "Concluído" : done > 0 ? "Em andamento" : "A fazer";
+          return (
+            <section
+              id={`checklist-${list.id}`}
+              key={list.id}
+              className="scroll-mt-24 rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 transition hover:border-white/[0.13]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="grid size-8 place-items-center rounded-lg bg-[var(--portal-accent)]/[0.08] text-xs font-semibold"
+                      style={{ color: accent }}
+                    >
+                      0{listIndex + 1}
+                    </span>
                     <span
                       className={cn(
-                        "mt-0.5 grid size-4 shrink-0 place-items-center rounded border",
-                        checked[key] ? "border-transparent text-black" : "border-white/15",
+                        "rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[.1em]",
+                        done === list.items.length
+                          ? "bg-[var(--portal-accent)]/[0.1] text-[var(--portal-accent)]"
+                          : "bg-white/[0.045] text-white/35",
                       )}
-                      style={checked[key] ? { backgroundColor: accent } : undefined}
                     >
-                      {checked[key] && <Check className="size-3" />}
+                      {status}
                     </span>
-                    <span className={cn(checked[key] && "text-white/25 line-through")}>{item}</span>
-                  </label>
-                );
-              })}
+                  </div>
+                  <h2 className="mt-4 text-lg font-semibold">{list.title}</h2>
+                  <p className="mt-1 text-xs leading-5 text-white/30">{list.description}</p>
+                </div>
+                <span className="shrink-0 text-[10px] tabular-nums text-white/25">
+                  {done}/{list.items.length}
+                </span>
+              </div>
+              <div className="mt-5 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${(done / list.items.length) * 100}%`, backgroundColor: accent }}
+                />
+              </div>
+              <div className="mt-4 space-y-1">
+                {list.items.map((item, index) => {
+                  const key = `${list.id}-${index}`;
+                  return (
+                    <label
+                      key={key}
+                      className="group/item flex min-h-10 cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-xs text-white/52 transition hover:bg-white/[0.035]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={Boolean(checked[key])}
+                        onChange={() => toggle(key)}
+                        className="sr-only"
+                      />
+                      <span
+                        className={cn(
+                          "grid size-[18px] shrink-0 place-items-center rounded-md border transition",
+                          checked[key]
+                            ? "border-transparent text-black"
+                            : "border-white/15 group-hover/item:border-white/30",
+                        )}
+                        style={checked[key] ? { backgroundColor: accent } : undefined}
+                      >
+                        {checked[key] && <Check className="size-3" />}
+                      </span>
+                      <span
+                        className={cn("leading-5", checked[key] && "text-white/24 line-through")}
+                      >
+                        {item}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {done > 0 && (
+                <button
+                  type="button"
+                  onClick={() => resetList(list.id)}
+                  className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-white/25 transition hover:text-white/55"
+                >
+                  <RotateCcw className="size-3" />
+                  Reiniciar esta etapa
+                </button>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[.8fr_1.2fr]">
+        <section className="flex flex-col rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <span className="grid size-10 place-items-center rounded-xl bg-[var(--portal-accent)]/[0.08]">
+              <Copy className="size-4" style={{ color: accent }} />
+            </span>
+            <span className="text-[9px] uppercase tracking-[.14em] text-white/24">Ação rápida</span>
+          </div>
+          <h2 className="mt-5 text-lg font-semibold">Leve as pendências para a equipe</h2>
+          <p className="mt-2 text-xs leading-5 text-white/35">
+            Copie apenas o que ainda falta e envie no WhatsApp, no grupo da gravação ou onde
+            preferir.
+          </p>
+          <button
+            type="button"
+            onClick={copyPendingItems}
+            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 text-xs font-medium text-white/65 transition hover:border-[var(--portal-accent)]/30 hover:text-white"
+          >
+            <Copy className="size-3.5" />
+            Copiar itens pendentes
+          </button>
+        </section>
+
+        <section className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 md:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[.16em] text-[var(--portal-accent)]">
+                Guia de aprovação
+              </p>
+              <h2 className="mt-2 text-lg font-semibold">Antes de aprovar um material</h2>
             </div>
-          </section>
-        );
-      })}
+            <p className="max-w-xs text-xs leading-5 text-white/30">
+              Quatro pontos evitam retrabalho e deixam o feedback mais objetivo.
+            </p>
+          </div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {reviewPoints.map((point, index) => (
+              <div
+                key={point.title}
+                className="rounded-2xl border border-white/[0.06] bg-black/10 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--portal-accent)]/[0.09] text-[10px] font-semibold"
+                    style={{ color: accent }}
+                  >
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-xs font-medium text-white/70">{point.title}</p>
+                    <p className="mt-1 text-[11px] leading-4 text-white/30">{point.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

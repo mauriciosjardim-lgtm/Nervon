@@ -99,6 +99,7 @@ export interface Database {
         Row: {
           id: string;
           empresa_id: string;
+          cliente_id: string | null;
           nome: string;
           cliente: string;
           descricao: string | null;
@@ -120,6 +121,14 @@ export interface Database {
           valor: number;
           cor: string;
           notas: string | null;
+          links: unknown;
+          portal_visible: boolean;
+          portal_phase: string;
+          portal_progress: number;
+          portal_update: string | null;
+          portal_next_milestone: string | null;
+          portal_cover_url: string | null;
+          portal_updated_at: string | null;
           criado_em: string;
         };
         Insert: {
@@ -148,6 +157,13 @@ export interface Database {
           notas?: string | null;
           cliente_id?: string | null;
           links?: unknown;
+          portal_visible?: boolean;
+          portal_phase?: string;
+          portal_progress?: number;
+          portal_update?: string | null;
+          portal_next_milestone?: string | null;
+          portal_cover_url?: string | null;
+          portal_updated_at?: string | null;
           criado_em?: string;
         };
         Update: Partial<Database["public"]["Tables"]["projetos"]["Insert"]>;
@@ -237,6 +253,58 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["entregaveis"]["Insert"]>;
         Relationships: [];
       };
+      portal_review_versions: {
+        Row: {
+          id: string;
+          empresa_id: string;
+          projeto_id: string;
+          entregavel_id: string | null;
+          thread_id: string;
+          version_number: number;
+          version_label: string;
+          title: string;
+          content_cycle: string | null;
+          drive_url: string;
+          drive_file_id: string | null;
+          embed_url: string | null;
+          message: string | null;
+          status: "draft" | "pending" | "changes_requested" | "approved" | "archived";
+          kind: "review" | "delivery";
+          due_at: string | null;
+          published_at: string | null;
+          decided_at: string | null;
+          client_name: string | null;
+          client_feedback: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          empresa_id: string;
+          projeto_id: string;
+          entregavel_id?: string | null;
+          thread_id: string;
+          version_number: number;
+          version_label: string;
+          title: string;
+          content_cycle?: string | null;
+          drive_url: string;
+          drive_file_id?: string | null;
+          embed_url?: string | null;
+          message?: string | null;
+          status?: "draft" | "pending" | "changes_requested" | "approved" | "archived";
+          kind?: "review" | "delivery";
+          due_at?: string | null;
+          published_at?: string | null;
+          decided_at?: string | null;
+          client_name?: string | null;
+          client_feedback?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["portal_review_versions"]["Insert"]>;
+        Relationships: [];
+      };
       financeiro: {
         Row: {
           id: string;
@@ -291,6 +359,10 @@ export interface Database {
           observacoes: string | null;
           accent_color: string | null;
           arquivado: boolean;
+          portal_enabled: boolean;
+          portal_token: string | null;
+          portal_last_access_at: string | null;
+          portal_welcome_message: string | null;
           criado_em: string;
         };
         Insert: {
@@ -304,6 +376,10 @@ export interface Database {
           observacoes?: string | null;
           accent_color?: string | null;
           arquivado?: boolean;
+          portal_enabled?: boolean;
+          portal_token?: string | null;
+          portal_last_access_at?: string | null;
+          portal_welcome_message?: string | null;
           criado_em?: string;
         };
         Update: Partial<Database["public"]["Tables"]["clientes_comercial"]["Insert"]>;
@@ -608,6 +684,27 @@ export interface Database {
       alterar_papel_membro: {
         Args: { p_usuario_id: string; p_role: string; p_permissoes: Json };
         Returns: undefined;
+      };
+      configurar_makers_members: {
+        Args: {
+          p_cliente_id: string;
+          p_enabled: boolean;
+          p_welcome_message: string | null;
+          p_rotate_token: boolean;
+        };
+        Returns: string;
+      };
+      meu_portal_token: { Args: Record<string, never>; Returns: string | null };
+      portal_cliente_publico: { Args: { p_token: string }; Returns: Json };
+      responder_revisao_portal: {
+        Args: {
+          p_token: string;
+          p_review_id: string;
+          p_decision: "approved" | "changes_requested";
+          p_feedback: string | null;
+          p_client_name: string | null;
+        };
+        Returns: boolean;
       };
     };
   };
