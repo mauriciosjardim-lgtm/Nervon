@@ -401,10 +401,7 @@ function ClientPortalPage() {
         />
 
         <main className="mx-auto max-w-[1380px] px-4 pb-28 pt-6 sm:px-5 md:px-8 md:pt-10 lg:pb-10 xl:px-12">
-          <PageHeading
-            title={title}
-            accent={accent}
-          />
+          <PageHeading title={title} accent={accent} />
 
           {view === "overview" && (
             <OverviewView
@@ -1210,9 +1207,7 @@ function ApprovalsView({
             <strong className="text-2xl font-semibold tracking-[-.04em] text-white">
               {pending.length}
             </strong>
-            <span className="text-[10px] uppercase tracking-[.14em] text-white/40">
-              pendentes
-            </span>
+            <span className="text-[10px] uppercase tracking-[.14em] text-white/40">pendentes</span>
           </div>
         </div>
         {pending.length === 0 ? (
