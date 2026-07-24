@@ -14,18 +14,24 @@ import {
   FileCheck2,
   FileText,
   FolderOpen,
-  Home,
-  Images,
   Loader2,
-  LockKeyhole,
-  LogOut,
   MessageSquareText,
   Milestone,
   PlayCircle,
   RotateCcw,
   AlertTriangle,
-  Video,
 } from "lucide-react";
+import {
+  DocumentText1,
+  Element3,
+  FolderOpen as FolderOpenIcon,
+  Gallery,
+  LogoutCurve,
+  ShieldTick,
+  TickCircle,
+  VideoPlay,
+  type Icon as IconsaxIcon,
+} from "iconsax-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -96,6 +102,20 @@ const VIEW_TITLES: Record<PortalView, { eyebrow: string; title: string; descript
   },
 };
 
+const PORTAL_MENU: Array<{
+  id: PortalView;
+  label: string;
+  shortLabel: string;
+  icon: IconsaxIcon;
+}> = [
+  { id: "overview", label: "Visão geral", shortLabel: "Início", icon: Element3 },
+  { id: "production", label: "Produção atual", shortLabel: "Produção", icon: VideoPlay },
+  { id: "approvals", label: "Aprovações", shortLabel: "Aprovações", icon: TickCircle },
+  { id: "deliveries", label: "Entregas", shortLabel: "Entregas", icon: Gallery },
+  { id: "resources", label: "Arquivos úteis", shortLabel: "Arquivos", icon: FolderOpenIcon },
+  { id: "contracts", label: "Contratos", shortLabel: "Contratos", icon: DocumentText1 },
+];
+
 const PHASES: Record<string, string> = {
   briefing: "Briefing",
   pre: "Pré-produção",
@@ -134,6 +154,17 @@ function formatDate(value: string | null) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${value.slice(0, 10)}T12:00:00Z`));
+}
+
+function portalInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function viewFromHash(): PortalView {
@@ -290,15 +321,15 @@ function ClientPortalPage() {
 
   if (loading) {
     return (
-      <div className="grid min-h-[100dvh] place-items-center bg-[#080a09] text-white">
-        <Loader2 className="size-7 animate-spin text-[#a3ff2b]" />
+      <div className="grid min-h-[100dvh] place-items-center bg-background text-foreground">
+        <Loader2 className="size-7 animate-spin text-primary" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="grid min-h-[100dvh] place-items-center bg-[#080a09] px-6 text-center text-white">
+      <div className="grid min-h-[100dvh] place-items-center bg-background px-6 text-center text-foreground">
         <div className="max-w-sm">
           <div className="mx-auto grid size-14 place-items-center rounded-2xl border border-amber-300/15 bg-amber-300/[0.06]">
             <AlertTriangle className="size-6 text-amber-300" />
@@ -323,7 +354,7 @@ function ClientPortalPage() {
 
   if (notFound || !portal) {
     return (
-      <div className="grid min-h-[100dvh] place-items-center bg-[#080a09] px-6 text-center text-white">
+      <div className="grid min-h-[100dvh] place-items-center bg-background px-6 text-center text-foreground">
         <div>
           <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-white/5">
             <FolderOpen className="size-6 text-white/40" />
@@ -337,12 +368,12 @@ function ClientPortalPage() {
     );
   }
 
-  const accent = portal.company.accent_color || "#a3ff2b";
+  const accent = "#90f826";
   const title = VIEW_TITLES[view];
 
   return (
     <div
-      className="min-h-[100dvh] bg-[#080a09] text-white"
+      className="min-h-[100dvh] bg-background text-foreground"
       style={{ "--portal-accent": accent } as React.CSSProperties}
     >
       <PortalSidebar
@@ -352,7 +383,6 @@ function ClientPortalPage() {
         onNavigate={navigate}
         onSignOut={signOut}
         signingOut={signingOut}
-        accent={accent}
       />
 
       <div className="min-w-0 lg:pl-[272px]">
@@ -362,7 +392,6 @@ function ClientPortalPage() {
           onNavigate={navigate}
           onSignOut={signOut}
           signingOut={signingOut}
-          accent={accent}
         />
 
         <main className="mx-auto max-w-[1380px] px-5 py-8 md:px-8 md:py-10 xl:px-12">
@@ -415,7 +444,6 @@ function PortalSidebar({
   onNavigate,
   onSignOut,
   signingOut,
-  accent,
 }: {
   portal: ClientPortalSnapshot;
   project?: PortalProject;
@@ -423,85 +451,79 @@ function PortalSidebar({
   onNavigate: (view: PortalView) => void;
   onSignOut: () => void;
   signingOut: boolean;
-  accent: string;
 }) {
   const approvals =
     project?.deliverables.filter((item) => item.kind !== "delivery" && item.status === "revisao")
       .length ?? 0;
-  const menu: Array<{
-    id: PortalView;
-    label: string;
-    icon: typeof Home;
-    badge?: number;
-  }> = [
-    { id: "overview", label: "Visão geral", icon: Home },
-    { id: "production", label: "Produção atual", icon: Video },
-    { id: "approvals", label: "Aprovações", icon: ClipboardCheck, badge: approvals },
-    { id: "deliveries", label: "Entregas", icon: Images },
-    { id: "resources", label: "Arquivos úteis", icon: FolderOpen },
-    { id: "contracts", label: "Contratos", icon: FileCheck2 },
-  ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[272px] flex-col border-r border-white/[0.07] bg-[#0a0c0a] p-5 lg:flex">
-      <div className="flex items-center gap-3 px-2 py-1">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[272px] flex-col border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground lg:flex">
+      <div className="flex items-center gap-3 rounded-xl px-2 py-2">
         {portal.company.logo_url ? (
           <img src={portal.company.logo_url} alt="" className="size-10 rounded-xl object-contain" />
         ) : (
-          <div
-            className="grid size-10 place-items-center rounded-xl text-sm font-black text-black"
-            style={{ backgroundColor: accent }}
-          >
+          <div className="relative grid size-10 place-items-center overflow-hidden rounded-xl bg-primary text-sm font-black text-primary-foreground shadow-[0_0_24px_-5px_var(--primary)]">
             {portal.company.name.slice(0, 1).toUpperCase()}
+            <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
           </div>
         )}
-        <div>
-          <p className="text-sm font-semibold tracking-tight">{portal.company.name}</p>
-          <p className="mt-0.5 text-[9px] uppercase tracking-[.2em] text-white/28">
+        <div className="min-w-0">
+          <p className="truncate font-display text-[15px] font-semibold tracking-tight">
+            {portal.company.name}
+          </p>
+          <p className="mt-0.5 text-[9px] uppercase tracking-[.16em] text-muted-foreground/65">
             Área do cliente
           </p>
         </div>
       </div>
 
-      <div className="mt-7 flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3.5">
-        <span className="grid size-9 place-items-center rounded-full bg-white/[0.06] text-[11px] font-semibold">
-          {portal.client.name.slice(0, 2).toUpperCase()}
+      <div className="mt-5 flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/45 p-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/15 bg-primary/[0.07] text-[10px] font-semibold text-primary">
+          {portalInitials(portal.client.name)}
         </span>
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold">{portal.client.name}</p>
-          <p className="mt-1 truncate text-[10px] text-white/32">
+          <p className="mt-1 truncate text-[10px] text-muted-foreground">
             {project ? PHASES[project.phase] || project.phase : "Cliente"}
           </p>
         </div>
       </div>
 
-      <p className="mb-2 mt-7 px-3 text-[9px] uppercase tracking-[.18em] text-white/22">Menu</p>
+      <p className="mb-2 mt-6 px-3 text-[10px] uppercase tracking-[.12em] text-muted-foreground/70">
+        Navegação
+      </p>
       <nav className="space-y-1">
-        {menu.map(({ id, label, icon: Icon, badge }) => {
+        {PORTAL_MENU.map(({ id, label, icon: Icon }) => {
           const active = activeView === id;
+          const badge = id === "approvals" ? approvals : 0;
           return (
             <button
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium transition",
-                active ? "text-black" : "text-white/42 hover:bg-white/[0.04] hover:text-white/78",
+                "group flex h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-medium transition-all duration-200 hover:translate-x-0.5",
+                active
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               )}
-              style={active ? { backgroundColor: accent } : undefined}
             >
-              <Icon className="size-4" />
+              <Icon
+                size={22}
+                color="currentColor"
+                variant={active ? "Bulk" : "TwoTone"}
+                className="shrink-0 transition-transform duration-200 group-hover:scale-105"
+              />
               <span>{label}</span>
               {badge ? (
-                <span
-                  className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[9px]",
-                    active ? "bg-black/10" : "bg-[var(--portal-accent)] text-black",
-                  )}
-                >
+                <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center text-[9px] font-bold text-primary-foreground">
                   {badge}
                 </span>
               ) : null}
+              {active && !badge && (
+                <span className="ml-auto size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+              )}
             </button>
           );
         })}
@@ -512,17 +534,17 @@ function PortalSidebar({
           type="button"
           onClick={onSignOut}
           disabled={signingOut}
-          className="mb-3 flex h-10 w-full items-center gap-2 rounded-xl px-3 text-[11px] text-white/38 transition hover:bg-white/[0.04] hover:text-white/75 disabled:cursor-wait disabled:opacity-50"
+          className="mb-3 flex h-10 w-full items-center gap-2 rounded-xl px-3 text-[11px] text-muted-foreground transition hover:bg-sidebar-accent hover:text-sidebar-foreground disabled:cursor-wait disabled:opacity-50"
         >
           {signingOut ? (
             <Loader2 className="size-3.5 animate-spin" />
           ) : (
-            <LogOut className="size-3.5" />
+            <LogoutCurve size={18} color="currentColor" variant="TwoTone" />
           )}
           {signingOut ? "Saindo…" : "Sair da conta"}
         </button>
-        <p className="mt-3 flex items-center gap-2 px-2 text-[9px] uppercase tracking-[.13em] text-white/18">
-          <LockKeyhole className="size-3" /> Ambiente privado
+        <p className="mt-3 flex items-center gap-2 border-t border-sidebar-border px-2 pt-4 text-[9px] uppercase tracking-[.13em] text-muted-foreground/50">
+          <ShieldTick size={14} color="currentColor" variant="TwoTone" /> Ambiente privado
         </p>
       </div>
     </aside>
@@ -535,35 +557,24 @@ function PortalTopbar({
   onNavigate,
   onSignOut,
   signingOut,
-  accent,
 }: {
   portal: ClientPortalSnapshot;
   view: PortalView;
   onNavigate: (view: PortalView) => void;
   onSignOut: () => void;
   signingOut: boolean;
-  accent: string;
 }) {
-  const mobileViews: PortalView[] = [
-    "overview",
-    "production",
-    "approvals",
-    "deliveries",
-    "resources",
-    "contracts",
-  ];
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-white/[0.06] bg-[#080a09]/90 px-5 backdrop-blur-xl md:px-8">
+      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur-xl md:px-8">
         <div className="flex items-center gap-3">
-          <div
-            className="grid size-8 place-items-center rounded-lg text-xs font-black text-black lg:hidden"
-            style={{ backgroundColor: accent }}
-          >
+          <div className="grid size-8 place-items-center rounded-lg bg-primary text-xs font-black text-primary-foreground shadow-[0_0_18px_-5px_var(--primary)] lg:hidden">
             {portal.company.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[.16em] text-white/25">Área do cliente</p>
+            <p className="text-[10px] uppercase tracking-[.16em] text-muted-foreground/60">
+              Área do cliente
+            </p>
             <p className="mt-0.5 text-xs font-medium">{VIEW_TITLES[view].eyebrow}</p>
           </div>
         </div>
@@ -574,34 +585,40 @@ function PortalTopbar({
             disabled={signingOut}
             aria-label="Sair da conta"
             title="Sair da conta"
-            className="grid size-9 place-items-center rounded-full border border-white/[0.08] bg-white/[0.03] text-white/42 transition hover:bg-white/[0.07] hover:text-white disabled:cursor-wait disabled:opacity-50"
+            className="grid size-9 place-items-center rounded-xl border border-border bg-surface-1/50 text-muted-foreground transition hover:bg-surface-2 hover:text-foreground disabled:cursor-wait disabled:opacity-50"
           >
             {signingOut ? (
               <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <LogOut className="size-3.5" />
+              <LogoutCurve size={18} color="currentColor" variant="TwoTone" />
             )}
           </button>
-          <span className="grid size-9 place-items-center rounded-full border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold">
-            {portal.client.name.slice(0, 2).toUpperCase()}
+          <span className="grid size-9 place-items-center rounded-xl border border-primary/15 bg-primary/[0.07] text-[10px] font-semibold text-primary">
+            {portalInitials(portal.client.name)}
           </span>
         </div>
       </header>
-      <nav className="flex gap-2 overflow-x-auto border-b border-white/[0.05] bg-[#080a09] px-5 py-3 lg:hidden">
-        {mobileViews.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onNavigate(id)}
-            className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-[10px]",
-              id === view ? "border-transparent text-black" : "border-white/10 text-white/38",
-            )}
-            style={id === view ? { backgroundColor: accent } : undefined}
-          >
-            {VIEW_TITLES[id].eyebrow}
-          </button>
-        ))}
+      <nav className="flex gap-1.5 overflow-x-auto border-b border-border bg-sidebar px-4 py-2.5 lg:hidden">
+        {PORTAL_MENU.map(({ id, shortLabel, icon: Icon }) => {
+          const active = id === view;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onNavigate(id)}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-[10px] font-medium transition",
+                active
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+              )}
+            >
+              <Icon size={17} color="currentColor" variant={active ? "Bulk" : "TwoTone"} />
+              {shortLabel}
+            </button>
+          );
+        })}
       </nav>
     </>
   );
