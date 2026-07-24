@@ -13,12 +13,15 @@ effect. CI and clean checkouts must install with `bun install --frozen-lockfile`
 - `bun run test:integration`: integration and contract tests only.
 - `bun run test:e2e`: critical browser smoke tests only.
 - `bun run lint:changed`: ESLint only for JavaScript/TypeScript files changed
-  relative to `LINT_BASE` (defaults to `HEAD`).
+  relative to `LINT_BASE` (defaults to `HEAD^`).
 - `bun run check`: typecheck, changed-file lint, unit tests, and integration
   tests.
 
 The global `bun run lint` command remains diagnostic while legacy debt is
 ratcheted down; it is not a merge gate. Do not run a repository-wide autofix.
+Files listed in `docs/quality/lint-baseline.json` keep all semantic lint rules
+but temporarily disable only the Prettier rule. New files and files removed
+from that explicit list must pass the complete configuration.
 
 ## Test boundaries
 

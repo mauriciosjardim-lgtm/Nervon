@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 const base = process.env.LINT_BASE ?? "HEAD^";
 const patterns = ["*.js", "*.mjs", "*.ts", "*.tsx"];
@@ -43,8 +44,24 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-const eslint = spawnSync("eslint", ["--max-warnings=0", ...files], {
-  encoding: "utf8",
-  stdio: "inherit",
-});
-process.exit(eslint.status ?? 1);
+const baseline = JSON.parse(
+  readFileSync(new URL("../docs/quality/lint-baseline.json", import.meta.url), "utf8"),
+);
+const prettierExempt = new Set(baseline.prettierExemptFiles);
+const strictFiles = files.filter((file) => !prettierExempt.has(file));
+const ratchetedFiles = files.filter((file) => prettierExempt.has(file));
+
+const runs = [
+  strictFiles.length > 0 ? ["--max-warnings=0", ...strictFiles] : null,
+  ratchetedFiles.length > 0
+    ? ["--max-warnings=0", "--rule", "prettier/prettier: off", ...ratchetedFiles]
+    : null,
+].filter(Boolean);
+
+for (const args of runs) {
+  const eslint = spawnSync("eslint", args, {
+    encoding: "utf8",
+    stdio: "inherit",
+  });
+  if (eslint.status !== 0) process.exit(eslint.status ?? 1);
+}

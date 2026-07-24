@@ -13,6 +13,7 @@ import {
   type Lancamento, type LancTipo, type LancStatus,
 } from "@/lib/mock/financeiro";
 import { useFinanceiroSupa, financeiroActions } from "@/lib/hooks/useFinanceiro";
+import { openComprovante } from "@/lib/comprovantes";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/financeiro/lancamentos")({
@@ -134,15 +135,18 @@ function LancamentosPage() {
                   <span className="flex items-center gap-1.5">
                     {l.descricao}
                     {l.comprovanteUrl && (
-                      <a
-                        href={l.comprovanteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
                         title="Ver comprovante"
-                        onClick={e => e.stopPropagation()}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void openComprovante(l.comprovanteUrl!).catch(() =>
+                            toast.error("Não foi possível abrir o comprovante."),
+                          );
+                        }}
                       >
                         <Paperclip size={12} color="currentColor" variant="Linear" className="text-primary/60 hover:text-primary" />
-                      </a>
+                      </button>
                     )}
                   </span>
                 </TableCell>
