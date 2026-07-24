@@ -10,6 +10,12 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "lint:changed": "node scripts/lint-changed.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src tests --exclude tests/integration --exclude tests/e2e",
+    "test:integration": "bun test tests/integration",
+    "test:e2e": "bun test tests/e2e",
+    "check": "bun run typecheck && bun run lint:changed && bun run test && bun run test:integration",
     "format": "prettier --write .",
     "check:schema": "bun run scripts/check-schema.ts",
     "deploy": "bun run check:schema && bun run build && bunx wrangler deploy"
